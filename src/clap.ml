@@ -5,8 +5,11 @@ open Format
 module Arg = struct
     (* Arguments: short (flag) or long. *)
     type t =
+    (* Flag: `-v`. *)
     | Short of char
+    (* Option: `--verb`. *)
     | Long of string
+    (* Value: some string. *)
     | Val of string
 
     (* Returns the head if it is a value, none otherwise. *)
@@ -17,7 +20,7 @@ module Arg = struct
     (* Same as `next_value` but converts the value to an `int`. *)
     let next_int (l : t list) : (int * t list) option = match next_value l with
     | Some (v, tail) ->
-        Base.erase_err
+        Exc.erase_err
             (fun () -> sprintf "expected integer value, found `%s`" v)
             (fun () -> Some ((int_of_string v), tail))
     | None -> None
@@ -98,6 +101,8 @@ let split_args (args : string list) : Arg.t list =
     (* Actual short/long splitting. *)
     let rec loop (acc : Arg.t list) : string list -> Arg.t list = function
         | [] -> List.rev acc
+        (* Separator, everything else is a value. *)
+        | "--" :: tail -> tail |> List.map (fun s -> Arg.Val s) |> List.rev_append acc
         | head :: tail -> (
             let acc =
                 if String.length head > 1
@@ -139,7 +144,7 @@ let handle_args (conf : Conf.t) (args : Arg.t list) : Conf.t =
             (* Notice the empty list of arguments (first argument). *)
             action [] conf |> ignore;
             loop tail
-        | None -> sprintf "unknown flag `-%c`" c |> Base.throw
+        | None -> sprintf "unknown flag `-%c`" c |> Exc.throw
     )
     (* Option, expected to take arguments. *)
     | (Arg.Long s) :: tail -> (match Hashtbl.find_opt long_map s with
@@ -147,7 +152,7 @@ let handle_args (conf : Conf.t) (args : Arg.t list) : Conf.t =
             (* Feed tail arguments, get new tail back. *)
             let tail = action tail conf in
             loop tail
-        | None -> sprintf "unknown option `--%s`" s |> Base.throw
+        | None -> sprintf "unknown option `--%s`" s |> Exc.throw
     )
     in
     loop args

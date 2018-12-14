@@ -5,8 +5,8 @@ include Format
 (* Configuration, built by CLAP. *)
 let conf : Conf.t =
     let chained : unit -> Conf.t =
-        fun () -> Base.chain_err (
+        fun () -> Exc.chain_err (
             fun () -> "while parsing command-line arguments"
         ) (fun () -> Clap.run ())
     in
-    Base.catch_fail chained
+    Exc.catch_fail chained

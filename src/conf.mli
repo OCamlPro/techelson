@@ -11,3 +11,6 @@ type t = {
 
 (** Default configuration. *)
 val default : t
+
+(** Formatter. *)
+val fmt : Format.formatter -> t -> unit
