@@ -3,6 +3,7 @@ open Format
 exception Exc of string list
 
 let throw (s : string) : 'a = Exc [s] |> raise
+let throws (ss : string list) : 'a = Exc ss |> raise
 
 let erase_err (blah : unit -> string) (stuff : unit -> 'a) : 'a =
     try stuff () with 

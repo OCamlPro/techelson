@@ -3,8 +3,11 @@
 (** Base exception, used everywhere. *)
 exception Exc of string list
 
-(** Raises an exception. *)
+(** Raises an exception from a single trace frame. *)
 val throw : string -> 'a
+
+(** Raises an exception from a trace. *)
+val throws : string list -> 'a
 
 (** Replaces an exception.
 
