@@ -11,3 +11,6 @@ val run_on : string list -> Conf.t
 
 (** Runs CLAP and produces a configuration. *)
 val run : unit -> Conf.t
+
+(** Runs CLAP and sets the configuration in `Common`. *)
+val set_conf : unit -> unit

@@ -1,19 +1,28 @@
-open Common
+open Base
+open Base.Common
+
 
 let _ =
-    printf "@[<v>Configuration:@,%a@]@.@." Conf.fmt conf;
-    let lst = Mic.DTyp.List Mic.DTyp.str in
-    printf "lst : %a@." Mic.DTyp.fmt lst;
-    let per = Mic.DTyp.Pair (lst, Mic.DTyp.bool) in
-    printf "per : %a@." Mic.DTyp.fmt per;
-    let opt = Mic.DTyp.Option per in
-    printf "opt : %a@." Mic.DTyp.fmt opt;
-    let orr = Mic.DTyp.Or (per, opt) in
-    printf "orr : %a@." Mic.DTyp.fmt orr;
-    let set = Mic.DTyp.Set per in
-    printf "set : %a@." Mic.DTyp.fmt set;
-    let map = Mic.DTyp.Map (Mic.DTyp.nat, orr) in
-    printf "map : %a@." Mic.DTyp.fmt map;
-    let bmp = Mic.DTyp.BigMap (Mic.DTyp.str, set) in
-    printf "bmp : %a@." Mic.DTyp.fmt bmp;
+    conf () |> printf "@[<v>Configuration:@,%a@]@.@." Conf.fmt;
+    let lst = Dtyp.List Dtyp.str in
+    printf "lst : %a@." Dtyp.fmt lst;
+    let per = Dtyp.Pair (lst, Dtyp.bool) in
+    printf "per : %a@." Dtyp.fmt per;
+    let opt = Dtyp.Option per in
+    printf "opt : %a@." Dtyp.fmt opt;
+    let orr = Dtyp.Or (per, opt) in
+    printf "orr : %a@." Dtyp.fmt orr;
+    let set = Dtyp.Set per in
+    printf "set : %a@." Dtyp.fmt set;
+    let map = Dtyp.Map (Dtyp.nat, orr) in
+    printf "map : %a@." Dtyp.fmt map;
+    let bmp = Dtyp.BigMap (Dtyp.str, set) in
+    printf "bmp : %a@." Dtyp.fmt bmp;
     ()
+
+let test_parser () =
+    let lexbuf = Lexing.from_channel stdin in
+    let () = Parse.Micparse.mic Parse.Miclex.token lexbuf in
+    ()
+
+let _ = Exc.catch_fail test_parser

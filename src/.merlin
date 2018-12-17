@@ -1,3 +1,7 @@
 B ../_build/default/src/.main.eobjs
+B ../_build/default/src/base/.base.objs
+B ../_build/default/src/parse/.parse.objs
 S .
+S base
+S parse
 FLG -w @a-4-29-40-41-42-44-45-48-58-59-60-40 -strict-sequence -strict-formats -short-paths -keep-locs

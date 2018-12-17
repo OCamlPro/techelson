@@ -165,3 +165,12 @@ let run_on (args : string list) : Conf.t =
 
 (* Runs CLAP on CLAs. *)
 let run () : Conf.t = run_on args
+
+(* Sets the configuration in `Common`. *)
+let set_conf () : unit =
+    let chained : unit -> Conf.t =
+        fun () -> Exc.chain_err (
+            fun () -> "while parsing command-line arguments"
+        ) (fun () -> Clap.run ())
+    in
+    Exc.catch_fail chained |> Base.Common.set_conf

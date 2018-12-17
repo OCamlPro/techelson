@@ -1,84 +1,6 @@
-(** Types and helpers for michelson stuff. *)
+(** Instruction types and helpers. *)
 
 open Common
-
-(** Datatypes. *)
-module DTyp : sig
-    (** Nullary datatypes. *)
-    type leaf =
-    | Str
-    | Nat
-    | Int
-    | Bytes
-    | Bool
-    | Unit
-    | Mutez
-    | Address
-    | Operation
-    | Key
-    | KeyH
-    | Signature
-    | Timestamp
-
-    (** Formatter for nullary datatypes. *)
-    val fmt_leaf : formatter -> leaf -> unit
-
-    (** Datatypes. *)
-    type t =
-    | Leaf of leaf
-
-    | List of t
-    | Option of t
-    | Set of t
-    | Contract of t
-
-    | Pair of t * t
-    | Or of t * t
-    | Map of t * t
-    | BigMap of t * t
-
-    (** String datatype. *)
-    val str : t
-
-    (** Integer datatype. *)
-    val int : t
-
-    (** Natural datatype. *)
-    val nat : t
-
-    (** Bytes datatype. *)
-    val bytes : t
-
-    (** Bool datatype. *)
-    val bool : t
-
-    (** Unit datatype. *)
-    val unit : t
-
-    (** Mutez datatype. *)
-    val mutez : t
-
-    (** Address datatype. *)
-    val address : t
-
-    (** Operation datatype. *)
-    val operation : t
-
-    (** Key datatype. *)
-    val key : t
-
-    (** Key hash datatype. *)
-    val key_hash : t
-
-    (** Signature datatype. *)
-    val signature : t
-
-    (** Timestamp datatype. *)
-    val timestamp : t
-
-    (** Formatter for datatypes. *)
-    val fmt : formatter -> t -> unit
-end
 
 (** Macro-related types and helpers. *)
 module Macro : sig
@@ -131,10 +53,8 @@ module Macro : sig
     val fmt : (formatter -> 'ins -> unit) -> formatter -> 'ins t -> unit
 end
 
-(** Instruction-related types and helpers. *)
-module Ins : sig
-    (** Nullary instructions. *)
-    type leaf =
+(** Nullary instructions. *)
+type leaf =
     | Failwith
     | Exec
     | Drop
@@ -156,7 +76,7 @@ module Ins : sig
     | Get
     | Mem
     | Update
-    | Some
+    | Som
     | Cons
     | CreateContract
     | CreateAccount
@@ -183,22 +103,25 @@ module Ins : sig
     (** Leaf formatter. *)
     val fmt_leaf : formatter -> leaf -> unit
 
+    (** String to leaf conversion. *)
+    val leaf_of_string : string -> leaf option
+
     (** Instructions. *)
     type t =
     | Leaf of leaf
-    | EmptySet of DTyp.t
-    | EmptyMap of DTyp.t * DTyp.t
-    | None of DTyp.t
-    | Left of DTyp.t
-    | Right of DTyp.t
-    | Nil of DTyp.t
+    | EmptySet of Dtyp.t
+    | EmptyMap of Dtyp.t * Dtyp.t
+    | Non of Dtyp.t
+    | Left of Dtyp.t
+    | Right of Dtyp.t
+    | Nil of Dtyp.t
     | Seq of t list
     | If of t * t
     | Loop of t
     | LoopLeft of t
     | Dip of t
-    | Push of DTyp.t * t
-    | Lambda of DTyp.t * DTyp.t * t
+    | Push of Dtyp.t * t
+    | Lambda of Dtyp.t * Dtyp.t * t
     | Iter of t
     | IfNone of t * t
     | IfLeft of t * t
@@ -206,6 +129,11 @@ module Ins : sig
     | IfCons of t * t
     | Macro of t list * t Macro.t
 
+    (** Creates a sequence instruction. *)
+    val mk_seq : t list -> t
+
     (** Instruction formatter. *)
     val fmt : formatter -> t -> unit
-end
+
+    (** Instruction parser. *)
+    val parse : string -> Dtyp.t list -> t list -> t

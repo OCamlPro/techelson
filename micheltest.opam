@@ -1,0 +1,19 @@
+opam-version: "2.0.1"
+maintainer: "adrien.champion@ocamlpro.com"
+authors: ["Adrien Champion"]
+homepage: "https://github.com/"
+bug-reports: "https://github.com/"
+dev-repo: "https://github.com/"
+
+build: [
+  ["dune" "subst"] {pinned}
+  ["dune" "build" "-p" name "-j" jobs]
+]
+
+build-test: ["dune" "runtest" "-p" name]
+
+depends: [
+  "dune" {build}
+  "base" {build}
+  "parse" {build}
+]

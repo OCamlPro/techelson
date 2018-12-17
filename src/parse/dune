@@ -1,0 +1,10 @@
+(ocamllex miclex)
+(menhir (modules micparse))
+
+(library
+    (name parse)
+    (public_name micheltest.parse)
+    (libraries
+        base
+    )
+)

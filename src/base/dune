@@ -1,0 +1,5 @@
+(library
+    (name base)
+    (public_name micheltest.base)
+    (synopsis "Base types and helpers for micheltest.")
+)
