@@ -1,0 +1,9 @@
+(library
+    (name test)
+    (public_name micheltest.test)
+    (synopsis "Loads test scenarii and runs tests.")
+    (libraries
+        base
+        parse
+    )
+)

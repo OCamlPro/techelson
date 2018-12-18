@@ -24,61 +24,37 @@ val fmt_leaf : formatter -> leaf -> unit
 (** String to leaf conversion. *)
 val leaf_of_string : string -> leaf option
 
-(** Datatypes. *)
-type t =
+(** Wraps a datatype with a name. *)
+type 'sub named = {
+  typ : 'sub ;
+  name : string option ;
+}
+
+(** Nameless datatype. *)
+type 'sub dtyp =
 | Leaf of leaf
 
-| List of t
-| Option of t
-| Set of t
-| Contract of t
+| List of 'sub
+| Option of 'sub
+| Set of 'sub
+| Contract of 'sub
 
-| Pair of t * t
-| Or of t * t
-| Map of t * t
-| BigMap of t * t
+| Pair of (t named) list
+| Or of (t named) list
+| Map of 'sub * 'sub
+| BigMap of 'sub * 'sub
 
-(** String datatype. *)
-val str : t
+(** Datatypes. *)
+and t = {
+  typ : t dtyp ;
+  alias : string option ;
+}
 
-(** Integer datatype. *)
-val int : t
-
-(** Natural datatype. *)
-val nat : t
-
-(** Bytes datatype. *)
-val bytes : t
-
-(** Bool datatype. *)
-val bool : t
-
-(** Unit datatype. *)
-val unit : t
-
-(** Mutez datatype. *)
-val mutez : t
-
-(** Address datatype. *)
-val address : t
-
-(** Operation datatype. *)
-val operation : t
-
-(** Key datatype. *)
-val key : t
-
-(** Key hash datatype. *)
-val key_hash : t
-
-(** Signature datatype. *)
-val signature : t
-
-(** Timestamp datatype. *)
-val timestamp : t
+(** Named datatype constructor. *)
+val mk : string option -> t dtyp -> t
 
 (** Formatter for datatypes. *)
 val fmt : formatter -> t -> unit
 
 (** Datatype parser. *)
-val parse : string -> t list -> t
+val parse : string -> string option -> (t * string option) list -> t

@@ -14,6 +14,13 @@ let unwrap_or_else (f : unit -> 'a) (opt : 'a option) : 'a = match opt with
 | None -> f ()
 | Some a -> a
 
+let open_file (file : string) : in_channel =
+    try open_in file with
+    | e -> Exc.throws [
+        sprintf "while opening file `%s`" file ;
+        Printexc.to_string e
+    ]
+
 module Lst = struct
     let len = List.length
     let hd (l : 'a list) : 'a option =
@@ -64,6 +71,9 @@ module Fmt = struct
     let sep_non (_ : formatter) : sep =
         fun () -> ()
 
+    let unit_combine (f_1 : unit -> unit) (f_2 : unit -> unit) : unit -> unit =
+        fun () -> f_1 () ; f_2 ()
+
     let plurify (n : int) : string = if n = 1 then "" else "s"
 end
 
@@ -76,9 +86,47 @@ module Check = struct
         : unit
     =
         if expected <> List.length args then (
-            sprintf "%s expects %i %s%s" (blah ()) expected desc (List.length args |> Fmt.plurify)
+            sprintf "%s expects %i %s%s" (blah ()) expected desc (Fmt.plurify expected)
             |> Exc.throw
         )
+    let arity_ge
+        (desc : string)
+        (expected : int)
+        (blah : unit -> string)
+        (args : 'a list)
+        : unit
+    =
+        if expected > List.length args then (
+            sprintf "%s expects %i or more %ss" (blah ()) expected desc
+            |> Exc.throw
+        )
+    let arity_le
+        (desc : string)
+        (expected : int)
+        (blah : unit -> string)
+        (args : 'a list)
+        : unit
+    =
+        if expected < List.length args then (
+            sprintf "%s expects %i or more %ss" (blah ()) expected desc
+            |> Exc.throw
+        )
+end
+
+module Source = struct
+    type t =
+    | Stdin
+    | File of string
+
+    let fmt (fmt : formatter) (t : t) : unit =
+        match t with
+        | Stdin -> fprintf fmt "stdin"
+        | File file -> fprintf fmt "file `%s`" file
+
+    let to_channel (t : t) : in_channel =
+        match t with
+        | Stdin -> stdin
+        | File file -> open_file file
 end
 
 let conf_ref : Conf.t ref = ref Conf.default
@@ -86,3 +134,17 @@ let conf_ref : Conf.t ref = ref Conf.default
 let set_conf (conf : Conf.t) : unit = conf_ref := conf
 
 let conf () : Conf.t = ! conf_ref
+
+let out = formatter_of_out_channel stdout
+
+let log (lvl : int) (args : ('a, formatter, unit) format) : 'a =
+    if lvl <= (!conf_ref).verb then (
+        fprintf out args;
+    ) else (
+        ifprintf out args
+    )
+
+let log_0 (args : ('a, Format.formatter, unit) format) : 'a = log 0 args
+let log_1 (args : ('a, Format.formatter, unit) format) : 'a = log 1 args
+let log_2 (args : ('a, Format.formatter, unit) format) : 'a = log 2 args
+let log_3 (args : ('a, Format.formatter, unit) format) : 'a = log 3 args

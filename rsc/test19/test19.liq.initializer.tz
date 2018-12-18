@@ -1,0 +1,15 @@
+parameter key;
+storage (pair :storage (key %key) (pair (bytes %hash) (address %c)));
+code { DUP ;
+       DIP { CDR @_storage } ;
+       CAR @_parameter ;
+       DUP ;
+       PUSH address "KT1LLcCCB9Fr1hrkGzfdiJ9u3ZajbdckBFrF" ;
+       PUSH bytes 0xabcdef ;
+       PAIR %hash %c ;
+       { DIP { DUP @k } ; SWAP } ;
+       PAIR %key ;
+       DIP { DROP } ;
+       NIL operation ;
+       PAIR ;
+       DIP { DROP ; DROP } };

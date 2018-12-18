@@ -7,10 +7,10 @@
 val args : string list
 
 (** Runs CLAP on custom arguments. *)
-val run_on : string list -> Conf.t
+val run_on : string list -> Base.Conf.t
 
 (** Runs CLAP and produces a configuration. *)
-val run : unit -> Conf.t
+val run : unit -> Base.Conf.t
 
 (** Runs CLAP and sets the configuration in `Common`. *)
 val set_conf : unit -> unit

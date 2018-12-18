@@ -3,5 +3,6 @@
     (libraries
         micheltest.base
         micheltest.parse
+        micheltest.test
     )
 )

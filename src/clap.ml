@@ -1,6 +1,7 @@
 (* CLAP stuff. *)
 
-open Format
+open Base
+open Base.Common
 
 module Arg = struct
     (* Arguments: short (flag) or long. *)
@@ -13,17 +14,17 @@ module Arg = struct
     | Val of string
 
     (* Returns the head if it is a value, none otherwise. *)
-    let next_value (l : t list) : (string * t list) option = match l with
-    | (Val v) :: tail -> Some (v, tail)
-    | _ -> None
+    let next_value (l : t list) : string option * t list = match l with
+    | (Val v) :: tail -> Some v, tail
+    | _ -> None, l
 
     (* Same as `next_value` but converts the value to an `int`. *)
-    let next_int (l : t list) : (int * t list) option = match next_value l with
-    | Some (v, tail) ->
+    let next_int (l : t list) : int option * t list = match next_value l with
+    | Some v, tail ->
         Exc.erase_err
             (fun () -> sprintf "expected integer value, found `%s`" v)
-            (fun () -> Some ((int_of_string v), tail))
-    | None -> None
+            (fun () -> Some (int_of_string v), tail)
+    | None, tail -> None, tail
 end
 
 
@@ -43,15 +44,27 @@ module Cla = struct
     let verb : t =
         mk ['v'] ["verb"] (
             fun args conf -> match Arg.next_int args with
-            | None ->
+            | None, tail ->
                 conf.verb <- conf.verb + 1;
-                args
-            | Some (i, tail) ->
+                tail
+            | Some i, tail ->
                 conf.verb <- i;
                 tail
         )
+    let contract : t =
+        mk [] ["contract"] (
+            fun args conf -> match Arg.next_value args with
+            | None, _ ->
+                Exc.throw (
+                    "argument `--contract` expects at least one value"
+                )
+            | Some (file), tail ->
+                let (init, tail) = Arg.next_value tail in
+                conf.contracts <- conf.contracts @ [ Conf.mk_contract file init ];
+                tail
+        )
 
-    let options : t list = [ verb ]
+    let options : t list = [ verb ; contract ]
 
     let add_all
         (long_map : (string, Arg.t list -> Conf.t -> Arg.t list) Hashtbl.t)
@@ -102,7 +115,8 @@ let split_args (args : string list) : Arg.t list =
     let rec loop (acc : Arg.t list) : string list -> Arg.t list = function
         | [] -> List.rev acc
         (* Separator, everything else is a value. *)
-        | "--" :: tail -> tail |> List.map (fun s -> Arg.Val s) |> List.rev_append acc
+        | "--" :: tail ->
+            tail |> List.map (fun s -> Arg.Val s) |> List.rev_append acc
         | head :: tail -> (
             let acc =
                 if String.length head > 1
@@ -171,6 +185,6 @@ let set_conf () : unit =
     let chained : unit -> Conf.t =
         fun () -> Exc.chain_err (
             fun () -> "while parsing command-line arguments"
-        ) (fun () -> Clap.run ())
+        ) (fun () -> run ())
     in
     Exc.catch_fail chained |> Base.Common.set_conf

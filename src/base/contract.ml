@@ -54,3 +54,20 @@ let fmt (full : bool) (fmt : formatter) {
         )
     );
     fprintf fmt "@]@,}@]"
+
+let name_of_file (s : string) : string =
+    let bail () = sprintf "illegal contract file name `%s`" s |> Exc.throw in
+    if 1 > String.length s then bail ();
+    let s =
+        let rec get_last = function
+        | [ last ] -> last
+        | [] -> bail ()
+        | _ :: tail -> get_last tail
+        in
+        match String.split_on_char '/' s |> get_last |> String.split_on_char '.' with
+        | [] -> bail ()
+        | head :: _ -> head
+    in
+    let head = String.sub s 0 1 |> String.capitalize_ascii in
+    let tail = String.sub s 1 ((String.length s) - 1) in
+    head ^ tail

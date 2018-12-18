@@ -11,6 +11,9 @@ val unwrap_or : 'a -> 'a option -> 'a
 (** Getter on options with a lazy default value. *)
 val unwrap_or_else : (unit -> 'a) -> 'a option -> 'a
 
+(** Tries to open a file. *)
+val open_file : string -> in_channel
+
 (** List helpers. *)
 module Lst : sig
     (** Head of a list. *)
@@ -71,6 +74,9 @@ module Fmt : sig
     (** Outputs nothing. *)
     val sep_non : formatter -> sep
 
+    (** Runs two function in sequence. *)
+    val unit_combine : (unit -> unit) -> (unit -> unit) -> unit -> unit
+
     (** Returns the empty string in the input is `1`, `"s"` otherwise. *)
     val plurify : int -> string
 end
@@ -107,6 +113,26 @@ module Check : sig
         ```
     *)
     val arity : string -> int -> (unit -> string) -> 'a list -> unit
+
+    (** Same as `arity` but with a greater than or equal to constraint. *)
+    val arity_ge : string -> int -> (unit -> string) -> 'a list -> unit
+
+    (** Same as `arity` but with a less than or equal to constraint. *)
+    val arity_le : string -> int -> (unit -> string) -> 'a list -> unit
+end
+
+(** Handles information about where tests came from. *)
+module Source : sig
+    (** Either stdin or a file. *)
+    type t =
+    | Stdin
+    | File of string
+
+    (** Source formatter. *)
+    val fmt : formatter -> t -> unit
+
+    (** Turns a source in an input channel. *)
+    val to_channel : t -> in_channel
 end
 
 (** Sets the configuration. *)
@@ -114,3 +140,20 @@ val set_conf : Conf.t -> unit
 
 (** Configuration, built by CLAP. *)
 val conf : unit -> Conf.t
+
+(** Logs something at some log level.
+
+    Actually output if the configuration's log level is `>=` the level. *)
+val log : int -> ('a, formatter, unit) format -> 'a
+
+(** Logs something at log level 0 (always active). *)
+val log_0 : ('a, Format.formatter, unit) format -> 'a
+
+(** Logs something at log level 1. *)
+val log_1 : ('a, Format.formatter, unit) format -> 'a
+
+(** Logs something at log level 2. *)
+val log_2 : ('a, Format.formatter, unit) format -> 'a
+
+(** Logs something at log level 3. *)
+val log_3 : ('a, Format.formatter, unit) format -> 'a

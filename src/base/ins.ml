@@ -259,6 +259,66 @@ let leaf_of_string (token : string) : leaf option = match token with
 | "CHECK_SIGNATURE" -> Some CheckSignature
 | _ -> None
 
+let var_arity_of_leaf (leaf : leaf) : int = match leaf with
+| Failwith
+| Swap
+| Drop -> 0
+
+| Exec
+| Dup
+| Unit
+| Eq
+| Neq
+| Lt
+| Le
+| Gt
+| Ge
+| Or
+| And
+| Xor
+| Not
+| Neg
+| Abs
+| Add
+| Sub
+| Mul
+| EDiv
+| Lsl
+| Lsr
+| Compare
+| Concat
+| Size
+| Pair
+| Car
+| Cdr
+| Get
+| Mem
+| Update
+| Som
+| Cons
+| TransferTokens
+| SetDelegate
+| Balance
+| Contract
+| Source
+| Sender
+| Self
+| Amount
+| ImplicitAccount
+| StepsToQuota
+| Now
+| Pack
+| Unpack
+| Slice
+| HashKey
+| Blake2B
+| Sha256
+| Sha512
+| CheckSignature -> 1
+
+| CreateContract
+| CreateAccount -> 2
+
 type t =
 | Leaf of leaf
 | EmptySet of Dtyp.t
@@ -412,6 +472,7 @@ let parse
     (token : string)
     (dtyps: Dtyp.t list)
     (args : t list)
+    (annots : string list)
     : t
 =
     let ty_arity_check (ty_expected : int) : unit =
@@ -419,64 +480,70 @@ let parse
             fun () -> asprintf "%s" token
         ) dtyps
     in
-    let arity_check (ty_expected : int) (ins_expected : int) : unit =
+    let annot_arity_check (expected : int) : unit =
+        Check.arity_le "variable annotation" expected (
+            fun () -> asprintf "%s" token
+        ) annots
+    in
+    let arity_check (ty_expected : int) (ins_expected : int) (annot_expected : int) : unit =
         ty_arity_check ty_expected;
         Check.arity "instruction" ins_expected (
             fun () -> asprintf "%s" token
-        ) args
+        ) args;
+        annot_arity_check annot_expected
     in
 
     let inner () = match token with
     | "EMPTY_SET" ->
-        arity_check 1 0;
+        arity_check 1 0 1;
         EmptySet (List.hd dtyps)
     | "EMPTY_MAP" ->
-        arity_check 2 0;
+        arity_check 2 0 1;
         EmptyMap (List.hd dtyps, List.tl dtyps |> List.hd)
     | "NONE" ->
-        arity_check 1 0;
+        arity_check 1 0 1;
         Non (List.hd dtyps)
     | "LEFT" ->
-        arity_check 1 0;
+        arity_check 1 0 1;
         Left (List.hd dtyps)
     | "RIGHT" ->
-        arity_check 1 0;
+        arity_check 1 0 1;
         Right (List.hd dtyps)
     | "NIL" ->
-        arity_check 1 0;
+        arity_check 1 0 1;
         Nil (List.hd dtyps)
     | "IF" ->
-        arity_check 0 2;
+        arity_check 0 2 0;
         If (List.hd args, List.tl args |> List.hd)
     | "IF_NONE" ->
-        arity_check 0 2;
+        arity_check 0 2 0;
         IfNone (List.hd args, List.tl args |> List.hd)
     | "IF_LEFT" ->
-        arity_check 0 2;
+        arity_check 0 2 0;
         IfLeft (List.hd args, List.tl args |> List.hd)
     | "IF_RIGHT" ->
-        arity_check 0 2;
+        arity_check 0 2 0;
         IfRight (List.hd args, List.tl args |> List.hd)
     | "IF_CONS" ->
-        arity_check 0 2;
+        arity_check 0 2 0;
         IfCons (List.hd args, List.tl args |> List.hd)
     | "LOOP" ->
-        arity_check 0 1;
+        arity_check 0 1 0;
         Loop (List.hd args)
     | "LOOP_LEFT" ->
-        arity_check 0 1;
+        arity_check 0 1 0;
         LoopLeft (List.hd args)
     | "DIP" ->
-        arity_check 0 1;
+        arity_check 0 1 0;
         Dip (List.hd args)
     | "PUSH" ->
-        arity_check 1 1;
+        arity_check 1 1 1;
         Push (List.hd dtyps, List.hd args)
     | "LAMBDA" ->
-        arity_check 2 1;
+        arity_check 2 1 1;
         Lambda (List.hd dtyps, List.tl dtyps |> List.hd, List.hd args)
     | "ITER" ->
-        arity_check 0 1;
+        arity_check 0 1 0;
         Iter (List.hd args)
     | _ -> (
         match leaf_of_string token with
@@ -484,7 +551,7 @@ let parse
             sprintf "unknown instruction `%s`" token
             |> Exc.throw
         | Some leaf ->
-            arity_check 0 0;
+            var_arity_of_leaf leaf |> arity_check 0 0;
             Leaf leaf
     )
     in

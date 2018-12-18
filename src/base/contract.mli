@@ -32,3 +32,11 @@ val mk : string -> storage:Dtyp.t -> entry_param:Dtyp.t -> Ins.t -> Ins.t option
 
 (** Contract formatter. *)
 val fmt : bool -> formatter -> t -> unit
+
+(** Name of a contract from the name of the file it was loaded from.
+
+    - drops everything befor the last `'/'`
+    - drops everything after the first `'.'`
+    - capitalizes the first letter.
+*)
+val name_of_file : string -> string
