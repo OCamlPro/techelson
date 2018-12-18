@@ -110,7 +110,7 @@ val leaf_of_string : string -> leaf option
 val var_arity_of_leaf : leaf -> int
 
 (** Instructions. *)
-type t =
+type 'sub ins =
 | Leaf of leaf
 | EmptySet of Dtyp.t
 | EmptyMap of Dtyp.t * Dtyp.t
@@ -118,19 +118,28 @@ type t =
 | Left of Dtyp.t
 | Right of Dtyp.t
 | Nil of Dtyp.t
-| Seq of t list
-| If of t * t
-| Loop of t
-| LoopLeft of t
-| Dip of t
-| Push of Dtyp.t * t
-| Lambda of Dtyp.t * Dtyp.t * t
-| Iter of t
-| IfNone of t * t
-| IfLeft of t * t
-| IfRight of t * t
-| IfCons of t * t
-| Macro of t list * t Macro.t
+| Seq of 'sub list
+| If of 'sub * 'sub
+| Loop of 'sub
+| LoopLeft of 'sub
+| Dip of 'sub
+| Push of Dtyp.t * 'sub
+| Lambda of Dtyp.t * Dtyp.t * 'sub
+| Iter of 'sub
+| IfNone of 'sub * 'sub
+| IfLeft of 'sub * 'sub
+| IfRight of 'sub * 'sub
+| IfCons of 'sub * 'sub
+| Macro of 'sub list * 'sub Macro.t
+
+(** Type of variables. *)
+type var = string
+
+(** Instruction with variable bindings. *)
+type t = {
+    ins : t ins ;
+    vars : var list ;
+}
 
 (** Creates a sequence instruction. *)
 val mk_seq : t list -> t

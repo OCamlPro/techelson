@@ -319,7 +319,7 @@ let var_arity_of_leaf (leaf : leaf) : int = match leaf with
 | CreateContract
 | CreateAccount -> 2
 
-type t =
+type 'sub ins =
 | Leaf of leaf
 | EmptySet of Dtyp.t
 | EmptyMap of Dtyp.t * Dtyp.t
@@ -327,21 +327,35 @@ type t =
 | Left of Dtyp.t
 | Right of Dtyp.t
 | Nil of Dtyp.t
-| Seq of t list
-| If of t * t
-| Loop of t
-| LoopLeft of t
-| Dip of t
-| Push of Dtyp.t * t
-| Lambda of Dtyp.t * Dtyp.t * t
-| Iter of t
-| IfNone of t * t
-| IfLeft of t * t
-| IfRight of t * t
-| IfCons of t * t
-| Macro of t list * t Macro.t
+| Seq of 'sub list
+| If of 'sub * 'sub
+| Loop of 'sub
+| LoopLeft of 'sub
+| Dip of 'sub
+| Push of Dtyp.t * 'sub
+| Lambda of Dtyp.t * Dtyp.t * 'sub
+| Iter of 'sub
+| IfNone of 'sub * 'sub
+| IfLeft of 'sub * 'sub
+| IfRight of 'sub * 'sub
+| IfCons of 'sub * 'sub
+| Macro of 'sub list * 'sub Macro.t
 
-let mk_seq (seq : t list) : t = Seq seq
+type var = string
+
+type t = {
+    ins : t ins ;
+    vars : var list ;
+}
+
+let fmt_var (fmt : formatter) (var : var) : unit =
+    fprintf fmt "@%s" var
+let fmt_vars (pref : string) (fmt : formatter) (vars : var list) : unit =
+    if vars <> [] then (
+        fprintf fmt "%s%a" pref (Fmt.fmt_list Fmt.sep_spc fmt_var) vars
+    )
+
+let mk_seq (seq : t list) : t = { ins = Seq seq ; vars = [] }
 
 (* Formats an IF-like instruction. *)
 let fmt_if_like
@@ -373,31 +387,43 @@ let rec fmt (fmtt : formatter) (t : t) : unit =
     | ( ((sep, to_do) :: to_do_tail, seq_end) :: tail ) ->
         sep ();
         let tail = (to_do_tail, seq_end) :: tail in
+        let { ins = to_do ; vars } = to_do in
+        let fmt_vars () : unit =
+            fmt_vars " " fmtt vars
+        in
         let tail =
             match to_do with
             | EmptySet dtyp ->
                 fprintf fmtt "EMPTY_SET (%a)" Dtyp.fmt dtyp;
+                fmt_vars ();
                 tail
             | EmptyMap (k, v) ->
-                fprintf fmtt "EMPTY_MAP (%a) (%a)" Dtyp.fmt k Dtyp.fmt v;
+                fprintf fmtt "EMPTY_MAP %a %a" Dtyp.fmt k Dtyp.fmt v;
+                fmt_vars ();
                 tail
             | Non dtyp ->
-                fprintf fmtt "NONE (%a)" Dtyp.fmt dtyp;
+                fprintf fmtt "NONE %a" Dtyp.fmt dtyp;
+                fmt_vars ();
                 tail
             | Left dtyp ->
-                fprintf fmtt "LEFT (%a)" Dtyp.fmt dtyp;
+                fprintf fmtt "LEFT %a" Dtyp.fmt dtyp;
+                fmt_vars ();
                 tail
             | Right dtyp ->
-                fprintf fmtt "RIGHT (%a)" Dtyp.fmt dtyp;
+                fprintf fmtt "RIGHT %a" Dtyp.fmt dtyp;
+                fmt_vars ();
                 tail
             | Nil dtyp ->
-                fprintf fmtt "NIL (%a)" Dtyp.fmt dtyp;
+                fprintf fmtt "NIL %a" Dtyp.fmt dtyp;
+                fmt_vars ();
                 tail
             | Leaf leaf ->
                 fmt_leaf fmtt leaf;
+                fmt_vars ();
                 tail
 
             | Seq ts -> (
+                assert (vars = []);
                 match ts with
                 | [] ->
                     fprintf fmtt "{}";
@@ -415,37 +441,50 @@ let rec fmt (fmtt : formatter) (t : t) : unit =
             )
 
             | Loop t ->
+                assert (vars = []);
                 fprintf fmtt "@[<v 2>LOOP@,";
                 ([ignore, t], Fmt.cls fmtt) :: tail
 
             | LoopLeft t ->
+                assert (vars = []);
                 fprintf fmtt "@[<v 2>LOOP_LEFT@,";
                 ([ignore, t], Fmt.cls fmtt) :: tail
 
-            | If (bt, bf) -> fmt_if_like fmtt "IF" bt bf tail
-            | IfNone (bt, bf) -> fmt_if_like fmtt "IF_NONE" bt bf tail
-            | IfLeft (bt, bf) -> fmt_if_like fmtt "IF_LEFT" bt bf tail
-            | IfRight (bt, bf) -> fmt_if_like fmtt "IF_RIGHT" bt bf tail
-            | IfCons (bt, bf) -> fmt_if_like fmtt "IF_CONS" bt bf tail
+            | If (bt, bf) ->
+                assert (vars = []);
+                fmt_if_like fmtt "IF" bt bf tail
+            | IfNone (bt, bf) ->
+                assert (vars = []);
+                fmt_if_like fmtt "IF_NONE" bt bf tail
+            | IfLeft (bt, bf) ->
+                assert (vars = []);
+                fmt_if_like fmtt "IF_LEFT" bt bf tail
+            | IfRight (bt, bf) ->
+                assert (vars = []);
+                fmt_if_like fmtt "IF_RIGHT" bt bf tail
+            | IfCons (bt, bf) ->
+                assert (vars = []);
+                fmt_if_like fmtt "IF_CONS" bt bf tail
 
             | Dip t ->
                 fprintf fmtt "DIP ";
-                ([ignore, t], ignore) :: tail
+                ([ignore, t], fmt_vars) :: tail
 
             | Iter t ->
+                assert (vars = []);
                 fprintf fmtt "ITER ";
                 ([ignore, t], ignore) :: tail
 
             | Push (dtyp, t) ->
                 fprintf fmtt "PUSH @[<v>(@[%a@])@,(" Dtyp.fmt dtyp;
                 (
-                    [ignore, t], Fmt.cls_of fmtt ")"
+                    [ignore, t], Fmt.unit_combine (Fmt.cls_of fmtt ")") fmt_vars
                 ) :: tail
 
             | Lambda (dom, codom, t) ->
                 fprintf fmtt "LAMBDA @[<v>(@[%a@])@,(@[%a@])@,(" Dtyp.fmt dom Dtyp.fmt codom;
                 (
-                    [ignore, t], Fmt.cls_of fmtt ")"
+                    [ignore, t], Fmt.unit_combine (Fmt.cls_of fmtt ")") fmt_vars
                 ) :: tail
 
             | Macro (ts, macro) -> (
@@ -567,3 +606,4 @@ let parse
             in
             sprintf "while parsing \"%s%s%s\"" token dtyps args
     ) inner
+    |> fun ins -> { ins ; vars = annots }
