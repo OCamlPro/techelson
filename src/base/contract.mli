@@ -21,14 +21,14 @@ type t = {
     (** Type of the contract's storage. *)
     entry_param : Dtyp.t ;
     (** Type of the entry parameter. *)
-    entry : Ins.t ;
+    entry : Mic.t ;
     (** Code of the entry point. *)
-    init : Ins.t option ;
+    init : Mic.t option ;
     (** Initializer (optional). *)
 }
 
 (** Contract constructor. *)
-val mk : string -> storage:Dtyp.t -> entry_param:Dtyp.t -> Ins.t -> Ins.t option -> t
+val mk : string -> storage:Dtyp.t -> entry_param:Dtyp.t -> Mic.t -> Mic.t option -> t
 
 (** Contract formatter. *)
 val fmt : bool -> formatter -> t -> unit

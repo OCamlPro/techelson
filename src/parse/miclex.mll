@@ -33,5 +33,4 @@ rule token = parse
 | '(' { OPAR }
 | ')' { CPAR }
 | ';' { SEMICOL }
-| ':' { COL }
 | eof { EOF }

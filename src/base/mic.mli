@@ -28,8 +28,8 @@ module Macro : sig
     (** Macros, polymorphic over instructions. *)
     type 'ins t =
     | Cmp of op
-    | If of op
-    | IfCmp of op
+    | If of (op * 'ins * 'ins)
+    | IfCmp of (op * 'ins * 'ins)
     | Fail
     | Assert
     | Assert_ of op
@@ -39,7 +39,7 @@ module Macro : sig
     | AssertLeft
     | AssertRight
     | Dip of (int * 'ins)
-    | Dup of (int * 'ins)
+    | Dup of int
     | P of pair_op list
     | Unp of pair_op list
     | CadR of unpair_op list
@@ -140,6 +140,12 @@ type t = {
     ins : t ins ;
     vars : var list ;
 }
+
+(** Creates an instruction. *)
+val mk : ?vars: var list -> t ins -> t
+
+(** Creates an instruction from a leaf. *)
+val mk_leaf : ?vars: var list -> leaf -> t
 
 (** Creates a sequence instruction. *)
 val mk_seq : t list -> t

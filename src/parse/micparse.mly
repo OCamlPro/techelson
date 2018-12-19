@@ -5,14 +5,14 @@
 %token <string> TYPTKN INSTKN COLANNOT ATANNOT PERANNOT
 %token OCURL CCURL
 %token OPAR CPAR
-%token SEMICOL COL
+%token SEMICOL
 %token CONTRACT
 %token PARAMETER STORAGE CODE
 %token EOF
 
 %start <unit> mic
 %start <string -> Base.Contract.t> just_contract
-%start <Base.Ins.t> just_mic
+%start <Base.Mic.t> just_mic
 %%
 
 mic :
@@ -25,7 +25,7 @@ mic :
 
     | ins = instruction
     ; CPAR {
-        Format.printf "parsed an instruction: @[%a@]@.@." Base.Ins.fmt ins
+        Format.printf "parsed an instruction: @[%a@]@.@." Base.Mic.fmt ins
     }
     | dtyp = datatype
     ; CPAR {
@@ -59,7 +59,7 @@ instruction :
     | OCURL
     ; inss = rev_instructions_semicol
     ; CCURL {
-        List.rev inss |> Base.Ins.mk_seq
+        List.rev inss |> Base.Mic.mk_seq
     }
 
     | token = INSTKN
@@ -69,7 +69,7 @@ instruction :
         let inss = List.rev inss in
         let dtyps = List.rev dtyps |> List.map fst in
         let annots = List.rev annots in
-        Base.Ins.parse token dtyps inss annots
+        Base.Mic.parse token dtyps inss annots
     }
 ;
 

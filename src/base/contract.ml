@@ -20,16 +20,16 @@ type t = {
     name : string ;
     storage : Dtyp.t ;
     entry_param : Dtyp.t ;
-    entry : Ins.t ;
-    init : Ins.t option ;
+    entry : Mic.t ;
+    init : Mic.t option ;
 }
 
 let mk
     (name : string)
     ~(storage : Dtyp.t)
     ~(entry_param : Dtyp.t)
-    (entry : Ins.t)
-    (init : Ins.t option)
+    (entry : Mic.t)
+    (init : Mic.t option)
     : t
 = { name ; storage ; entry_param ; entry ; init }
 
@@ -42,10 +42,10 @@ let fmt (full : bool) (fmt : formatter) {
         name Dtyp.fmt storage Dtyp.fmt entry_param;
     (
         if full then (
-            fprintf fmt "entry: @[%a@]@,init: " Ins.fmt entry;
+            fprintf fmt "entry: @[%a@]@,init: " Mic.fmt entry;
             match init with
             | None -> fprintf fmt "none"
-            | Some ins -> fprintf fmt "@[%a@]" Ins.fmt ins
+            | Some ins -> fprintf fmt "@[%a@]" Mic.fmt ins
         ) else (
             fprintf fmt "entry: ...@,init: ";
             match init with
