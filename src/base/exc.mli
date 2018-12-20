@@ -23,3 +23,6 @@ val catch_print : (unit -> 'a) -> 'a option
 
 (** Catches an exception, prints it, and exits with code `2` *)
 val catch_fail : (unit -> 'a) -> 'a
+
+(** Fails by saying unreachable code was reached. *)
+val unreachable : unit -> 'a

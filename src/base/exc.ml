@@ -33,3 +33,5 @@ let catch_fail (stuff : unit -> 'a) : 'a =
     match catch_print stuff with
     | None -> exit 2
     | Some a -> a
+
+let unreachable () : 'a = throw "entered unreachable code, please notify the developers"

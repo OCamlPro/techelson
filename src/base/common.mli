@@ -5,6 +5,9 @@ include (module type of Format)
 (** Iterator over options. *)
 val if_let_some : ('a -> unit) -> 'a option -> unit
 
+(** Unwraps an option. Fails if `None`. *)
+val unwrap : 'a option -> 'a
+
 (** Getter on options with a default value. *)
 val unwrap_or : 'a -> 'a option -> 'a
 
