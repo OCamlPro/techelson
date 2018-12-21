@@ -48,226 +48,158 @@ let leaf_of_string (s : string) : leaf option = match s with
 | "timestamp" -> Some Timestamp
 | _ -> None
 
-type 'sub named = {
-    typ : 'sub ;
-    name : string option ;
+type named = {
+    inner : t ;
+    name : Annot.Field.t option ;
 }
 
-type 'sub dtyp =
+and dtyp =
 | Leaf of leaf
 
-| List of 'sub
-| Option of 'sub
-| Set of 'sub
-| Contract of 'sub
+| List of t
+| Option of t
+| Set of t
+| Contract of t
 
-| Pair of (t named) list
-| Or of (t named) list
-| Map of 'sub * 'sub
-| BigMap of 'sub * 'sub
+| Pair of named * named
+| Or of named * named
+| Map of t * t
+| BigMap of t * t
 
 and t = {
-    typ : t dtyp ;
-    alias : string option ;
+    typ : dtyp ;
+    alias : Annot.Typ.t option ;
 }
 
-let mk (alias : string option) (typ : t dtyp) : t = { typ ; alias }
+let mk ?alias:(alias = None) (typ : dtyp) : t = { typ ; alias }
 
-let fmt (fmt : formatter) (typ : t) =
-    let rec loop (stack : ( (Fmt.sep * t * Fmt.sep) list * Fmt.seq_end) list) : unit = match stack with
-    | [] -> ()
-    | ([], seq_end) :: tail ->
-        seq_end ();
-        loop tail
-    | (((sep_1, to_do, sep_2) :: to_do_tail), seq_end) :: tail ->
-        sep_1 ();
-        let tail = (to_do_tail, seq_end) :: tail in
-        let { typ = to_do ; alias } = to_do in
-        let fmt_alias (fmt : formatter) () : unit =
-            alias |> if_let_some (
-                fun alias -> fprintf fmt " :%s" alias
-            )
-        in
-        let tail = match to_do with
-            | Leaf leaf ->
-                fmt_leaf fmt leaf;
-                fmt_alias fmt ();
-                sep_2 ();
-                tail
 
-            | List sub ->
-                fprintf fmt "(list%a " fmt_alias ();
-
-                ([(ignore, sub, ignore)], Fmt.unit_combine (Fmt.cls_paren fmt) sep_2) :: tail
-            | Option sub ->
-                fprintf fmt "(option%a " fmt_alias ();
-
-                ([(ignore, sub, ignore)], Fmt.unit_combine (Fmt.cls_paren fmt) sep_2) :: tail
-            | Set sub ->
-                fprintf fmt "(set%a " fmt_alias ();
-
-                ([(ignore, sub, ignore)], Fmt.unit_combine (Fmt.cls_paren fmt) sep_2) :: tail
-            | Contract sub ->
-                fprintf fmt "(contract%a " fmt_alias ();
-
-                ([(ignore, sub, ignore)], Fmt.unit_combine (Fmt.cls_paren fmt) sep_2) :: tail
-
-            | Or lst -> (
-                assert (2 <= Lst.len lst);
-                fprintf fmt "@[<v>@[<v 4>(or%a@ " fmt_alias ();
-
-                let hd : t named = List.hd lst in
-                let tl : (t named) list = List.tl lst in
-
-                (
-                    (
-                        (fun () -> if_let_some (fun _ -> fprintf fmt "(") hd.name),
-                        hd.typ,
-                        fun () -> if_let_some (fun name -> fprintf fmt " %%%s)" name) hd.name
-                    ) :: (
-                        tl |> List.map (
-                            fun (stuff : t named) ->
-                                (fun () ->
-                                    fprintf fmt "@ ";
-                                    if_let_some (fun _ -> fprintf fmt "(") stuff.name
-                                ),
-                                stuff.typ,
-                                fun () -> if_let_some (fun name -> fprintf fmt " %%%s)" name) stuff.name
-                        )
-                    ),
-                    Fmt.unit_combine (fun () -> fprintf fmt "@]@,)@]") sep_2
-                ) :: tail
-            )
-
-            | Pair lst ->
-                assert (2 <= Lst.len lst);
-                fprintf fmt "@[<v>@[<v 4>(pair%a@ " fmt_alias ();
-
-                let hd : t named = List.hd lst in
-                let tl : (t named) list = List.tl lst in
-
-                (
-                    (
-                        (fun () -> if_let_some (fun _ -> fprintf fmt "(") hd.name),
-                        hd.typ,
-                        fun () -> if_let_some (fun name -> fprintf fmt " %%%s)" name) hd.name
-                    ) :: (
-                        tl |> List.map (
-                            fun (stuff : t named) ->
-                                (fun () ->
-                                    fprintf fmt "@ ";
-                                    if_let_some (fun _ -> fprintf fmt "(") stuff.name
-                                ),
-                                stuff.typ,
-                                fun () -> if_let_some (fun name -> fprintf fmt " %%%s)" name) stuff.name
-                        )
-                    ),
-                    Fmt.unit_combine (fun () -> fprintf fmt "@]@,)@]") sep_2
-                ) :: tail
-
-            | Map (k, v) ->
-                fprintf fmt "@[@[<hv 4>(map%a@ " fmt_alias ();
-
-                (
-                    [ (ignore, k, ignore) ; (Fmt.sep_spc fmt, v, ignore) ],
-                    Fmt.unit_combine (Fmt.cls_of fmt "@]@,)@]") sep_2
-                ) :: tail
-
-            | BigMap (k, v) ->
-                fprintf fmt "@[@[<hv 4>(big_map%a@ " fmt_alias ();
-
-                (
-                    [ (ignore, k, ignore) ; (Fmt.sep_spc fmt, v, ignore) ],
-                    Fmt.unit_combine (fun () -> fprintf fmt "@]@,)@]") sep_2
-                ) :: tail
-        in
-        loop tail
+let fmt (fmtt : formatter) (typ : t) =
+    (* Forms the stack frame for types with annotated subtypes. *)
+    let frame_of_named (named : named) : (Fmt.sep * t * Fmt.sep) =
+        match named.name with
+        | Some name ->
+            (fun () -> fprintf fmtt "@ ("),
+            named.inner,
+            (fun () -> fprintf fmtt " %a)" Annot.Field.fmt name)
+        | None ->
+            (fun () -> fprintf fmtt "@ "),
+            named.inner,
+            ignore
     in
-    fprintf fmt "@[";
-    loop [ [ignore, typ, ignore], ignore ];
-    fprintf fmt "@]"
+
+    (* Loop with a manual stack.
     
-let parse (token : string) (name : string option) (dtyps : (t * string option) list) : t =
-    let arity_check (expected : int) : unit =
-        Check.arity "type argument" expected (
-            fun () -> sprintf "type constructor `%s`" token
-        ) dtyps
-    in
-    let arity_check_ge (expected : int) : unit =
-        Check.arity_ge "type argument" expected (
-            fun () -> sprintf "type constructor `%s`" token
-        ) dtyps
-    in
-    let no_annot (dtyps : (t * string option) list) : t list =
-        dtyps |> List.map (
-            fun (dtyp, annot) ->
-                if_let_some (
-                    fun annot ->
-                        [
-                            sprintf
-                                "parameters of type constructor `%s` \
-                                do not accept annoted parameters"
-                                token;
-                            asprintf "found annotation `:%s` on type %a" annot fmt dtyp
-                        ] |> Exc.throws
-                ) annot;
-                dtyp
-        )
-    in
-    let inner () =
-        match token with
-        | "list" ->
-            arity_check 1;
-            List (no_annot dtyps |> List.hd)
-        | "option" ->
-            arity_check 1;
-            Option (no_annot dtyps |> List.hd)
-        | "set" ->
-            arity_check 1;
-            Set (no_annot dtyps |> List.hd)
-        | "contract" ->
-            arity_check 1;
-            Contract (no_annot dtyps |> List.hd)
-        | "pair" ->
-            arity_check_ge 2;
-            Pair (List.map (fun (typ, name) -> { name ; typ }) dtyps)
-        | "or" ->
-            arity_check_ge 2;
-            Or (List.map (fun (typ, name) -> { name ; typ }) dtyps)
-        | "map" ->
-            arity_check 2;
-            let dtyps = no_annot dtyps in
-            Map (List.hd dtyps, List.tl dtyps |> List.hd)
-        | "big_map" ->
-            arity_check 2;
-            let dtyps = no_annot dtyps in
-            BigMap (List.hd dtyps, List.tl dtyps |> List.hd)
-        | _ -> (
-            match leaf_of_string token with
-            | None ->
-                sprintf "unknown type constructor `%s`" token
-                |> Exc.throw
-            | Some leaf ->
-                arity_check 0;
-                Leaf leaf
-        )
-    in
-    Exc.chain_err (
-        fun () ->
-            let dtyps =
-                if dtyps = [] then "" else
-                    asprintf " %a"
-                        (Fmt.fmt_list
-                            Fmt.sep_spc
-                            (
-                                fun fmtt (dtyp, name) ->
-                                match name with
-                                | None -> fmt fmtt dtyp
-                                | Some name -> fprintf fmtt "(%a :%s)" fmt dtyp name
-                            )
-                        )
-                        dtyps
+        A frame on the stack is of the form `[(pre, t, post)], close`. First element is a list of
+        things to print `t` with something to print before `pre` and after `post`. Once everything
+        in the list is printed, `close` prints whatever needs to be printed to close the sequence.
+    *)
+    let rec loop (stack : ( (Fmt.sep * t * Fmt.sep) list * Fmt.seq_end) list) : unit =
+        match stack with
+
+        (* Stack is empty, we're done. *)
+        | [] -> ()
+
+        (* Done with the current sequence of things to print. Close and keep moving. *)
+        | ([], seq_end) :: stack ->
+            seq_end ();
+            loop stack
+
+        (* There's stuff to print in the current sequence, let's do this. *)
+        | (((pre, to_do, post) :: to_do_tail), seq_end) :: stack ->
+            (* Remember there might be more stuff to print in this sequence. *)
+            let stack = (to_do_tail, seq_end) :: stack in
+            let { typ = to_do ; alias } = to_do in
+
+            (* Print the part before printing `to_do` so that we don't forget. *)
+            pre ();
+
+            let fmt_alias (fmtt : formatter) () : unit =
+                alias |> if_let_some (
+                    fun alias -> fprintf fmtt " %a" Annot.Typ.fmt alias
+                )
             in
-            sprintf "while parsing \"%s%s\"" token dtyps
-    ) inner
-    |> fun dtyp -> mk name dtyp
+
+            let stack = match to_do with
+                | Leaf leaf ->
+                    let alias_pre, alias_post =
+                        match alias with
+                        | None -> "", ""
+                        | Some _ -> "(", ")"
+                    in
+                    fprintf fmtt "%s" alias_pre;
+                    fmt_leaf fmtt leaf;
+                    fmt_alias fmtt ();
+                    fprintf fmtt "%s" alias_post;
+                    post ();
+                    stack
+
+                | List sub ->
+                    fprintf fmtt "(list%a " fmt_alias ();
+                    (
+                        [(ignore, sub, ignore)],
+                        Fmt.unit_combine (Fmt.cls_paren fmtt) post
+                    ) :: stack
+
+                | Option sub ->
+                    fprintf fmtt "(option%a " fmt_alias ();
+                    (
+                        [(ignore, sub, ignore)],
+                        Fmt.unit_combine (Fmt.cls_paren fmtt) post
+                    ) :: stack
+
+                | Set sub ->
+                    fprintf fmtt "(set%a " fmt_alias ();
+                    (
+                        [(ignore, sub, ignore)],
+                        Fmt.unit_combine (Fmt.cls_paren fmtt) post
+                    ) :: stack
+
+                | Contract sub ->
+                    fprintf fmtt "(contract%a " fmt_alias ();
+                    (
+                        [(ignore, sub, ignore)],
+                        Fmt.unit_combine (Fmt.cls_paren fmtt) post
+                    ) :: stack
+
+                | Or (lft, rgt) ->
+                    fprintf fmtt "@[@[<hv 4>(or%a" fmt_alias ();
+                    (
+                        [
+                            frame_of_named lft ;
+                            frame_of_named rgt
+                        ],
+                        (fun () -> fprintf fmtt "@]@,@]" ; post ())
+                    ) :: stack
+
+                | Pair (lft, rgt) ->
+                    fprintf fmtt "@[@[<hv 4>(pair%a" fmt_alias ();
+                    (
+                        [
+                            frame_of_named lft ;
+                            frame_of_named rgt
+                        ],
+                        (fun () -> fprintf fmtt "@]@,@]" ; post ())
+                    ) :: stack
+
+                | Map (k, v) ->
+                    fprintf fmtt "@[@[<hv 4>(map%a@ " fmt_alias ();
+
+                    (
+                        [ (ignore, k, ignore) ; (Fmt.sep_spc fmtt, v, ignore) ],
+                        Fmt.unit_combine (Fmt.cls_of fmtt "@]@,)@]") post
+                    ) :: stack
+
+                | BigMap (k, v) ->
+                    fprintf fmtt "@[@[<hv 4>(big_map%a@ " fmt_alias ();
+
+                    (
+                        [ (ignore, k, ignore) ; (Fmt.sep_spc fmtt, v, ignore) ],
+                        Fmt.unit_combine (fun () -> fprintf fmtt "@]@,)@]") post
+                    ) :: stack
+        in
+        loop stack
+    in
+    fprintf fmtt "@[";
+    loop [ [ignore, typ, ignore], ignore ];
+    fprintf fmtt "@]"

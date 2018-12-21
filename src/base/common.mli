@@ -17,6 +17,24 @@ val unwrap_or_else : (unit -> 'a) -> 'a option -> 'a
 (** Tries to open a file. *)
 val open_file : string -> in_channel
 
+(** Union type. *)
+module Either : sig
+    (** Either of two types. *)
+    type ('l, 'r) t = | Lft of 'l | Rgt of 'r
+
+    (** Left constructor. *)
+    val lft : 'l -> ('l, 'r) t
+
+    (** Right constructor. *)
+    val rgt : 'r -> ('l, 'r) t
+
+    (** Formatter. *)
+    val fmt : (formatter -> 'l -> unit) -> (formatter -> 'r -> unit) -> formatter -> ('l, 'r) t -> unit
+
+    (** Transparent formatter. *)
+    val fmt_through : (formatter -> 'l -> unit) -> (formatter -> 'r -> unit) -> formatter -> ('l, 'r) t -> unit
+end
+
 (** List helpers. *)
 module Lst : sig
     (** Head of a list. *)
@@ -34,6 +52,9 @@ end
 
 (** Formatting-related stuff. *)
 module Fmt : sig
+    (** String formatter. *)
+    val fmt_str : formatter -> string -> unit
+
     (** Type of separator printers by side-effect. *)
     type sep = unit -> unit
 
@@ -71,6 +92,9 @@ module Fmt : sig
     (** Outputs a break `@,`. *)
     val sep_brk : formatter -> sep
 
+    (** Outputs a space break `@ `. *)
+    val sep_spc_brk : formatter -> sep
+
     (** Outputs a space ` `. *)
     val sep_spc : formatter -> sep
 
@@ -82,46 +106,6 @@ module Fmt : sig
 
     (** Returns the empty string in the input is `1`, `"s"` otherwise. *)
     val plurify : int -> string
-end
-
-(** Helpers to check things. *)
-module Check : sig
-    (** Checks that an arity constraint is respected.
-
-        Most parameters deal with reporting the error properly if any.
-    
-        Parameters:
-        - `desc` description of the elements of the list
-        - `expected` number of arguments expected
-        - `blah` description of the constructor we're checking the arity of
-        - `args` list of arguments
-
-        This function fails (throws an exception) whenever `expected` is different from the length
-        of `args`.
-
-        # Examples
-
-        ```ocaml
-        open Common
-        let token = "list" in
-        let sub = Dtyp.string () in
-        (* Following does not fail. *)
-        Check.arity "type argument" 1 (
-            fun () -> sprintf "type constructor `%s`" token
-        ) [ sub ];
-        (* Following fails. *)
-        Check.arity "type argument" 2 (
-            fun () -> sprintf "type constructor `%s`" token
-        ) [ sub ];
-        ```
-    *)
-    val arity : string -> int -> (unit -> string) -> 'a list -> unit
-
-    (** Same as `arity` but with a greater than or equal to constraint. *)
-    val arity_ge : string -> int -> (unit -> string) -> 'a list -> unit
-
-    (** Same as `arity` but with a less than or equal to constraint. *)
-    val arity_le : string -> int -> (unit -> string) -> 'a list -> unit
 end
 
 (** Handles information about where tests came from. *)

@@ -25,6 +25,35 @@ let open_file (file : string) : in_channel =
         Printexc.to_string e
     ]
 
+module Either = struct
+    type ('l, 'r) t = | Lft of 'l | Rgt of 'r
+
+    let lft (lft : 'l) : ('l, 'r) t = Lft lft
+    let rgt (rgt : 'r) : ('l, 'r) t = Rgt rgt
+
+    let fmt
+        (fmt_l : formatter -> 'l -> unit)
+        (fmt_r : formatter -> 'r -> unit)
+        (fmt : formatter)
+        (either : ('l, 'r) t)
+        : unit
+    =
+        match either with
+        | Lft l -> fprintf fmt "Lft(%a)" fmt_l l
+        | Rgt r -> fprintf fmt "Rgt(%a)" fmt_r r
+
+    let fmt_through
+        (fmt_l : formatter -> 'l -> unit)
+        (fmt_r : formatter -> 'r -> unit)
+        (fmt : formatter)
+        (either : ('l, 'r) t)
+        : unit
+    =
+        match either with
+        | Lft l -> fprintf fmt "%a" fmt_l l
+        | Rgt r -> fprintf fmt "%a" fmt_r r
+end
+
 module Lst = struct
     let len = List.length
     let hd (l : 'a list) : 'a option =
@@ -39,6 +68,9 @@ module Lst = struct
 end
 
 module Fmt = struct
+    let fmt_str (fmt : formatter) (s : string) : unit =
+        pp_print_string fmt s
+
     type sep = unit -> unit
     type seq_end = unit -> unit
 
@@ -70,6 +102,8 @@ module Fmt = struct
 
     let sep_brk (fmt : formatter) : sep =
         fun () -> fprintf fmt "@,"
+    let sep_spc_brk (fmt : formatter) : sep =
+        fun () -> fprintf fmt "@ "
     let sep_spc (fmt : formatter) : sep =
         fun () -> fprintf fmt " "
     let sep_non (_ : formatter) : sep =
@@ -79,42 +113,6 @@ module Fmt = struct
         fun () -> f_1 () ; f_2 ()
 
     let plurify (n : int) : string = if n = 1 then "" else "s"
-end
-
-module Check = struct
-    let arity
-        (desc : string)
-        (expected : int)
-        (blah : unit -> string)
-        (args : 'a list)
-        : unit
-    =
-        if expected <> List.length args then (
-            sprintf "%s expects %i %s%s" (blah ()) expected desc (Fmt.plurify expected)
-            |> Exc.throw
-        )
-    let arity_ge
-        (desc : string)
-        (expected : int)
-        (blah : unit -> string)
-        (args : 'a list)
-        : unit
-    =
-        if expected > List.length args then (
-            sprintf "%s expects %i or more %ss" (blah ()) expected desc
-            |> Exc.throw
-        )
-    let arity_le
-        (desc : string)
-        (expected : int)
-        (blah : unit -> string)
-        (args : 'a list)
-        : unit
-    =
-        if expected < List.length args then (
-            sprintf "%s expects %i or more %ss" (blah ()) expected desc
-            |> Exc.throw
-        )
 end
 
 module Source = struct

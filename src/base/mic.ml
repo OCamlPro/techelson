@@ -95,95 +95,6 @@ module Macro = struct
         fprintf fmt "SET_C%aR" (Fmt.fmt_list Fmt.sep_non fmt_unpair_op) ops
     | MapCadr (ops, ins) ->
         fprintf fmt "MAP_C%aR %a" (Fmt.fmt_list Fmt.sep_non fmt_unpair_op) ops fmt_ins ins
-
-    module Parse = struct
-        (* If `token` starts with `pref`, returns what's after the `pref` part.
-        
-            Used to parse macros.
-        *)
-        let tail_of_pref (pref : string) (token : string) : string option =
-            let pref_len = String.length pref in
-            let token_len = String.length token in
-            if pref_len <= token_len then (
-                let token_pref = String.sub token 0 pref_len in
-                if token_pref = pref then (
-                    Some (
-                        String.sub token pref_len (token_len - pref_len)
-                    )
-                ) else (
-                    None
-                )
-            ) else (
-                None
-            )
-
-        (* Recognizes strings corresponding to macro operators. *)
-        let op (token : string) : op option = match token with
-        | "EQ" -> Some Eq
-        | "NEQ" -> Some Neq
-        | "LT" -> Some Lt
-        | "LE" -> Some Le
-        | "GE" -> Some Ge
-        | "GT" -> Some Gt
-        | _ -> None
-
-        (* Parses a prefix and then an operator. *)
-        let prefixed_op
-            (err : unit -> string list)
-            (pref : string)
-            (build : op -> 'a)
-            (token : string)
-            : 'a option
-        = match tail_of_pref pref token with
-        | None -> None
-        | Some tail -> (
-            match op tail with
-            | Some op -> Some (build op)
-            | None -> err () |> Exc.throws
-        )
-
-        (* Recognizes sequences of characters.
-
-            Input function says whether some character is recognized. The function stops parsing
-            when it returs `None`.
-        
-            Keeps on parsing as long as it is successful. Returns the tail of the token, the part
-            that was not parsed.
-        *)
-        let sequence (f : char -> 'a option) (token : string) : ('a list * string) =
-            let token_len = String.length token in
-            (* Input `n` is the index of the character in the string we're currently dealing with. *)
-            let rec loop lst n =
-                let op =
-                    if n < token_len then (
-                        String.get token n |> f
-                    ) else (
-                        None
-                    )
-                in
-                match op with
-                | Some op -> loop (op :: lst) (n + 1)
-                | None -> List.rev lst, String.sub token n (token_len - n)
-            in
-            loop [] 0
-
-        let pair_op (c : char) : pair_op option = match c with
-        | 'P' -> Some P
-        | 'A' -> Some A
-        | 'I' -> Some I
-        | _ -> None
-
-        let pair_ops (token : string) : (pair_op list * string) =
-            sequence pair_op token
-
-        let unpair_op (c : char) : unpair_op option = match c with
-        | 'A' -> Some A
-        | 'D' -> Some D
-        | _ -> None
-
-        let unpair_ops (token : string) : (unpair_op list * string) =
-            sequence unpair_op token
-    end
 end
 
 type leaf =
@@ -210,7 +121,6 @@ type leaf =
 | Update
 | Som
 | Cons
-| CreateContract
 | CreateAccount
 | TransferTokens
 | SetDelegate
@@ -231,6 +141,7 @@ type leaf =
 | Sha256
 | Sha512
 | CheckSignature
+| Rename
 
 let fmt_leaf (fmt : formatter) (leaf : leaf) : unit = match leaf with
 | Failwith -> fprintf fmt "FAILWITH"
@@ -268,7 +179,6 @@ let fmt_leaf (fmt : formatter) (leaf : leaf) : unit = match leaf with
 | Update -> fprintf fmt "UPDATE"
 | Som -> fprintf fmt "SOME"
 | Cons -> fprintf fmt "CONS"
-| CreateContract -> fprintf fmt "CREATE_CONTRACT"
 | CreateAccount -> fprintf fmt "CREATE_ACCOUNT"
 | TransferTokens -> fprintf fmt "TRANSFER_TOKENS"
 | SetDelegate -> fprintf fmt "SET_DELEGATE"
@@ -289,6 +199,7 @@ let fmt_leaf (fmt : formatter) (leaf : leaf) : unit = match leaf with
 | Sha256 -> fprintf fmt "SHA256"
 | Sha512 -> fprintf fmt "SHA512"
 | CheckSignature -> fprintf fmt "CHECK_SIGNATURE"
+| Rename -> fprintf fmt "RENAME"
 
 let leaf_of_string (token : string) : leaf option = match token with
 | "FAILWITH" -> Some Failwith
@@ -326,7 +237,6 @@ let leaf_of_string (token : string) : leaf option = match token with
 | "UPDATE" -> Some Update
 | "SOME" -> Some Som
 | "CONS" -> Some Cons
-| "CREATE_CONTRACT" -> Some CreateContract
 | "CREATE_ACCOUNT" -> Some CreateAccount
 | "TRANSFER_TOKENS" -> Some TransferTokens
 | "SET_DELEGATE" -> Some SetDelegate
@@ -347,6 +257,7 @@ let leaf_of_string (token : string) : leaf option = match token with
 | "SHA256" -> Some Sha256
 | "SHA512" -> Some Sha512
 | "CHECK_SIGNATURE" -> Some CheckSignature
+| "RENAME" -> Some Rename
 | _ -> None
 
 let var_arity_of_leaf (leaf : leaf) : int = match leaf with
@@ -404,10 +315,68 @@ let var_arity_of_leaf (leaf : leaf) : int = match leaf with
 | Blake2B
 | Sha256
 | Sha512
-| CheckSignature -> 1
+| CreateAccount
+| CheckSignature
+| Rename -> 1
 
-| CreateContract
-| CreateAccount -> 2
+let field_arity_of_leaf (leaf : leaf) : int = match leaf with
+| Pair
+| Som
+| Car
+| Cdr -> 1
+
+| Failwith
+| Swap
+| Drop
+| Exec
+| Dup
+| Unit
+| Eq
+| Neq
+| Lt
+| Le
+| Gt
+| Ge
+| Or
+| And
+| Xor
+| Not
+| Neg
+| Abs
+| Add
+| Sub
+| Mul
+| EDiv
+| Lsl
+| Lsr
+| Compare
+| Concat
+| Size
+| Get
+| Mem
+| Update
+| Cons
+| TransferTokens
+| SetDelegate
+| Balance
+| Contract
+| Source
+| Sender
+| Self
+| Amount
+| ImplicitAccount
+| StepsToQuota
+| Now
+| Pack
+| Unpack
+| Slice
+| HashKey
+| Blake2B
+| Sha256
+| Sha512
+| CheckSignature
+| CreateAccount
+| Rename -> 0
 
 type 'sub ins =
 | Leaf of leaf
@@ -422,31 +391,63 @@ type 'sub ins =
 | Loop of 'sub
 | LoopLeft of 'sub
 | Dip of 'sub
-| Push of Dtyp.t * 'sub
+| Push of Dtyp.t * const
 | Lambda of Dtyp.t * Dtyp.t * 'sub
 | Iter of 'sub
 | IfNone of 'sub * 'sub
 | IfLeft of 'sub * 'sub
 | IfRight of 'sub * 'sub
 | IfCons of 'sub * 'sub
+| CreateContract of contract
 | Macro of 'sub list * 'sub Macro.t
 
-type var = string
+and const =
+| Unit
 
-type t = {
-    ins : t ins ;
-    vars : var list ;
+| Bool of bool
+| Int of string
+| Str of string
+
+| Contract of contract
+
+| Lft of const
+| Rgt of const
+
+| No
+| So of const
+
+and contract = {
+    storage : Dtyp.t ;
+    param : Dtyp.t ;
+    entry : t ;
 }
 
-let fmt_var (fmt : formatter) (var : var) : unit =
-    fprintf fmt "@@%s" var
-let fmt_vars (pref : string) (fmt : formatter) (vars : var list) : unit =
-    if vars <> [] then (
-        fprintf fmt "%s%a" pref (Fmt.fmt_list Fmt.sep_spc fmt_var) vars
-    )
+and t = {
+    ins : t ins ;
+    typs : Annot.typs ;
+    vars : Annot.vars ;
+    fields : Annot.fields ;
+}
 
-let mk ?vars:(vars=[]) (ins : t ins) : t = { ins ; vars }
-let mk_leaf ?vars:(vars=[]) (leaf : leaf) : t = mk ~vars:(vars) (Leaf leaf)
+let mk
+    ?vars:(vars=[])
+    ?fields:(fields=[])
+    ?typs:(typs=[])
+    (ins : t ins)
+    : t
+= { ins ; vars ; fields ; typs }
+
+let mk_contract ~(storage : Dtyp.t) ~(param : Dtyp.t) (entry : t) : contract =
+    { storage ; param ; entry }
+
+let mk_leaf
+    ?vars:(vars=[])
+    ?fields:(fields=[])
+    ?typs:(typs=[])
+    (leaf : leaf)
+    : t
+= mk ~vars:(vars) ~fields:(fields) ~typs:(typs) (Leaf leaf)
+
 let mk_seq (seq : t list) : t =
     match seq with
     | [ins] -> ins
@@ -466,6 +467,25 @@ let fmt_if_like
         Fmt.cls fmt
     ) :: stack
 
+(* Formats contracts. *)
+let rec fmt_contract (fmtt : formatter) ({ storage ; param ; entry } : contract) : unit =
+    fprintf
+        fmtt "@[@[<v 4>{@ storage %a ;@ parameter %a ; code @[%a@]@]@,}@]"
+        Dtyp.fmt storage Dtyp.fmt param fmt entry
+
+(* Formats constants. *)
+and fmt_const (fmtt : formatter) (c : const) : unit =
+    match c with
+    | Unit -> fprintf fmtt "Unit"
+    | Bool b -> fprintf fmtt "%b" b
+    | Int n -> fprintf fmtt "%s" n
+    | Str s -> fprintf fmtt "\"%s\"" s
+    | Contract c -> fmt_contract fmtt c
+    | Lft c -> fprintf fmtt "(Left %a)" fmt_const c
+    | Rgt c -> fprintf fmtt "(Right %a)" fmt_const c
+    | No -> fprintf fmtt "None"
+    | So c -> fprintf fmtt "(Some %a)" fmt_const c
+
 (* Formats instructions.
 
     Strictly speaking, this function is not tailrec. Macro formatting takes the instruction
@@ -473,7 +493,7 @@ let fmt_if_like
     that it knows how to format instructions. Hence this function consumes stack whenever it
     goes down a macro.
 *)
-let rec fmt (fmtt : formatter) (t : t) : unit =
+and fmt (fmtt : formatter) (t : t) : unit =
     let rec loop (stack : ( (Fmt.sep * t) list * Fmt.seq_end) list) : unit = match stack with
     | [] -> ()
     | ( [], seq_end) :: tail ->
@@ -482,39 +502,41 @@ let rec fmt (fmtt : formatter) (t : t) : unit =
     | ( ((sep, to_do) :: to_do_tail, seq_end) :: tail ) ->
         sep ();
         let tail = (to_do_tail, seq_end) :: tail in
-        let { ins = to_do ; vars } = to_do in
-        let fmt_vars () : unit =
-            fmt_vars " " fmtt vars
+        let { ins = to_do ; vars ; fields ; typs } = to_do in
+        let fmt_annots () : unit =
+            Annot.fmt_typs fmtt typs;
+            Annot.fmt_vars fmtt vars;
+            Annot.fmt_fields fmtt fields
         in
         let tail =
             match to_do with
             | EmptySet dtyp ->
                 fprintf fmtt "EMPTY_SET (%a)" Dtyp.fmt dtyp;
-                fmt_vars ();
+                fmt_annots ();
                 tail
             | EmptyMap (k, v) ->
                 fprintf fmtt "EMPTY_MAP %a %a" Dtyp.fmt k Dtyp.fmt v;
-                fmt_vars ();
+                fmt_annots ();
                 tail
             | Non dtyp ->
                 fprintf fmtt "NONE %a" Dtyp.fmt dtyp;
-                fmt_vars ();
+                fmt_annots ();
                 tail
             | Left dtyp ->
                 fprintf fmtt "LEFT %a" Dtyp.fmt dtyp;
-                fmt_vars ();
+                fmt_annots ();
                 tail
             | Right dtyp ->
                 fprintf fmtt "RIGHT %a" Dtyp.fmt dtyp;
-                fmt_vars ();
+                fmt_annots ();
                 tail
             | Nil dtyp ->
                 fprintf fmtt "NIL %a" Dtyp.fmt dtyp;
-                fmt_vars ();
+                fmt_annots ();
                 tail
             | Leaf leaf ->
                 fmt_leaf fmtt leaf;
-                fmt_vars ();
+                fmt_annots ();
                 tail
 
             | Seq ts -> (
@@ -563,24 +585,26 @@ let rec fmt (fmtt : formatter) (t : t) : unit =
 
             | Dip t ->
                 fprintf fmtt "DIP ";
-                ([ignore, t], fmt_vars) :: tail
+                ([ignore, t], fmt_annots) :: tail
 
             | Iter t ->
                 assert (vars = []);
                 fprintf fmtt "ITER ";
                 ([ignore, t], ignore) :: tail
 
-            | Push (dtyp, t) ->
-                fprintf fmtt "PUSH @[<v>(@[%a@])@,(" Dtyp.fmt dtyp;
-                (
-                    [ignore, t], Fmt.unit_combine (Fmt.cls_of fmtt ")") fmt_vars
-                ) :: tail
+            | Push (dtyp, c) ->
+                fprintf fmtt "PUSH @[<v>(@[%a@])@,(%a)@]" Dtyp.fmt dtyp fmt_const c;
+                tail
 
             | Lambda (dom, codom, t) ->
                 fprintf fmtt "LAMBDA @[<v>(@[%a@])@,(@[%a@])@,(" Dtyp.fmt dom Dtyp.fmt codom;
                 (
-                    [ignore, t], Fmt.unit_combine (Fmt.cls_of fmtt ")") fmt_vars
+                    [ignore, t], Fmt.unit_combine (Fmt.cls_of fmtt ")") fmt_annots
                 ) :: tail
+
+            | CreateContract c ->
+                fprintf fmtt "CREATE_CONTRACT %a" fmt_contract c;
+                tail
 
             | Macro (ts, macro) -> (
                 match ts with
@@ -603,780 +627,3 @@ let rec fmt (fmtt : formatter) (t : t) : unit =
         loop tail
     in
     loop [ [ignore, t], ignore ]
-
-module Expand = struct
-    let op_to_ins (op : Macro.op) : t =
-        let leaf : leaf =
-            match op with
-            | Macro.Eq -> Eq
-            | Macro.Neq -> Neq
-            | Macro.Lt -> Lt
-            | Macro.Le -> Le
-            | Macro.Ge -> Ge
-            | Macro.Gt -> Gt
-        in
-        mk (Leaf leaf)
-
-    let macro_cmp (op : Macro.op) : t list = [
-        mk_leaf Compare ;
-        op_to_ins op ;
-    ]
-    let macro_if (op : Macro.op) (i_1 : t) (i_2 : t) : t list = [
-        op_to_ins op ;
-        If (i_1, i_2) |> mk ;
-    ]
-    let macro_if_cmp (op : Macro.op) (i_1 : t) (i_2 : t) : t list = [
-        mk_leaf Compare ;
-        op_to_ins op ;
-        If (i_1, i_2) |> mk ;
-    ]
-
-    let macro_fail : t list = [
-        mk_leaf Unit ;
-        mk_leaf Failwith ;
-    ]
-
-    let macro_assert : t list = [
-        If (mk_seq [],  mk_seq macro_fail) |> mk ;
-    ]
-    let macro_assert_ (op : Macro.op) : t list =
-        macro_if op (mk_seq []) (mk_seq macro_fail)
-    let macro_assert_cmp (op : Macro.op) : t list =
-        macro_if_cmp op (mk_seq []) (mk_seq macro_fail)
-    let macro_assert_none : t list = [
-        IfNone (mk_seq [], mk_seq macro_fail) |> mk ;
-    ]
-    let macro_assert_some : t list = [
-        IfNone (mk_seq macro_fail, mk_seq []) |> mk ;
-    ]
-    let macro_assert_left : t list = [
-        IfLeft (mk_seq [], mk_seq macro_fail) |> mk ;
-    ]
-    let macro_assert_right : t list = [
-        IfLeft (mk_seq macro_fail, mk_seq []) |> mk ;
-    ]
-    let macro_dip (n : int) (i : t) : t list =
-        assert (n > 0);
-        (* Note that `DIIP <code>` expands to `DIP (DIP <code>)`.
-            Hence we're generating `n + 1` nested `DIP`s.
-        *)
-        let rec loop (acc : t) (count : int) : t =
-            if count > 0 then loop (Dip acc |> mk) (n - 1)
-            else acc
-        in
-        [ loop (Dip i |> mk) n ]
-    let macro_dup (annot : string list) (n : int) : t list =
-        assert (n > 0);
-        (* Note that `DUUP <code>` expands to `DIP (DUP <code>)`.
-            Hence we're generating `n + 1` nested `DIP`s.
-        *)
-        let rec loop (acc : t) (count : int) : t =
-            if count > 0 then loop (Dip acc |> mk) (n - 1)
-            else acc
-        in
-        [ loop (Dup |> mk_leaf ~vars:annot) n ]
-
-    (* The following deals with pairs...
-    
-        The way this is done is by constructing an intermediary tree. This step can be removed but
-        for now that's how it works.
-        
-        The types/helpers below are for tree construction. `pre_tree` is the type of the frames of
-        the stack maintained. A frame corresponds to a pair constructor. When tree building goes
-        up, meaning a tree was constructed, it looks at the top of the stack and checks whether i)
-        we're done, ii) we just built the left part of a pair (and need to do the right one), or
-        iii) we just built the right part of a pair and need to combine it with its left part.
-    *)
-
-    (* Bail for pair macro expansion. *)
-    let bail_pair () : 'a =
-        Exc.throw "illegal sequence of characters"
-
-    (* Intermediary structure generated by the function below. *)
-    type tree =
-    | LeafI
-    | LeafA
-    | Pair of tree * tree
-
-    (* Stack frame: when building the tree and going up, this tells us what to do.
-    
-        Values of this type are added to the stack when reading a pair `P` constructor.
-    *)
-    type pre_tree =
-    (* Initial stack frame pushed when running in a pair constructor. When going up, it means "keep
-        reading for the right part of the pair".
-    *)
-    | PairLeft
-    (* When going up the variant above, we need to remember the tre constructed for the left branch
-        of the pair. This variant stores it.
-
-        When going up, it means "keep going up by combining this tree and the tree you just
-        constructed".
-    *)
-    | PairRight of tree
-
-    (* Tree formatter, for debugging. Not tailrec. *)
-    (* let rec fmt_tree (fmt : formatter) (tree : tree) =
-        match tree with
-        | LeafI -> fprintf fmt "I"
-        | LeafA -> fprintf fmt "A"
-        | Pair (lft, rgt) -> fprintf fmt "P(%a,%a)" fmt_tree lft fmt_tree rgt *)
-    
-    (* Turns a sequence of pair operators into a tree. *)
-    let macro_pair_to_tree (ops : Macro.pair_op list) : tree =
-
-        (* Look at the stream of pair operators and decide what to do. *)
-        let rec go_down
-            (stack : pre_tree list)
-            (to_do : Macro.pair_op list)
-            : tree
-        =
-            (* log_1 "down (%i)@." (List.length to_do); *)
-            match to_do with
-
-            (* Going up from the left branch. *)
-            | A :: to_do ->
-                (* log_1 "  A@."; *)
-                go_up stack to_do LeafA
-
-            (* Going up from the right branch. *)
-            | I :: to_do ->
-                (* log_1 "  I@."; *)
-                go_up stack to_do LeafI
-
-            (* Go down the left part of a pair constructor. *)
-            | P :: to_do ->
-                (* log_1 "  P@."; *)
-                go_down (PairLeft :: stack) to_do
-
-            | [] -> bail_pair ()
-
-        (* Given a tree, check the stack and decide to go up or down. *)
-        and go_up
-            (stack : pre_tree list)
-            (to_do : Macro.pair_op list)
-            (tree : tree)
-            : tree
-        =
-            (* log_1 "up %a@." fmt_tree tree; *)
-            match stack with
-
-            (* Going up a left branch, need to go down the left branch now. *)
-            | PairLeft :: stack ->
-                (* log_1 "  P left@."; *)
-                go_down ((PairRight tree) :: stack) to_do
-
-            (* Going up a right branch from a pair constructor. *)
-            | (PairRight left_branch) :: stack -> 
-                (* log_1 "  P right@."; *)
-                go_up stack to_do (Pair (left_branch, tree))
-
-            (* Reached the top of the stack, there should be no operator left. *)
-            | [] -> if to_do = [] then tree else bail_pair ()
-        in
-
-        ops |> go_down []
-    
-    (* This type encodes the type of stack frames when expanding the tree.
-    
-        The process builds a list of instructions, and this types says what to do with it.
-    
-        Each variant corresponds to one of the `A`, `I` and `P` pair operators. The last two
-        variants deal with `P`.
-    *)
-    type stack_frame =
-    (* Going up an `A`: `DIP` the instructions and add `PAIR` at the end. *)
-    | UppDipPost
-    (* Going up an `I`: add `PAIR` at the end. *)
-    | UppPref
-    (* Going up a partial `P`: current instructions describe the left part. This tree is the right
-        part. We need to go down this tree and remember the left part using the `Upp` variant
-        below.
-    *)
-    | Dwn of tree
-    (* Going up a `P` for which we have the left part. Current instructions are the right part.
-        Done, concatenate and add `PAIR` at the end. *)
-    | Upp of t list
-
-    (* Turns a tree in a list of instructions. *)
-    let macro_pair_tree_to_list (tree : tree) : t list =
-        (* Go down the tree and decide what to do. *)
-        let rec go_down (stack : stack_frame list) (tree : tree) : t list =
-            match tree with
-            (* Simple pair constructor. *)
-            | Pair (LeafA, LeafI) -> go_up stack [mk_leaf Pair]
-            (* Left part is fine, go down the left part. *)
-            | Pair (LeafA, right) -> go_down (UppDipPost :: stack) right
-            (* Right part is fine, go down the right part. *)
-            | Pair (left, LeafI) -> go_down (UppPref :: stack) left
-            (* Go down left first, then right. *)
-            | Pair (left, right) -> go_down (
-                (Dwn right) :: stack
-            ) left
-            (* Everything else should be illegal. *)
-            | _ -> bail_pair ()
-        (* Go up the stack, building the instructions as we go. *)
-        and go_up (stack : stack_frame list) (lst : t list) : t list =
-            match stack with
-            (* Going up an `A`: `DIP` instructions and add `PAIR` at the end. *)
-            | UppDipPost :: stack ->
-                let dipped = Dip (mk_seq lst) |> mk in
-                go_up stack [dipped ; mk_leaf Pair]
-            (* Going up an `I`: prefix with `PAIR`. *)
-            | UppPref :: stack ->
-                go_up stack ((mk_leaf Pair) :: lst)
-            (* Need to go down `tree`, memorize `lst` in the stack for later. *)
-            | (Dwn tree) :: stack ->
-                go_down ((Upp lst) :: stack) tree
-            (* We have the left (`pref`) and right (`lst`) instructions, just need to build the
-                pair.
-            *)
-            | (Upp pref) :: stack ->
-                go_up stack (pref @ lst @ [mk_leaf Pair])
-            (* We drained the stack, done. *)
-            | [] -> lst
-        in
-        go_down [] tree
-
-    let macro_pair (ops : Macro.pair_op list) : t list =
-        macro_pair_to_tree ops |> macro_pair_tree_to_list
-end
-
-(* Instruction parser. *)
-let rec parse
-    (token : string)
-    (dtyps: Dtyp.t list)
-    (args : t list)
-    (annots : string list)
-    : t
-=
-    let full_arity_check =
-        (* This function is defined below. *)
-        full_arity_check token dtyps args annots
-    in
-    let inner () =
-        match token with
-        | "EMPTY_SET" ->
-            full_arity_check 1 0 1;
-            EmptySet (List.hd dtyps)
-        | "EMPTY_MAP" ->
-            full_arity_check 2 0 1;
-            EmptyMap (List.hd dtyps, List.tl dtyps |> List.hd)
-        | "NONE" ->
-            full_arity_check 1 0 1;
-            Non (List.hd dtyps)
-        | "LEFT" ->
-            full_arity_check 1 0 1;
-            Left (List.hd dtyps)
-        | "RIGHT" ->
-            full_arity_check 1 0 1;
-            Right (List.hd dtyps)
-        | "NIL" ->
-            full_arity_check 1 0 1;
-            Nil (List.hd dtyps)
-        | "IF" ->
-            full_arity_check 0 2 0;
-            If (List.hd args, List.tl args |> List.hd)
-        | "IF_NONE" ->
-            full_arity_check 0 2 0;
-            IfNone (List.hd args, List.tl args |> List.hd)
-        | "IF_LEFT" ->
-            full_arity_check 0 2 0;
-            IfLeft (List.hd args, List.tl args |> List.hd)
-        | "IF_RIGHT" ->
-            full_arity_check 0 2 0;
-            IfRight (List.hd args, List.tl args |> List.hd)
-        | "IF_CONS" ->
-            full_arity_check 0 2 0;
-            IfCons (List.hd args, List.tl args |> List.hd)
-        | "LOOP" ->
-            full_arity_check 0 1 0;
-            Loop (List.hd args)
-        | "LOOP_LEFT" ->
-            full_arity_check 0 1 0;
-            LoopLeft (List.hd args)
-        | "DIP" ->
-            full_arity_check 0 1 0;
-            Dip (List.hd args)
-        | "PUSH" ->
-            full_arity_check 1 1 1;
-            Push (List.hd dtyps, List.hd args)
-        | "LAMBDA" ->
-            full_arity_check 2 1 1;
-            Lambda (List.hd dtyps, List.tl dtyps |> List.hd, List.hd args)
-        | "ITER" ->
-            full_arity_check 0 1 0;
-            Iter (List.hd args)
-        | _ -> (
-            match leaf_of_string token with
-            | Some leaf ->
-                var_arity_of_leaf leaf |> full_arity_check 0 0;
-                Leaf leaf
-            | None -> (
-                match parse_macro token dtyps args annots with
-                | Some ins -> ins
-                | None -> sprintf "unknown instruction `%s`" token |> Exc.throw
-            )
-        )
-    in
-    Exc.chain_err (
-        fun () ->
-            let dtyps =
-                if dtyps = [] then ""
-                else asprintf " %a" (Fmt.fmt_list Fmt.sep_spc (Fmt.fmt_paren Dtyp.fmt)) dtyps
-            in
-            let args =
-                if args = [] then ""
-                else asprintf " %a" (Fmt.fmt_list Fmt.sep_spc fmt) args
-            in
-            sprintf "while parsing \"%s%s%s\"" token dtyps args
-    ) inner
-    |> fun ins -> { ins ; vars = annots }
-
-
-and ty_arity_check (token : string) (dtyps : Dtyp.t list) (ty_expected : int) : unit =
-    Check.arity "type argument" ty_expected (
-        fun () -> token
-    ) dtyps
-
-and args_arity_check (token : string) (args : t list) (expected : int) : unit =
-    Check.arity "instruction" expected (
-        fun () -> token
-    ) args
-
-and annot_arity_check (token : string) (annots : string list) (expected : int) : unit =
-    Check.arity_le "variable annotation" expected (
-        fun () -> token
-    ) annots
-
-and full_arity_check
-    (token : string)
-    (dtyps : Dtyp.t list)
-    (args : t list)
-    (annots : string list)
-    (ty_expected : int)
-    (ins_expected : int)
-    (annot_expected : int)
-    : unit
-=
-    ty_arity_check token dtyps ty_expected;
-    args_arity_check token args ins_expected;
-    annot_arity_check token annots annot_expected
-
-and parse_macro_cmp
-    (token : string)
-    (dtyps: Dtyp.t list)
-    (args : t list)
-    (annots : string list)
-    : t ins option
-=
-    Macro.Parse.prefixed_op
-        (
-            fun () -> [
-                sprintf "token `%s` looks like a CMP-like macro, but is not" token ;
-                sprintf "please refer to https://tezos.gitlab.io/master/whitedoc/michelson.html#compare" ;
-            ]
-        )
-        "CMP"
-        (fun op ->
-            full_arity_check token dtyps args annots 0 0 0;
-            let expanded = Expand.macro_cmp op in
-            let macro = Macro.Cmp op in
-            Macro (expanded, macro)
-        )
-        token
-
-and parse_macro_if
-    (token : string)
-    (dtyps: Dtyp.t list)
-    (args : t list)
-    (annots : string list)
-    : t ins option
-=
-    Macro.Parse.prefixed_op
-        (
-            fun () -> [
-                sprintf "token `%s` looks like an IF-like macro, but is not" token ;
-                sprintf "please refer to https://tezos.gitlab.io/master/whitedoc/michelson.html#compare" ;
-            ]
-        )
-        "IF"
-        (fun op ->
-            full_arity_check token dtyps args annots 0 2 0;
-            let (bt, bf) = (List.hd args, List.tl args |> List.hd) in
-            let expanded = Expand.macro_if op bt bf in
-            let macro = Macro.If (op, bt, bf) in
-            Macro (expanded, macro)
-        )
-        token
-
-and parse_macro_if_cmp
-    (token : string)
-    (dtyps: Dtyp.t list)
-    (args : t list)
-    (annots : string list)
-    : t ins option
-=
-    Macro.Parse.prefixed_op
-        (
-            fun () -> [
-                sprintf "token `%s` looks like an IFCMP-like macro, but is not" token ;
-                sprintf "please refer to https://tezos.gitlab.io/master/whitedoc/michelson.html#compare" ;
-            ]
-        )
-        "IFCMP"
-        (fun op ->
-            full_arity_check token dtyps args annots 0 2 0;
-            let (bt, bf) = (List.hd args, List.tl args |> List.hd) in
-            let expanded = Expand.macro_if op bt bf in
-            let macro = Macro.IfCmp (op, bt, bf) in
-            Macro (expanded, macro)
-        )
-        token
-
-and parse_macro_fail
-    (token : string)
-    (dtyps: Dtyp.t list)
-    (args : t list)
-    (annots : string list)
-    : t ins option
-=
-    if token = "FAIL" then (
-        full_arity_check token dtyps args annots 0 0 0;
-        Some (Macro (Expand.macro_fail, Macro.Fail))
-    ) else None
-
-(* Parses (variations of) the assert macro. *)
-and parse_macro_assert
-    (token : string)
-    (dtyps: Dtyp.t list)
-    (args : t list)
-    (annots : string list)
-    : t ins option
-=
-    (* Parameter is the kind of assert the token looks like: `ASSERT`, `ASSERT_CMP` ... *)
-    let bail (branch : string) : 'a =
-        [
-            sprintf "token `%s` looks like an %s-like macro, but is not" token branch ;
-            sprintf "please refer to https://tezos.gitlab.io/master/whitedoc/michelson.html#assertion-macros" ;
-        ] |> Exc.throws
-    in
-    (* Calls `Macro.Parse.op` on `s` minus the `n` first characters. *)
-    let op_of_suff (s : string) (n : int) : Macro.op option =
-        String.sub s n ((String.length s) - n) |> Macro.Parse.op
-    in
-    (* Performs arity checks and wraps into `Some`. *)
-    let terminate (expansion : t list) (res : t Macro.t) : t ins option =
-        full_arity_check token dtyps args annots 0 0 0;
-        Some (Macro (expansion, res))
-    in
-    match Macro.Parse.tail_of_pref "ASSERT" token with
-    | None -> None
-    | Some "" -> terminate Expand.macro_assert Macro.Assert
-    | Some tail -> (
-        if String.get tail 0 <> '_' then (
-            bail "ASSERT" |> ignore
-        );
-        let tail = String.sub tail 1 ((String.length tail) - 1) in
-        match Macro.Parse.op tail with
-        | Some op -> Macro.Assert_ op |> terminate (Expand.macro_assert_ op)
-        | None -> (
-            let tail_len = String.length tail in
-            let (expansion, macro) : (t list * t Macro.t) =
-                if tail_len < 3 then (
-                    bail "ASSERT_"
-                ) else if "CMP" = String.sub tail 0 3 then (
-                    match op_of_suff tail 3 with
-                    | Some op ->
-                        Expand.macro_assert_cmp op, Macro.AssertCmp op
-                    | None -> bail "ASSERT_CMP{CMP}"
-                ) else if tail_len < 4 then (
-                    bail "ASSERT_"
-                ) else if "NONE" = String.sub tail 0 4 then (
-                    if tail = "NONE" then
-                        Expand.macro_assert_none, Macro.AssertNone
-                    else bail "ASSERT_NONE"
-                ) else if "SOME" = String.sub tail 0 4 then (
-                    if tail = "SOME" then
-                        Expand.macro_assert_some, Macro.AssertSome
-                    else bail "ASSERT_SOME"
-                ) else if "LEFT" = String.sub tail 0 4 then (
-                    if tail = "LEFT" then
-                        Expand.macro_assert_left, Macro.AssertLeft
-                    else bail "ASSERT_LEFT"
-                ) else if tail_len < 5 then (
-                    bail "ASSERT_"
-                ) else if "RIGHT" = String.sub tail 0 5 then (
-                    if tail = "RIGHT" then
-                        Expand.macro_assert_right, Macro.AssertRight
-                    else bail "ASSERT_RIGHT"
-                ) else bail "ASSERT_"
-            in
-            terminate expansion macro
-        )
-    )
-
-(* Factors common code between `parse_macro_dip` and `parse_macro_dup`.
-
-    Parses strings of the form `<pref><rep>*<finish>`. Returns the number of times `rep` appears in
-    the token.
-*)
-and parse_macro_diup
-    (pref : string)
-    (rep : char)
-    (finish : char)
-    (token : string)
-    : int option
-=
-    let bail () : int =
-        [
-            sprintf "token `%s` looks like a %s%c+%c-like macro, but is not" token pref rep finish ;
-            sprintf "please refer to https://tezos.gitlab.io/master/whitedoc/michelson.html#syntactic-conveniences" ;
-        ] |> Exc.throws
-    in
-    match Macro.Parse.tail_of_pref pref token with
-    | None -> None
-    | Some tail -> (
-        let tail_len = String.length tail in
-        let rec count (n : int) : int =
-            if n < tail_len then (
-                let next = String.get tail n in
-                if next = rep then (
-                    n + 1 |> count
-                ) else if next = finish then (
-                    (* Anything else in the string? *)
-                    if n + 1 = tail_len then (
-                        n
-                    ) else (
-                        bail ()
-                    )
-                ) else (
-                    bail ()
-                )
-            ) else (
-                bail ()
-            )
-        in
-        Some (count 0)
-    )
-
-and parse_macro_dip
-    (token : string)
-    (dtyps: Dtyp.t list)
-    (args : t list)
-    (annots : string list)
-    : t ins option
-=
-    match parse_macro_diup "DI" 'I' 'P' token with
-    | None -> None
-    | Some i_count -> (
-        if i_count = 0 then (
-            Exc.throw "entered unreachable code: encountered `DIP` while parsing a `DII+P`"
-        );
-        full_arity_check token dtyps args annots 0 1 0;
-        let ins = List.hd args in
-        let expanded = Expand.macro_dip i_count ins in
-        let macro = Macro.Dip (i_count, ins) in
-        Some (Macro (expanded, macro))
-    )
-
-and parse_macro_dup
-    (token : string)
-    (dtyps: Dtyp.t list)
-    (args : t list)
-    (annots : string list)
-    : t ins option
-=
-    match parse_macro_diup "DU" 'U' 'P' token with
-    | None -> None
-    | Some u_count -> (
-        if u_count = 0 then (
-            Exc.throw "entered unreachable code: encountered `DUP` while parsing a `DUU+P`"
-        );
-        full_arity_check token dtyps args annots 0 0 1;
-        let expanded = Expand.macro_dup annots u_count in
-        let macro = Macro.Dup u_count in
-        Some (Macro (expanded, macro))
-    )
-
-and parse_macro_pair
-    (token : string)
-    (dtyps: Dtyp.t list)
-    (args : t list)
-    (annots : string list)
-    : t ins option
-=
-    match Macro.Parse.tail_of_pref "P" token with
-    | None -> None
-    | Some tail -> (
-        match Macro.Parse.pair_ops tail with
-        | ops, "R" -> (
-            full_arity_check token dtyps args annots 0 0 1;
-            let expanded = Expand.macro_pair (Macro.P :: ops) in
-            let macro = Macro.P ops in
-            Some (Macro (expanded, macro))
-        )
-        | _ ->
-            [
-                sprintf "token `%s` looks like a P[API]+R-like macro, but is not" token ;
-                sprintf "please refer to https://tezos.gitlab.io/master/whitedoc/michelson.html#syntactic-conveniences" ;
-            ] |> Exc.throws
-    )
-
-and parse_macro_unpair
-    (token : string)
-    (dtyps: Dtyp.t list)
-    (args : t list)
-    (annots : string list)
-    : t ins option
-=
-    match Macro.Parse.tail_of_pref "UNP" token with
-    | None -> None
-    | Some tail -> (
-        match Macro.Parse.pair_ops tail with
-        | ops, "R" -> (
-            full_arity_check token dtyps args annots 0 0 1;
-            let macro = Macro.Unp ops in
-            Some (Macro ([], macro))
-        )
-        | _ ->
-            [
-                sprintf "token `%s` looks like a UNP[API]+R-like macro, but is not" token ;
-                sprintf "please refer to https://tezos.gitlab.io/master/whitedoc/michelson.html#syntactic-conveniences" ;
-            ] |> Exc.throws
-    )
-
-and parse_macro_cadr
-    (token : string)
-    (dtyps: Dtyp.t list)
-    (args : t list)
-    (annots : string list)
-    : t ins option
-=
-    match Macro.Parse.tail_of_pref "C" token with
-    | None -> None
-    | Some tail -> (
-        match Macro.Parse.unpair_ops tail with
-        | ops, "R" -> (
-            full_arity_check token dtyps args annots 0 0 1;
-            let macro = Macro.CadR ops in
-            Some (Macro ([], macro))
-        )
-        | _ ->
-            [
-                sprintf "token `%s` looks like a C[AD]+R-like macro, but is not" token ;
-                sprintf "please refer to https://tezos.gitlab.io/master/whitedoc/michelson.html#syntactic-conveniences" ;
-            ] |> Exc.throws
-    )
-
-and parse_macro_set_cadr
-    (token : string)
-    (dtyps: Dtyp.t list)
-    (args : t list)
-    (annots : string list)
-    : t ins option
-=
-    match Macro.Parse.tail_of_pref "SET_C" token with
-    | None -> None
-    | Some tail -> (
-        match Macro.Parse.unpair_ops tail with
-        | ops, "R" -> (
-            full_arity_check token dtyps args annots 0 0 1;
-            let macro = Macro.SetCadr ops in
-            Some (Macro ([], macro))
-        )
-        | _ ->
-            [
-                sprintf "token `%s` looks like a SET_C[AD]+R-like macro, but is not" token ;
-                sprintf "please refer to https://tezos.gitlab.io/master/whitedoc/michelson.html#syntactic-conveniences" ;
-            ] |> Exc.throws
-    )
-
-and parse_macro_map_cadr
-    (token : string)
-    (dtyps: Dtyp.t list)
-    (args : t list)
-    (annots : string list)
-    : t ins option
-=
-    match Macro.Parse.tail_of_pref "MAP_C" token with
-    | None -> None
-    | Some tail -> (
-        match Macro.Parse.unpair_ops tail with
-        | ((_ :: _) as ops), "R" -> (
-            full_arity_check token dtyps args annots 0 0 1;
-            let macro = Macro.SetCadr ops in
-            Some (Macro ([], macro))
-        )
-        | _ ->
-            [
-                sprintf "token `%s` looks like a MAP_C[AD]+R-like macro, but is not" token ;
-                sprintf "please refer to https://tezos.gitlab.io/master/whitedoc/michelson.html#syntactic-conveniences" ;
-            ] |> Exc.throws
-    )
-
-and parse_macro_if_some
-    (token : string)
-    (dtyps: Dtyp.t list)
-    (args : t list)
-    (annots : string list)
-    : t ins option
-=
-    if token = "IF_SOME" then (
-        full_arity_check token dtyps args annots 0 2 0;
-        let macro = Macro.IfSome (List.hd args, List.tl args |> List.hd) in
-        Some (Macro ([], macro))
-    ) else (
-        None
-    )
-
-and parse_macro_if_none
-    (token : string)
-    (dtyps: Dtyp.t list)
-    (args : t list)
-    (annots : string list)
-    : t ins option
-=
-    if token = "IF_NONE" then (
-        full_arity_check token dtyps args annots 0 2 0;
-        let macro = Macro.IfSome (List.hd args, List.tl args |> List.hd) in
-        Some (Macro ([], macro))
-    ) else (
-        None
-    )
-
-(* Macro parser. *)
-and parse_macro
-    (token : string)
-    (dtyps: Dtyp.t list)
-    (args : t list)
-    (annots : string list)
-    : t ins option
-=
-    let all : (unit -> t ins option) list =
-        [
-            (fun () -> parse_macro_cmp token dtyps args annots) ;
-            (fun () -> parse_macro_if_some token dtyps args annots) ;
-            (fun () -> parse_macro_if_none token dtyps args annots) ;
-            (fun () -> parse_macro_if_cmp token dtyps args annots) ;
-            (fun () -> parse_macro_if token dtyps args annots) ;
-            (fun () -> parse_macro_fail token dtyps args annots) ;
-            (fun () -> parse_macro_assert token dtyps args annots) ;
-            (fun () -> parse_macro_dip token dtyps args annots) ;
-            (fun () -> parse_macro_dup token dtyps args annots) ;
-            (fun () -> parse_macro_pair token dtyps args annots) ;
-            (fun () -> parse_macro_unpair token dtyps args annots) ;
-            (fun () -> parse_macro_cadr token dtyps args annots) ;
-            (fun () -> parse_macro_set_cadr token dtyps args annots) ;
-            (fun () -> parse_macro_map_cadr token dtyps args annots) ;
-        ]
-    in
-    let rec loop = function
-        | [] -> None
-        | parse :: tail -> (
-            match parse () with
-            | Some macro -> Some macro
-            | None -> loop tail
-        )
-    in
-    loop all

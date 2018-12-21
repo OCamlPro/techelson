@@ -78,7 +78,6 @@ type leaf =
 | Update
 | Som
 | Cons
-| CreateContract
 | CreateAccount
 | TransferTokens
 | SetDelegate
@@ -99,6 +98,7 @@ type leaf =
 | Sha256
 | Sha512
 | CheckSignature
+| Rename
 
 (** Leaf formatter. *)
 val fmt_leaf : formatter -> leaf -> unit
@@ -108,6 +108,9 @@ val leaf_of_string : string -> leaf option
 
 (** Returns the maximum number of variable annotations supported by a leaf. *)
 val var_arity_of_leaf : leaf -> int
+
+(** Returns the maximum number of field annotations supported by a leaf. *)
+val field_arity_of_leaf : leaf -> int
 
 (** Instructions. *)
 type 'sub ins =
@@ -123,35 +126,72 @@ type 'sub ins =
 | Loop of 'sub
 | LoopLeft of 'sub
 | Dip of 'sub
-| Push of Dtyp.t * 'sub
+| Push of Dtyp.t * const
 | Lambda of Dtyp.t * Dtyp.t * 'sub
 | Iter of 'sub
 | IfNone of 'sub * 'sub
 | IfLeft of 'sub * 'sub
 | IfRight of 'sub * 'sub
 | IfCons of 'sub * 'sub
+| CreateContract of contract
 | Macro of 'sub list * 'sub Macro.t
 
-(** Type of variables. *)
-type var = string
+and const =
+| Unit
+
+| Bool of bool
+| Int of string
+| Str of string
+
+| Contract of contract
+
+| Lft of const
+| Rgt of const
+
+| No
+| So of const
+
+and contract = {
+    storage : Dtyp.t ;
+    param : Dtyp.t ;
+    entry : t ;
+}
 
 (** Instruction with variable bindings. *)
-type t = {
+and t = {
     ins : t ins ;
-    vars : var list ;
+    typs : Annot.typs ;
+    vars : Annot.vars ;
+    fields : Annot.fields ;
 }
 
 (** Creates an instruction. *)
-val mk : ?vars: var list -> t ins -> t
+val mk :
+    ?vars: Annot.vars ->
+    ?fields: Annot.fields ->
+    ?typs: Annot.typs ->
+    t ins ->
+    t
+
+(** Creates a contract. *)
+val mk_contract : storage : Dtyp.t -> param : Dtyp.t -> t -> contract
 
 (** Creates an instruction from a leaf. *)
-val mk_leaf : ?vars: var list -> leaf -> t
+val mk_leaf :
+    ?vars: Annot.vars ->
+    ?fields: Annot.fields ->
+    ?typs: Annot.typs ->
+    leaf ->
+    t
 
 (** Creates a sequence instruction. *)
 val mk_seq : t list -> t
 
+(** Contract formatter. *)
+val fmt_contract : formatter -> contract -> unit
+
+(** Constant formatter. *)
+val fmt_const : formatter -> const -> unit
+
 (** Instruction formatter. *)
 val fmt : formatter -> t -> unit
-
-(** Instruction parser. *)
-val parse : string -> Dtyp.t list -> t list -> string list -> t

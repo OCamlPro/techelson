@@ -5,7 +5,7 @@ open Base.Common
 
 let of_channel (in_chan : in_channel) : unit =
     let _ =
-        Lexing.from_channel in_chan |> Parse.Micparse.mic Parse.Miclex.token
+        Lexing.from_channel in_chan |> Parse.Micparse.just_mic Parse.Miclex.token
     in
     ()
 

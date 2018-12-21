@@ -7,27 +7,37 @@
 rule token = parse
 | [' ' '\t' '\n'] { token lexbuf }
 
-| "CONTRACT" { CONTRACT }
 | "parameter" { PARAMETER }
 | "storage" { STORAGE }
 | "code" { CODE }
+| "Unit" { UNIT }
 
-| ':' (['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '_' '0'-'9']* as lxm) {
-    COLANNOT lxm
+| ':' (['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '_' '.' '0'-'9']* as str) {
+    COLANNOT (Base.Annot.Typ.of_string str)
 }
-| '@' (['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '_' '0'-'9']* as lxm) {
-    ATANNOT lxm
+| '@' (['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '_' '.' '0'-'9']* as str) {
+    ATANNOT (Base.Annot.Var.of_string str)
 }
-| '%' (['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '_' '0'-'9']* as lxm) {
-    PERANNOT lxm
+| '%' (['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '_' '.' '0'-'9']* as str) {
+    PERANNOT (Base.Annot.Field.of_string str)
 }
 
-| ['A'-'Z' '_']* as str { INSTKN str }
-| ['a'-'z' '_']* as str { TYPTKN str }
+| ':' { COLANNOT (Base.Annot.Typ.of_string "") }
+| '@' { ATANNOT (Base.Annot.Var.of_string "") }
+| '%' { PERANNOT (Base.Annot.Field.of_string "") }
 
-| '"' [^'"']* '"' as str { STR str }
+| ['A'-'Z' '_']+ as str { INSTKN str }
+| ['a'-'z' '_']+ as str { TYPTKN str }
 
-| ['0'-'9']+ as lxm { INT (int_of_string lxm) }
+| "True"  { BOOL true }
+| "False" { BOOL false }
+| ['A'-'Z' 'a'-'z' '_']+ as str { CONSTRTKN str }
+
+| '"' [^'"']* '"' as str {
+    STR (String.sub str 1 ((String.length str) - 2))
+}
+
+| ['0'-'9']+ as lxm { INT lxm }
 | '{' { OCURL }
 | '}' { CCURL }
 | '(' { OPAR }

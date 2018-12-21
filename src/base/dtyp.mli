@@ -25,36 +25,33 @@ val fmt_leaf : formatter -> leaf -> unit
 val leaf_of_string : string -> leaf option
 
 (** Wraps a datatype with a name. *)
-type 'sub named = {
-  typ : 'sub ;
-  name : string option ;
+type named = {
+  inner : t ;
+  name : Annot.Field.t option ;
 }
 
 (** Nameless datatype. *)
-type 'sub dtyp =
+and dtyp =
 | Leaf of leaf
 
-| List of 'sub
-| Option of 'sub
-| Set of 'sub
-| Contract of 'sub
+| List of t
+| Option of t
+| Set of t
+| Contract of t
 
-| Pair of (t named) list
-| Or of (t named) list
-| Map of 'sub * 'sub
-| BigMap of 'sub * 'sub
+| Pair of named * named
+| Or of named * named
+| Map of t * t
+| BigMap of t * t
 
 (** Datatypes. *)
 and t = {
-  typ : t dtyp ;
-  alias : string option ;
+  typ : dtyp ;
+  alias : Annot.Typ.t option ;
 }
 
 (** Named datatype constructor. *)
-val mk : string option -> t dtyp -> t
+val mk : ?alias : Annot.Typ.t option -> dtyp -> t
 
 (** Formatter for datatypes. *)
 val fmt : formatter -> t -> unit
-
-(** Datatype parser. *)
-val parse : string -> string option -> (t * string option) list -> t
