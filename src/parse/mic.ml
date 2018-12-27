@@ -169,8 +169,11 @@ let rec parse
                 Mic.Leaf leaf
             )
             | None -> (
-                match parse_macro token dtyps args var_annots with
-                | Some ins -> ins
+                match parse_macro token var_annots field_annots dtyps args with
+                | Some ins -> (
+                    Check.Annots.typ_arity_le (fun () -> token) 0 typ_annots;
+                    ins
+                )
                 | None -> sprintf "unknown instruction `%s`" token |> Exc.throw
             )
         )
@@ -197,11 +200,23 @@ and full_arity_check (token : string) (dtyps : Dtyp.t list) (args : 'a list) (an
     Check.param_arity (fun () -> token) (typ_x, dtyps) (arg_x, args);
     Check.Annots.var_arity_le (fun () -> token) annot_x annots
 
+and macro_annot_arity_check
+    (token : string)
+    (vars : Annot.vars)
+    (fields : Annot.fields)
+    (vars_x : int)
+    (fields_x : int)
+    : unit
+=
+    Check.Annots.var_arity_le (fun () -> token) vars_x vars;
+    Check.Annots.field_arity_le (fun () -> token) fields_x fields
+
 and parse_macro_cmp
     (token : string)
+    (vars : Annot.vars)
+    (fields: Annot.fields)
     (dtyps : Dtyp.t list)
     (args : Mic.t list)
-    (annots : Annot.vars)
     : Mic.t Mic.ins option
 =
     Macro.prefixed_op
@@ -213,8 +228,9 @@ and parse_macro_cmp
         )
         "CMP"
         (fun op ->
-            full_arity_check token dtyps args annots 0 0 0;
-            let expanded = Expand.macro_cmp op in
+            full_arity_check token dtyps args vars 0 0 0;
+            macro_annot_arity_check token vars fields 1 0;
+            let expanded = Expand.macro_cmp vars op in
             let macro = Mic.Macro.Cmp op in
             Mic.Macro (expanded, macro)
         )
@@ -435,9 +451,10 @@ and parse_macro_dup
 
 and parse_macro_pair
     (token : string)
+    (vars : Annot.vars)
+    (fields : Annot.fields)
     (dtyps : Dtyp.t list)
     (args : Mic.t list)
-    (annots : Annot.vars)
     : Mic.t Mic.ins option
 =
     match Utils.tail_of_pref ~pref:"P" token with
@@ -445,8 +462,9 @@ and parse_macro_pair
     | Some tail -> (
         match Macro.pair_ops tail with
         | ops, "R" -> (
-            full_arity_check token dtyps args annots 0 0 1;
-            let expanded = Expand.macro_pair (Mic.Macro.P :: ops) in
+            full_arity_check token dtyps args vars 0 0 1;
+            Check.Annots.var_arity_le (fun () -> token) 1 vars;
+            let expanded = Expand.macro_pair vars fields (Mic.Macro.P :: ops) in
             let macro = Mic.Macro.P ops in
             Some (Macro (expanded, macro))
         )
@@ -459,9 +477,10 @@ and parse_macro_pair
 
 and parse_macro_unpair
     (token : string)
+    (vars : Annot.vars)
+    (fields : Annot.fields)
     (dtyps : Dtyp.t list)
     (args : Mic.t list)
-    (annots : Annot.vars)
     : Mic.t Mic.ins option
 =
     match Utils.tail_of_pref ~pref:"UNP" token with
@@ -469,8 +488,10 @@ and parse_macro_unpair
     | Some tail -> (
         match Macro.pair_ops tail with
         | ops, "R" -> (
-            full_arity_check token dtyps args annots 0 0 1;
-            let expanded = Expand.macro_unpair (Mic.Macro.P :: ops) in
+            Check.typ_arity (fun () -> token) 0 dtyps;
+            Check.args_arity (fun () -> token) 0 args;
+            Check.Annots.field_arity_le (fun () -> token) 0 fields;
+            let expanded = Expand.macro_unpair vars (Mic.Macro.P :: ops) in
             let macro = Mic.Macro.Unp ops in
             Some (Macro (expanded, macro))
         )
@@ -483,9 +504,10 @@ and parse_macro_unpair
 
 and parse_macro_cadr
     (token : string)
+    (vars : Annot.vars)
+    (fields : Annot.fields)
     (dtyps : Dtyp.t list)
     (args : Mic.t list)
-    (annots : Annot.vars)
     : Mic.t Mic.ins option
 =
     match Utils.tail_of_pref ~pref:"C" token with
@@ -493,8 +515,9 @@ and parse_macro_cadr
     | Some tail -> (
         match Macro.unpair_ops tail with
         | ops, "R" -> (
-            full_arity_check token dtyps args annots 0 0 1;
-            let expanded = Expand.macro_cadr ops in
+            full_arity_check token dtyps args vars 0 0 1;
+            macro_annot_arity_check token vars fields 1 1;
+            let expanded = Expand.macro_cadr vars fields ops in
             let macro = Mic.Macro.CadR ops in
             Some (Macro (expanded, macro))
         )
@@ -507,9 +530,10 @@ and parse_macro_cadr
 
 and parse_macro_set_cadr
     (token : string)
+    (vars : Annot.vars)
+    (fields : Annot.fields)
     (dtyps : Dtyp.t list)
     (args : Mic.t list)
-    (annots : Annot.vars)
     : Mic.t Mic.ins option
 =
     match Utils.tail_of_pref ~pref:"SET_C" token with
@@ -517,8 +541,9 @@ and parse_macro_set_cadr
     | Some tail -> (
         match Macro.unpair_ops tail with
         | ops, "R" -> (
-            full_arity_check token dtyps args annots 0 0 1;
-            let expanded = Expand.macro_set_cadr ops in
+            full_arity_check token dtyps args vars 0 0 1;
+            macro_annot_arity_check token vars fields 1 1;
+            let expanded = Expand.macro_set_cadr vars fields ops in
             let macro = Mic.Macro.SetCadr ops in
             Some (Macro (expanded, macro))
         )
@@ -531,9 +556,10 @@ and parse_macro_set_cadr
 
 and parse_macro_map_cadr
     (token : string)
+    (vars : Annot.vars)
+    (fields : Annot.fields)
     (dtyps : Dtyp.t list)
     (args : Mic.t list)
-    (annots : Annot.vars)
     : Mic.t Mic.ins option
 =
     match Utils.tail_of_pref ~pref:"MAP_C" token with
@@ -541,9 +567,10 @@ and parse_macro_map_cadr
     | Some tail -> (
         match Macro.unpair_ops tail with
         | ((_ :: _) as ops), "R" -> (
-            full_arity_check token dtyps args annots 0 1 1;
+            full_arity_check token dtyps args vars 0 1 1;
+            macro_annot_arity_check token vars fields 1 1;
             let ins = List.hd args in
-            let expanded = Expand.macro_map_cadr ops ins in
+            let expanded = Expand.macro_map_cadr vars fields ops ins in
             let macro = Mic.Macro.MapCadr (ops, ins) in
             Some (Macro (expanded, macro))
         )
@@ -590,28 +617,28 @@ and parse_macro_int
 (* Macro parser. *)
 and parse_macro
     (token : string)
+    (vars : Annot.vars)
+    (fields : Annot.fields)
     (dtyps : Dtyp.t list)
     (args : Mic.t list)
-    (annots : Annot.vars)
     : Mic.t Mic.ins option
 =
-    (* let annots : Annot.vars = annots |> List.map Annot.Var.of_string in *)
     let all : (unit -> Mic.t Mic.ins option) list =
         [
-            (fun () -> parse_macro_cmp token dtyps args annots) ;
-            (fun () -> parse_macro_if_some token dtyps args annots) ;
-            (fun () -> parse_macro_if_cmp token dtyps args annots) ;
-            (fun () -> parse_macro_if token dtyps args annots) ;
-            (fun () -> parse_macro_fail token dtyps args annots) ;
-            (fun () -> parse_macro_assert token dtyps args annots) ;
-            (fun () -> parse_macro_dip token dtyps args annots) ;
-            (fun () -> parse_macro_dup token dtyps args annots) ;
-            (fun () -> parse_macro_pair token dtyps args annots) ;
-            (fun () -> parse_macro_unpair token dtyps args annots) ;
-            (fun () -> parse_macro_cadr token dtyps args annots) ;
-            (fun () -> parse_macro_set_cadr token dtyps args annots) ;
-            (fun () -> parse_macro_map_cadr token dtyps args annots) ;
-            (fun () -> parse_macro_int token dtyps args annots) ;
+            (fun () -> parse_macro_cmp token vars fields dtyps args) ;
+            (fun () -> parse_macro_if_some token dtyps args vars) ;
+            (fun () -> parse_macro_if_cmp token dtyps args vars) ;
+            (fun () -> parse_macro_if token dtyps args vars) ;
+            (fun () -> parse_macro_fail token dtyps args vars) ;
+            (fun () -> parse_macro_assert token dtyps args vars) ;
+            (fun () -> parse_macro_dip token dtyps args vars) ;
+            (fun () -> parse_macro_dup token dtyps args vars) ;
+            (fun () -> parse_macro_pair token vars fields dtyps args) ;
+            (fun () -> parse_macro_unpair token vars fields dtyps args) ;
+            (fun () -> parse_macro_cadr token vars fields dtyps args) ;
+            (fun () -> parse_macro_set_cadr token vars fields dtyps args) ;
+            (fun () -> parse_macro_map_cadr token vars fields dtyps args) ;
+            (fun () -> parse_macro_int token dtyps args vars) ;
         ]
     in
     let rec loop = function

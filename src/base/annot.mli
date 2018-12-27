@@ -10,6 +10,9 @@ module Var : sig
     (** Creates a variable annotation from a string. *)
     val of_string : string -> t
 
+    (** The wildcard variable annotation. *)
+    val wild : t
+
     (** Variable annotation formatter. *)
     val fmt : formatter -> t -> unit
 end
@@ -22,6 +25,9 @@ module Field : sig
     (** Creates a field annotation from a string. *)
     val of_string : string -> t
 
+    (** The wildcard field annotation. *)
+    val wild : t
+
     (** Field annotation formatter. *)
     val fmt : formatter -> t -> unit
 end
@@ -33,6 +39,9 @@ module Typ : sig
 
     (** Creates a type annotation from a string. *)
     val of_string : string -> t
+
+    (** The wildcard type annotation. *)
+    val wild : t
 
     (** Type annotation formatter. *)
     val fmt : formatter -> t -> unit

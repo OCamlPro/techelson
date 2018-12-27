@@ -1,7 +1,7 @@
 (* Types and helpers for macro expansion. *)
 
 module Utils = struct
-    let macro_op_to_mic (op : Mic.Macro.op) : Mic.t =
+    let macro_op_to_mic (vars : Annot.vars) (op : Mic.Macro.op) : Mic.t =
         let leaf : Mic.leaf =
             match op with
             | Mic.Macro.Eq -> Eq
@@ -11,20 +11,20 @@ module Utils = struct
             | Mic.Macro.Ge -> Ge
             | Mic.Macro.Gt -> Gt
         in
-        Mic.mk (Mic.Leaf leaf)
+        Mic.mk ~vars:(vars) (Mic.Leaf leaf)
 end
 
-let macro_cmp (op : Mic.Macro.op) : Mic.t list = [
+let macro_cmp (vars : Annot.vars) (op : Mic.Macro.op) : Mic.t list = [
     Mic.mk_leaf Mic.Compare ;
-    Utils.macro_op_to_mic op ;
+    Utils.macro_op_to_mic vars op ;
 ]
 let macro_if (op : Mic.Macro.op) (i_1 : Mic.t) (i_2 : Mic.t) : Mic.t list = [
-    Utils.macro_op_to_mic op ;
+    Utils.macro_op_to_mic [] op ;
     Mic.If (i_1, i_2) |> Mic.mk ;
 ]
 let macro_if_cmp (op : Mic.Macro.op) (i_1 : Mic.t) (i_2 : Mic.t) : Mic.t list = [
     Mic.mk_leaf Mic.Compare ;
-    Utils.macro_op_to_mic op ;
+    Utils.macro_op_to_mic [] op ;
     Mic.If (i_1, i_2) |> Mic.mk ;
 ]
 
@@ -194,7 +194,7 @@ module PairHelp = struct
     *)
     type stack_frame =
     (* Going up an `A`: `DIP` the instructions and add `PAIR` at the end. *)
-    | UppDipPost
+    | UppDipPost of Annot.fields
     (* Going up an `I`: add `PAIR` at the beginning. *)
     | UppPref
     (* Going up a partial `P`: current instructions describe the left part. This tree is the right
@@ -206,45 +206,81 @@ module PairHelp = struct
         Done, concatenate and add `PAIR` at the end. *)
     | Upp of Mic.t list
 
+    (* Splits a list into its head and its tail. *)
+    let lst_split (l : 'a list) : ('a list * 'a list) =
+        match l with
+        | head :: tail -> [head], tail
+        | [] -> [], []
+
     (* Turns a tree for a pair macro into a list of instructions. *)
-    let macro_pair_tree_to_list (tree : tree) : Mic.t list =
+    let macro_pair_tree_to_list (vars : Annot.vars) (fields : Annot.fields) (tree : tree) : Mic.t list =
+        let pair (stack : 'a list) (fields : Annot.fields) : Mic.t =
+            if stack = [] then Mic.mk_leaf ~vars:vars ~fields:fields Mic.Pair
+            else Mic.mk_leaf ~fields:fields Mic.Pair
+        in
         (* Go down the tree and decide what to do. *)
-        let rec go_down (stack : stack_frame list) (tree : tree) : Mic.t list =
+        let rec go_down
+            (fields : Annot.fields)
+            (stack : stack_frame list)
+            (tree : tree)
+            : Mic.t list
+        =
             match tree with
             (* Simple pair constructor. *)
-            | Pair (LeafA, LeafI) -> go_up stack [Mic.mk_leaf Mic.Pair]
+            | Pair (LeafA, LeafI) ->
+                let field_a, fields = lst_split fields in
+                let field_b, fields = lst_split fields in
+                Format.printf "leaves:%a |%a@." Annot.fmt_fields field_a Annot.fmt_fields field_b;
+                go_up fields stack [pair stack (field_a @ field_b)]
             (* Left part is fine, go down the left part. *)
-            | Pair (LeafA, right) -> go_down (UppDipPost :: stack) right
-            (* Right part is fine, go down the right part. *)
-            | Pair (left, LeafI) -> go_down (UppPref :: stack) left
+            | Pair (LeafA, right) ->
+                Format.printf "leaf A@.";
+                let field, fields = lst_split fields in
+                go_down fields ((UppDipPost field) :: stack) right
+            (* Right part is fine, go down the left part. *)
+            | Pair (left, LeafI) ->
+                Format.printf "leaf B@.";
+                go_down fields (UppPref :: stack) left
             (* Go down left first, then right. *)
-            | Pair (left, right) -> go_down (
-                (Dwn right) :: stack
-            ) left
+            | Pair (left, right) ->
+                go_down fields (
+                    (Dwn right) :: stack
+                ) left
             (* Everything else should be illegal. *)
             | _ -> bail_pair ()
         (* Go up the stack, building the instructions as we go. *)
-        and go_up (stack : stack_frame list) (lst : Mic.t list) : Mic.t list =
+        and go_up
+            (fields : Annot.fields)
+            (stack : stack_frame list)
+            (lst : Mic.t list)
+            : Mic.t list
+        =
             match stack with
             (* Going up an `A`: `DIP` instructions and add `PAIR` at the end. *)
-            | UppDipPost :: stack ->
+            | (UppDipPost field) :: stack ->
+                let pair_fields = field @ [Annot.Field.wild] in
                 let dipped = Mic.Dip (Mic.mk_seq lst) |> Mic.mk in
-                go_up stack [dipped ; Mic.mk_leaf Mic.Pair]
+                let pair = pair stack pair_fields in
+                go_up fields stack [dipped ; pair]
             (* Going up an `I`: prefix with `PAIR`. *)
             | UppPref :: stack ->
-                go_up stack ((Mic.mk_leaf Mic.Pair) :: lst)
+                let field, fields = lst_split fields in
+                let pair_fields = Annot.Field.wild :: field in
+                let pair = pair stack pair_fields in
+                go_up fields stack (lst @ [pair])
             (* Need to go down `tree`, memorize `lst` in the stack for later. *)
             | (Dwn tree) :: stack ->
-                go_down ((Upp lst) :: stack) tree
+                go_down fields ((Upp lst) :: stack) tree
             (* We have the left (`pref`) and right (`lst`) instructions, just need to build the
                 pair.
             *)
             | (Upp pref) :: stack ->
-                go_up stack (pref @ lst @ [Mic.mk_leaf Mic.Pair])
+                let pair = pair stack [] in
+                go_up fields stack (pref @ lst @ [pair])
             (* We drained the stack, done. *)
             | [] -> lst
         in
-        go_down [] tree
+        go_down fields [] tree
 
     (* This type encodes the type of stack frames when expanding the tree.
 
@@ -255,7 +291,7 @@ module PairHelp = struct
     *)
     type un_stack_frame =
     (* Going up an `A`: `DIP` the instructions and add `UNPAIR` at the beginning. *)
-    | UppDipPref
+    | UppDipPref of Annot.vars
     (* Going up an `I`: add `PAIR` at the beginning. *)
     | UppPref
     (* Going up a partial `P`: current instructions describe the left part. This tree is the right
@@ -268,70 +304,87 @@ module PairHelp = struct
     | Upp of Mic.t list
 
     (* Sequence of instructions corresponding to `UNPAIR`. *)
-    let unpair_inss : Mic.t list = [
-        Mic.Dup |> Mic.mk_leaf ;
-        Mic.Car |> Mic.mk_leaf ;
-        Mic.Dip (Mic.Cdr |> Mic.mk_leaf) |> Mic.mk ;
-    ]
+    let unpair_inss (vars : Annot.vars) (left : bool) (right : bool) : Mic.t list * Annot.vars =
+        let car_annot, vars = if left then lst_split vars else [], vars in
+        let cdr_annot, vars = if right then lst_split vars else [], vars in
+        [
+            Mic.Dup |> Mic.mk_leaf ;
+            Mic.Car |> Mic.mk_leaf ~vars:car_annot ;
+            Mic.Dip (Mic.Cdr |> Mic.mk_leaf ~vars:cdr_annot) |> Mic.mk ;
+        ], vars
 
     (* Turns a tree for an unpair macro into a list of instructions. *)
-    let macro_unpair_tree_to_list (tree : tree) : Mic.t list =
+    let macro_unpair_tree_to_list (vars : Annot.vars) (tree : tree) : Mic.t list =
         (* Go down the tree and decide what to do. *)
-        let rec go_down (stack : un_stack_frame list) (tree : tree) : Mic.t list =
+        let rec go_down (vars : Annot.vars) (stack : un_stack_frame list) (tree : tree) : Mic.t list =
             match tree with
             (* Simple pair deconstructor. *)
-            | Pair (LeafA, LeafI) -> go_up stack unpair_inss
+            | Pair (LeafA, LeafI) ->
+                let inss, vars = unpair_inss vars true true in
+                go_up vars stack inss
             (* Left part is fine, go down the left part. *)
-            | Pair (LeafA, right) -> go_down (UppDipPref :: stack) right
+            | Pair (LeafA, right) ->
+                let annot, vars = lst_split vars in
+                go_down vars ((UppDipPref annot) :: stack) right
             (* Right part is fine, go down the right part. *)
-            | Pair (left, LeafI) -> go_down (UppPref :: stack) left
+            | Pair (left, LeafI) -> go_down vars (UppPref :: stack) left
             (* Go down left first, then right. *)
-            | Pair (left, right) -> go_down (
+            | Pair (left, right) -> go_down vars (
                 (Dwn right) :: stack
             ) left
             (* Everything else should be illegal. *)
             | _ -> bail_pair ()
         (* Go up the stack, building the instructions as we go. *)
-        and go_up (stack : un_stack_frame list) (lst : Mic.t list) : Mic.t list =
+        and go_up (vars : Annot.vars) (stack : un_stack_frame list) (lst : Mic.t list) : Mic.t list =
             match stack with
             (* Going up an `A`: `DIP` instructions and add `UNPAIR` at the beginning. *)
-            | UppDipPref :: stack ->
+            | (UppDipPref annot) :: stack ->
                 let dipped = Mic.Dip (Mic.mk_seq lst) |> Mic.mk in
-                unpair_inss @ [ dipped ] |> go_up stack
+                let inss, _ = unpair_inss annot true false in
+                inss @ [ dipped ] |> go_up vars stack
             (* Going up an `I`: prefix with `UNPAIR`. *)
             | UppPref :: stack ->
-                unpair_inss @ lst |> go_up stack
+                let inss, vars = unpair_inss vars false true in
+                inss @ lst |> go_up vars stack
             (* Need to go down `tree`, memorize `lst` in the stack for later. *)
             | (Dwn tree) :: stack ->
-                go_down ((Upp lst) :: stack) tree
+                go_down vars ((Upp lst) :: stack) tree
             (* We have the left (`lft`) and right (`lst`) instructions, just need to build the
                 pair.
             *)
             | (Upp lft) :: stack ->
-                go_up stack (unpair_inss @ lft @ lst)
+                let inss, vars = unpair_inss vars false false in
+                go_up vars stack (inss @ lft @ lst)
             (* We drained the stack, done. *)
             | [] -> lst
         in
-        go_down [] tree
+        go_down vars [] tree
 
     (* Helper for `SET_C[AD]+R` and `MAP_C[AD]+R`.
     
         Takes the sequence of instruction leaves (`A` or `D`) correspond to. *)
     let macro_cadr_ins
-        (leaf_A : Mic.t list)
-        (leaf_D : Mic.t list)
+        (vars : Annot.vars)
+        (leaf_A : (bool -> Mic.t list))
+        (leaf_D : (bool -> Mic.t list))
         (ops : Mic.Macro.unpair_op list)
         : Mic.t list
     =
         (* Go down the list of operators. This function only calls `go_up` when it ran out of
             operators.
         *)
-        let rec go_down (stack : (Mic.t list * Mic.t * Mic.t list) list) (ops : Mic.Macro.unpair_op list) : Mic.t list =
+        let rec go_down
+            (vars : Annot.vars)
+            (stack : (Mic.t list * Mic.t * Mic.t list) list)
+            (ops : Mic.Macro.unpair_op list)
+            : Mic.t list
+        =
             match ops with
-            | [A] -> go_up stack leaf_A
-            | [D] -> go_up stack leaf_D
+            | [A] -> go_up stack (stack = [] |> leaf_A)
+            | [D] -> go_up stack (stack = [] |> leaf_D)
             | A :: ops ->
                 go_down
+                    []
                     (
                         (
                             [ Mic.mk_leaf Mic.Dup ],
@@ -339,20 +392,21 @@ module PairHelp = struct
                             [
                                 Mic.mk_leaf Mic.Cdr ;
                                 Mic.mk_leaf Mic.Swap ;
-                                Mic.mk_leaf Mic.Pair
+                                Mic.mk_leaf ~vars:vars Mic.Pair
                             ]
                         ) :: stack
                     )
                     ops
             | D :: ops ->
                 go_down
+                    []
                     (
                         (
                             [ Mic.mk_leaf Mic.Dup ],
                             Mic.mk_leaf Mic.Cdr,
                             [
                                 Mic.mk_leaf Mic.Car ;
-                                Mic.mk_leaf Mic.Pair
+                                Mic.mk_leaf ~vars:vars Mic.Pair
                             ]
                         ) :: stack
                     )
@@ -373,53 +427,82 @@ module PairHelp = struct
                 inner :: suff |> List.rev_append pref |> go_up stack
             | [] -> lst
         in
-        go_down [] ops
+        go_down vars [] ops
 end
 
-let macro_pair (ops : Mic.Macro.pair_op list) : Mic.t list =
-    PairHelp.macro_pair_to_tree ops |> PairHelp.macro_pair_tree_to_list
+let macro_pair (vars : Annot.vars) (fields : Annot.fields) (ops : Mic.Macro.pair_op list) : Mic.t list =
+    PairHelp.macro_pair_to_tree ops |> PairHelp.macro_pair_tree_to_list vars fields
 
-let macro_unpair (ops : Mic.Macro.pair_op list) : Mic.t list =
-    PairHelp.macro_pair_to_tree ops |> PairHelp.macro_unpair_tree_to_list
+let macro_unpair (vars : Annot.vars) (ops : Mic.Macro.pair_op list) : Mic.t list =
+    PairHelp.macro_pair_to_tree ops |> PairHelp.macro_unpair_tree_to_list vars
 
-let macro_cadr (ops : Mic.Macro.unpair_op list) : Mic.t list =
+let macro_cadr (vars : Annot.vars) (fields : Annot.fields) (ops : Mic.Macro.unpair_op list) : Mic.t list =
     let rec loop (acc : Mic.t list) (ops : Mic.Macro.unpair_op list) : Mic.t list =
         match ops with
-        | A :: ops -> loop ((Mic.mk_leaf Mic.Car) :: acc) ops
-        | D :: ops -> loop ((Mic.mk_leaf Mic.Cdr) :: acc) ops
+        | A :: ops -> loop ((Mic.mk_leaf ~vars:vars ~fields:fields Mic.Car) :: acc) ops
+        | D :: ops -> loop ((Mic.mk_leaf ~vars:vars ~fields:fields Mic.Cdr) :: acc) ops
         | [] -> List.rev acc
     in
     loop [] ops
 
-let macro_set_cadr (ops : Mic.Macro.unpair_op list) : Mic.t list =
+let macro_set_cadr
+    (vars : Annot.vars)
+    (fields : Annot.fields)
+    (ops : Mic.Macro.unpair_op list)
+    : Mic.t list
+=
     PairHelp.macro_cadr_ins
+        vars
         (* Instructions for `SET_CAR`. *)
-        [ Mic.mk_leaf Cdr ; Mic.mk_leaf Swap ; Mic.mk_leaf Pair ]
+        (
+            fun is_top ->
+                let last_pair = if is_top then Mic.mk_leaf ~vars:vars Pair else Mic.mk_leaf Pair in
+                [ Mic.mk_leaf ~fields:fields Cdr ; Mic.mk_leaf Swap ; last_pair ]
+        )
         (* Instructions for `SET_CDR`. *)
-        [ Mic.mk_leaf Car ; Mic.mk_leaf Pair ]
+        (
+            fun is_top ->
+                let last_pair = if is_top then Mic.mk_leaf ~vars:vars Pair else Mic.mk_leaf Pair in
+                [ Mic.mk_leaf ~fields:fields Car ; last_pair ]
+        )
         ops
 
-let macro_map_cadr (ops : Mic.Macro.unpair_op list) (ins : Mic.t) : Mic.t list =
+let macro_map_cadr
+    (vars : Annot.vars)
+    (fields : Annot.fields)
+    (ops : Mic.Macro.unpair_op list)
+    (ins : Mic.t)
+    : Mic.t list
+=
     PairHelp.macro_cadr_ins
+        vars
         (* Instructions for `MAP_CAR`. *)
-        [
-            Mic.mk_leaf Dup ;
-            Mic.mk_leaf Cdr ;
-            Mic.Dip (
-                [ Mic.mk_leaf Car ; ins ] |> Mic.mk_seq
-            ) |> Mic.mk ;
-            Mic.mk_leaf Swap ;
-            Mic.mk_leaf Pair
-        ]
+        (
+            fun is_top ->
+                let last_pair = if is_top then Mic.mk_leaf ~vars:vars Pair else Mic.mk_leaf Pair in
+                [
+                    Mic.mk_leaf Dup ;
+                    Mic.mk_leaf Cdr ;
+                    Mic.Dip (
+                        [ Mic.mk_leaf ~fields:fields Car ; ins ] |> Mic.mk_seq
+                    ) |> Mic.mk ;
+                    Mic.mk_leaf Swap ;
+                    last_pair
+                ]
+        )
         (* Instructions for `MAP_CDR`. *)
-        [
-            Mic.mk_leaf Dup ;
-            Mic.mk_leaf Cdr ;
-            ins ;
-            Mic.mk_leaf Swap ;
-            Mic.mk_leaf Car ;
-            Mic.mk_leaf Pair
-        ]
+        (
+            fun is_top ->
+                let last_pair = if is_top then Mic.mk_leaf ~vars:vars Pair else Mic.mk_leaf Pair in
+                [
+                    Mic.mk_leaf Dup ;
+                    Mic.mk_leaf Cdr ~fields:fields ;
+                    ins ;
+                    Mic.mk_leaf Swap ;
+                    Mic.mk_leaf Car ;
+                    last_pair
+                ]
+        )
         ops
 
 let macro_if_some (ins_1 : Mic.t) (ins_2 : Mic.t) : Mic.t list =

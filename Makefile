@@ -1,7 +1,7 @@
 all: compile
 
 compile:
-	dune build src/main.exe
+	dune build src/main.exe && mkdir -p bin && cp _build/default/src/main.exe bin/micheltest
 
 test: compile
 	for file in `find tests -iname "*.liq.tz"` ; do \

@@ -6,11 +6,11 @@
 (** Helpful expansion-related functions. *)
 module Utils : sig
     (** Turns a macro comparison operator in an instruction. *)
-    val macro_op_to_mic : Mic.Macro.op -> Mic.t
+    val macro_op_to_mic : Annot.vars -> Mic.Macro.op -> Mic.t
 end
 
 (** Expands a `CMP<OP>` macro. *)
-val macro_cmp : Mic.Macro.op -> Mic.t list
+val macro_cmp : Annot.vars -> Mic.Macro.op -> Mic.t list
 
 (** Expands a `IF<OP>` macro. *)
 val macro_if : Mic.Macro.op -> Mic.t -> Mic.t -> Mic.t list
@@ -55,19 +55,19 @@ val macro_dip : int -> Mic.t -> Mic.t list
 val macro_dup : Annot.vars -> int -> Mic.t list
 
 (** Expands a `P[PAI]*R` macro. *)
-val macro_pair : Mic.Macro.pair_op list -> Mic.t list
+val macro_pair : Annot.vars -> Annot.fields -> Mic.Macro.pair_op list -> Mic.t list
 
 (** Expands a `UNP[PAI]*R` macro. *)
-val macro_unpair : Mic.Macro.pair_op list -> Mic.t list
+val macro_unpair : Annot.vars -> Mic.Macro.pair_op list -> Mic.t list
 
 (** Expands a `C[AD]*R` macro. *)
-val macro_cadr : Mic.Macro.unpair_op list -> Mic.t list
+val macro_cadr : Annot.vars -> Annot.fields -> Mic.Macro.unpair_op list -> Mic.t list
 
 (** Expands a `SET_C[AD]*R` macro. *)
-val macro_set_cadr : Mic.Macro.unpair_op list -> Mic.t list
+val macro_set_cadr : Annot.vars -> Annot.fields -> Mic.Macro.unpair_op list -> Mic.t list
 
 (** Expands a `MAP_C[AD]*R` macro. *)
-val macro_map_cadr : Mic.Macro.unpair_op list -> Mic.t -> Mic.t list
+val macro_map_cadr : Annot.vars -> Annot.fields -> Mic.Macro.unpair_op list -> Mic.t -> Mic.t list
 
 (** Expands a `IF_SOME` macro. *)
 val macro_if_some : Mic.t -> Mic.t -> Mic.t list
