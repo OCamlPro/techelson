@@ -12,6 +12,10 @@ module Arg = struct
     | Long of string
     (* Value: some string. *)
     | Val of string
+    (* Separator: everything after this point are values.
+    
+        Values appearing in this thing cannot be option arguments. *)
+    | Sep of string list
 
     (* Returns the head if it is a value, none otherwise. *)
     let next_value (l : t list) : string option * t list = match l with
@@ -116,7 +120,7 @@ let split_args (args : string list) : Arg.t list =
         | [] -> List.rev acc
         (* Separator, everything else is a value. *)
         | "--" :: tail ->
-            tail |> List.map (fun s -> Arg.Val s) |> List.rev_append acc
+            [ Arg.Sep tail ] |> List.rev_append acc
         | head :: tail -> (
             let acc =
                 if String.length head > 1
@@ -142,32 +146,38 @@ let split_args (args : string list) : Arg.t list =
 
 (* Handles a list of arguments. *)
 let handle_args (conf : Conf.t) (args : Arg.t list) : Conf.t =
-    let rec loop (args : Arg.t list) : Conf.t = match args with
-    | [] -> (
-        conf.args <- List.rev conf.args;
-        conf
-    )
-    (* Value that was not eaten by an option. Add to configuration's args. *)
-    | (Arg.Val s) :: tail -> (
-        conf.args <- s :: conf.args;
-        loop tail
-    )
-    (* Flag, does not take arguments. *)
-    | (Arg.Short c) :: tail -> (match Hashtbl.find_opt short_map c with
-        | Some action ->
-            (* Notice the empty list of arguments (first argument). *)
-            action [] conf |> ignore;
+    let rec loop (args : Arg.t list) : Conf.t =
+        match args with
+        | [] -> (
+            conf.args <- List.rev conf.args;
+            conf
+        )
+        (* Value that was not eaten by an option. Add to configuration's args. *)
+        | (Arg.Val s) :: tail -> (
+            conf.args <- s :: conf.args;
             loop tail
-        | None -> sprintf "unknown flag `-%c`" c |> Exc.throw
-    )
-    (* Option, expected to take arguments. *)
-    | (Arg.Long s) :: tail -> (match Hashtbl.find_opt long_map s with
-        | Some action ->
-            (* Feed tail arguments, get new tail back. *)
-            let tail = action tail conf in
-            loop tail
-        | None -> sprintf "unknown option `--%s`" s |> Exc.throw
-    )
+        )
+        (* Flag, does not take arguments. *)
+        | (Arg.Short c) :: tail -> (match Hashtbl.find_opt short_map c with
+            | Some action ->
+                (* Notice the empty list of arguments (first argument). *)
+                action [] conf |> ignore;
+                loop tail
+            | None -> sprintf "unknown flag `-%c`" c |> Exc.throw
+        )
+        (* Option, expected to take arguments. *)
+        | (Arg.Long s) :: tail -> (match Hashtbl.find_opt long_map s with
+            | Some action ->
+                (* Feed tail arguments, get new tail back. *)
+                let tail = action tail conf in
+                loop tail
+            | None -> sprintf "unknown option `--%s`" s |> Exc.throw
+        )
+        | (Sep vals) :: tail -> (
+            assert (tail = []);
+            conf.args <- List.rev_append conf.args vals;
+            conf
+        )
     in
     loop args
 

@@ -22,7 +22,8 @@ just_mic :
     ; EOF { ins }
 
 just_contract :
-    | c = contract {
+    | c = contract
+    ; EOF {
         fun (name : string) ->
             Base.Contract.mk
                 name
@@ -31,21 +32,38 @@ just_contract :
                 c.Base.Mic.entry
                 None
     }
-    /* ; EOF { c } */
 
 contract :
-    | PARAMETER
-    ; entry_param = top_datatype
-    ; SEMICOL
-    ; STORAGE
-    ; storage = top_datatype
-    ; SEMICOL
-    ; CODE
-    ; entry = instruction
-    ; SEMICOL {
-        Base.Mic.mk_contract ~storage:(storage) ~param:(entry_param) entry
+    | sub = contract_sub {
+        let (s, p, e) = sub in
+        Base.Mic.mk_contract_of_lists ~storage:(s) ~param:(p) e
     }
+;
 
+contract_sub :
+    | sub = contract_sub
+    ; STORAGE
+    ; storage = top_datatype {
+        let (s, p ,e) = sub in
+        (storage :: s), p, e
+    }
+    | sub = contract_sub
+    ; PARAMETER
+    ; param = top_datatype {
+        let (s, p ,e) = sub in
+        s, (param :: p), e
+    }
+    | sub = contract_sub
+    ; CODE
+    ; entry = instruction {
+        let (s, p ,e) = sub in
+        s, p, (entry :: e)
+    }
+    | sub = contract_sub
+    ; SEMICOL {
+        sub
+    }
+    | { [], [], [] }
 
 instruction :
     | OCURL
@@ -64,7 +82,7 @@ instruction :
         in
         let args = List.rev args in
         let dtyps = List.rev dtyps |> List.map fst in
-        Mic.nu_parse token typs vars fields dtyps args
+        Mic.parse token typs vars fields dtyps args
     }
 ;
 
@@ -76,7 +94,7 @@ rev_instructions_semicol :
 
 instruction_arg :
     | token = INSTKN {
-        Mic.parse token [] [] []
+        Mic.parse token [] [] [] [] []
         |> Base.Common.Either.lft
     }
 
@@ -97,6 +115,17 @@ instruction_arg :
         let i = List.rev is |> Base.Mic.mk_seq in
         (* Format.printf "parsed %a@." Base.Mic.fmt i ; *)
         Base.Common.Either.lft i
+    }
+
+    | OCURL
+    ; CCURL {
+        Base.Mic.mk_seq [] |> Base.Common.Either.lft
+    }
+
+    | OCURL
+    ; c = contract
+    ; CCURL {
+        Base.Mic.Contract c |> Base.Common.Either.rgt
     }
 ;
 

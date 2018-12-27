@@ -133,7 +133,7 @@ type 'sub ins =
 | IfLeft of 'sub * 'sub
 | IfRight of 'sub * 'sub
 | IfCons of 'sub * 'sub
-| CreateContract of contract
+| CreateContract of contract option
 | Macro of 'sub list * 'sub Macro.t
 
 and const =
@@ -175,6 +175,11 @@ val mk :
 
 (** Creates a contract. *)
 val mk_contract : storage : Dtyp.t -> param : Dtyp.t -> t -> contract
+
+(** Creates a contract from a list of parameters.
+    
+    Used by parsing. This function fails if any of the input lists are not singletons. *)
+val mk_contract_of_lists : storage : Dtyp.t list -> param : Dtyp.t list -> t list -> contract
 
 (** Creates an instruction from a leaf. *)
 val mk_leaf :

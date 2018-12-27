@@ -12,13 +12,13 @@ rule token = parse
 | "code" { CODE }
 | "Unit" { UNIT }
 
-| ':' (['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '_' '.' '0'-'9']* as str) {
+| ':' (['a'-'z' '_' 'A'-'Z']['a'-'z' 'A'-'Z' '_' '.' '0'-'9']* as str) {
     COLANNOT (Base.Annot.Typ.of_string str)
 }
-| '@' (['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '_' '.' '0'-'9']* as str) {
+| '@' (['a'-'z' '_' 'A'-'Z']['a'-'z' 'A'-'Z' '_' '.' '0'-'9']* as str) {
     ATANNOT (Base.Annot.Var.of_string str)
 }
-| '%' (['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '_' '.' '0'-'9']* as str) {
+| '%' (['a'-'z' '_' 'A'-'Z']['a'-'z' 'A'-'Z' '_' '.' '0'-'9']* as str) {
     PERANNOT (Base.Annot.Field.of_string str)
 }
 

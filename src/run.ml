@@ -9,8 +9,13 @@ let load_contracts (conf : Conf.t) : Contract.t list =
             fun { Conf.file ; Conf.init } ->
                 let _ = init in
                 log_1 "Opening contract file `%s`@." file;
-                let chan = open_file file in
-                Test.Load.contract (Contract.name_of_file file) chan
+                Exc.chain_err (
+                    fun () -> sprintf "while loading contract file `%s`" file
+                ) (
+                    fun () ->
+                        let chan = open_file file in
+                        Test.Load.contract (Contract.name_of_file file) chan
+                )
         )
     in
     Exc.chain_err (

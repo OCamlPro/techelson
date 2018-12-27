@@ -398,7 +398,7 @@ type 'sub ins =
 | IfLeft of 'sub * 'sub
 | IfRight of 'sub * 'sub
 | IfCons of 'sub * 'sub
-| CreateContract of contract
+| CreateContract of contract option
 | Macro of 'sub list * 'sub Macro.t
 
 and const =
@@ -440,6 +440,20 @@ let mk
 let mk_contract ~(storage : Dtyp.t) ~(param : Dtyp.t) (entry : t) : contract =
     { storage ; param ; entry }
 
+let invisible_get_one (desc : string) (l : 'a list) : 'a =
+    if l = [] then (
+        sprintf "no \"%s\" field found" desc |> Exc.throw
+    ) else if List.length l > 1 then (
+        sprintf "more than one \"%s\" field found" desc |> Exc.throw
+    );
+    List.hd l
+let mk_contract_of_lists ~(storage : Dtyp.t list) ~(param : Dtyp.t list) (entry : t list) : contract =
+    {
+        storage = invisible_get_one "storage type" storage ;
+        param = invisible_get_one "entry parameter" param ;
+        entry = invisible_get_one "entry code" entry
+    }
+
 let mk_leaf
     ?vars:(vars=[])
     ?fields:(fields=[])
@@ -470,14 +484,14 @@ let fmt_if_like
 (* Formats contracts. *)
 let rec fmt_contract (fmtt : formatter) ({ storage ; param ; entry } : contract) : unit =
     fprintf
-        fmtt "@[@[<v 4>{@ storage %a ;@ parameter %a ; code @[%a@]@]@,}@]"
+        fmtt "@[@[<v 4>{@ storage %a ;@ parameter %a ;@ code @[%a@]@]@,}@]"
         Dtyp.fmt storage Dtyp.fmt param fmt entry
 
 (* Formats constants. *)
 and fmt_const (fmtt : formatter) (c : const) : unit =
     match c with
     | Unit -> fprintf fmtt "Unit"
-    | Bool b -> fprintf fmtt "%b" b
+    | Bool b -> fprintf fmtt (if b then "True" else "False")
     | Int n -> fprintf fmtt "%s" n
     | Str s -> fprintf fmtt "\"%s\"" s
     | Contract c -> fmt_contract fmtt c
@@ -593,7 +607,7 @@ and fmt (fmtt : formatter) (t : t) : unit =
                 ([ignore, t], ignore) :: tail
 
             | Push (dtyp, c) ->
-                fprintf fmtt "PUSH @[<v>(@[%a@])@,(%a)@]" Dtyp.fmt dtyp fmt_const c;
+                fprintf fmtt "PUSH @[<v>(@[%a@])@,%a@]" Dtyp.fmt dtyp fmt_const c;
                 tail
 
             | Lambda (dom, codom, t) ->
@@ -602,9 +616,20 @@ and fmt (fmtt : formatter) (t : t) : unit =
                     [ignore, t], Fmt.unit_combine (Fmt.cls_of fmtt ")") fmt_annots
                 ) :: tail
 
-            | CreateContract c ->
-                fprintf fmtt "CREATE_CONTRACT %a" fmt_contract c;
-                tail
+            | CreateContract c -> (
+                fprintf fmtt "@[@[<v 4>CREATE_CONTRACT";
+                match c with
+                | None ->
+                    fprintf fmtt "@]@]";
+                    tail
+                | Some c ->
+                    fprintf
+                        fmtt " {@,storage %a;@,parameter %a;@,code "
+                        Dtyp.fmt c.storage Dtyp.fmt c.param;
+                    (
+                        [ignore, c.entry], fun () -> fprintf fmtt "@]}@]"
+                    ) :: tail
+            )
 
             | Macro (ts, macro) -> (
                 match ts with
