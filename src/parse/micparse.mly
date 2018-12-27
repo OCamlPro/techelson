@@ -2,7 +2,7 @@
 
 %token UNIT
 %token <bool> BOOL
-%token <string> INT STR
+%token <string> INT STR BYTES
 %token <string> TYPTKN INSTKN CONSTRTKN
 %token <Base.Annot.Typ.t> COLANNOT
 %token <Base.Annot.Var.t> ATANNOT
@@ -233,7 +233,10 @@ const :
         Base.Mic.Int i
     }
     | s = STR {
-        Base.Mic.Str s
+        Base.Mic.mk_str s
+    }
+    | s = BYTES {
+        Base.Mic.Bytes s
     }
     | OCURL
     ; c = contract

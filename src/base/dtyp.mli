@@ -26,8 +26,10 @@ val leaf_of_string : string -> leaf option
 
 (** Wraps a datatype with a name. *)
 type named = {
-  inner : t ;
-  name : Annot.Field.t option ;
+    inner : t ;
+    (** Actual datatype. *)
+    name : Annot.Field.t option ;
+    (** Field annotation. *)
 }
 
 (** Nameless datatype. *)
@@ -46,8 +48,10 @@ and dtyp =
 
 (** Datatypes. *)
 and t = {
-  typ : dtyp ;
-  alias : Annot.Typ.t option ;
+    typ : dtyp ;
+    (** Actual datatype. *)
+    alias : Annot.Typ.t option ;
+    (** Type annotation. *)
 }
 
 (** Named datatype constructor. *)

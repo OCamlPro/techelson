@@ -1,9 +1,4 @@
-(** Michelson lexer.
-
-    # TODO
-    
-    - escape sequences in strings
-    - bytes *)
+(** Michelson lexer. *)
 
 {
     open Micparse
@@ -16,6 +11,10 @@ rule token = parse
 | "storage" { STORAGE }
 | "code" { CODE }
 | "Unit" { UNIT }
+
+| "0x" (['0'-'9' 'A'-'Z' 'a'-'z']+ as bytes) {
+    BYTES bytes
+}
 
 | ':' (['a'-'z' '_' 'A'-'Z']['a'-'z' 'A'-'Z' '_' '.' '0'-'9']* as str) {
     COLANNOT (Base.Annot.Typ.of_string str)
@@ -38,8 +37,8 @@ rule token = parse
 | "False" { BOOL false }
 | ['A'-'Z' 'a'-'z' '_']+ as str { CONSTRTKN str }
 
-| '"' [^'"']* '"' as str {
-    STR (String.sub str 1 ((String.length str) - 2))
+| '"' (([^'"'] | "\\\"")* as str) '"' {
+    STR str
 }
 
 | ['0'-'9']+ as lxm { INT lxm }

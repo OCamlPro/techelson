@@ -478,6 +478,7 @@ and const =
 | Bool of bool
 | Int of string
 | Str of string
+| Bytes of string
 
 | Contract of contract
 
@@ -499,6 +500,23 @@ and t = {
     vars : Annot.vars ;
     fields : Annot.fields ;
 }
+
+let mk_str (s : string) : const =
+    let rec loop (acc : string list) (ss : string list) : string =
+        match ss with
+        | [] -> List.rev acc |> String.concat ""
+        | "" :: tail -> loop ("\\" :: acc) tail
+        | head :: tail -> loop (head :: acc) tail
+    in
+    Str (
+        String.split_on_char '\\' s
+        |> (
+            function
+            | "" :: tail -> loop [] tail
+            | head :: tail -> loop [head] tail
+            | [] -> ""
+        )
+    )
 
 let mk
     ?vars:(vars=[])
@@ -572,6 +590,7 @@ and fmt_const (fmtt : formatter) (c : const) : unit =
     | Bool b -> fprintf fmtt (if b then "True" else "False")
     | Int n -> fprintf fmtt "%s" n
     | Str s -> fprintf fmtt "\"%s\"" s
+    | Bytes s -> fprintf fmtt "0x%s" s
     | Contract c -> fmt_contract fmtt c
     | Lft c -> fprintf fmtt "(Left %a)" fmt_const c
     | Rgt c -> fprintf fmtt "(Right %a)" fmt_const c

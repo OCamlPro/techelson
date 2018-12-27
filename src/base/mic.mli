@@ -151,6 +151,7 @@ and const =
 | Bool of bool
 | Int of string
 | Str of string
+| Bytes of string
 
 | Contract of contract
 
@@ -173,6 +174,11 @@ and t = {
     vars : Annot.vars ;
     fields : Annot.fields ;
 }
+
+(** Creates a string constant.
+
+    De-escapes escape characters. *)
+val mk_str : string -> const
 
 (** Creates an instruction. *)
 val mk :
