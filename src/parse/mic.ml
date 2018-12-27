@@ -42,6 +42,135 @@ let rec parse
     (args : args)
     : Mic.t
 =
+    let param_arity_check typs_x args_x =
+        Check.param_arity (fun () -> token) (typs_x, dtyps) (args_x, args);
+    in
+    let annot_arity_check typs_x vars_x fields_x =
+        Check.Annots.typ_arity_le (fun () -> token) typs_x typ_annots;
+        Check.Annots.var_arity_le (fun () -> token) vars_x var_annots;
+        Check.Annots.field_arity_le (fun () -> token) fields_x field_annots
+    in
+    let inner () =
+        match token with
+        | "EMPTY_SET" ->
+            param_arity_check 1 0;
+            annot_arity_check 0 1 0;
+            Mic.EmptySet (List.hd dtyps)
+        | "EMPTY_MAP" ->
+            param_arity_check 2 0;
+            annot_arity_check 0 1 0;
+            Mic.EmptyMap (List.hd dtyps, List.tl dtyps |> List.hd)
+
+        | "NONE" ->
+            param_arity_check 1 0;
+            annot_arity_check 0 1 1;
+            Mic.Non (List.hd dtyps)
+        | "LEFT" ->
+            param_arity_check 1 0;
+            annot_arity_check 0 1 2;
+            Mic.Left (List.hd dtyps)
+        | "RIGHT" ->
+            param_arity_check 1 0;
+            annot_arity_check 0 1 2;
+            Mic.Right (List.hd dtyps)
+        | "NIL" ->
+            param_arity_check 1 0;
+            annot_arity_check 0 1 1;
+            Mic.Nil (List.hd dtyps)
+
+        | "IF" ->
+            param_arity_check 0 2;
+            annot_arity_check 0 0 0;
+            let bt, args = next_mic_arg args in
+            let bf, _ = next_mic_arg args in
+            Mic.If (bt, bf)
+        | "IF_NONE" ->
+            param_arity_check 0 2;
+            annot_arity_check 0 0 0;
+            let bt, args = next_mic_arg args in
+            let bf, _ = next_mic_arg args in
+            Mic.IfNone (bt, bf)
+        | "IF_LEFT" ->
+            param_arity_check 0 2;
+            annot_arity_check 0 0 0;
+            let bt, args = next_mic_arg args in
+            let bf, _ = next_mic_arg args in
+            Mic.IfLeft (bt, bf)
+        | "IF_RIGHT" ->
+            param_arity_check 0 2;
+            annot_arity_check 0 0 0;
+            let bt, args = next_mic_arg args in
+            let bf, _ = next_mic_arg args in
+            IfRight (bt, bf)
+        | "IF_CONS" ->
+            param_arity_check 0 2;
+            annot_arity_check 0 0 0;
+            let bt, args = next_mic_arg args in
+            let bf, _ = next_mic_arg args in
+            IfCons (bt, bf)
+        | "LOOP" ->
+            param_arity_check 0 1;
+            annot_arity_check 0 0 0;
+            let code, _ = next_mic_arg args in
+            Loop code
+        | "LOOP_LEFT" ->
+            param_arity_check 0 1;
+            annot_arity_check 0 0 0;
+            let code, _ = next_mic_arg args in
+            LoopLeft code
+        | "DIP" ->
+            param_arity_check 0 1;
+            annot_arity_check 0 0 0;
+            let code, _ = next_mic_arg args in
+            Dip code
+        | "ITER" ->
+            param_arity_check 0 1;
+            annot_arity_check 0 0 0;
+            let code, _ = next_mic_arg args in
+            Iter code
+
+        | "PUSH" ->
+            param_arity_check 1 1;
+            annot_arity_check 0 1 0;
+            let const, _ = next_const_arg args in
+            Push (List.hd dtyps, const)
+        | "LAMBDA" ->
+            param_arity_check 2 1;
+            annot_arity_check 0 1 0;
+            let code, _ = next_mic_arg args in
+            Lambda (List.hd dtyps, List.tl dtyps |> List.hd, code)
+        | "CREATE_CONTRACT" when (List.length args) = 0 ->
+            param_arity_check 0 0;
+            annot_arity_check 0 2 0;
+            CreateContract None
+        | "CREATE_CONTRACT" -> (
+            param_arity_check 0 1;
+            annot_arity_check 0 2 0;
+            let contract, _ = next_const_arg args in
+            match contract with
+            | Contract c -> CreateContract (Some c)
+            | cst -> [
+                "while parsing `CREATE_CONTRACT`" ;
+                asprintf "expected constant contract, found `%a`" Mic.fmt_const cst
+            ] |> Exc.throws
+        )
+        | _ -> (
+            let args = args_to_mic args in
+            match Mic.leaf_of_string token with
+            | Some leaf -> (
+                (* log_1 "token: `%s` (%i)@." token (List.length args); *)
+                let typ_arity, var_arity, field_arity = Mic.annot_arity_of_leaf leaf in
+                param_arity_check 0 0;
+                annot_arity_check typ_arity var_arity field_arity;
+                Mic.Leaf leaf
+            )
+            | None -> (
+                match parse_macro token dtyps args var_annots with
+                | Some ins -> ins
+                | None -> sprintf "unknown instruction `%s`" token |> Exc.throw
+            )
+        )
+    in
     Exc.chain_err (
         fun () ->
             asprintf "parsing %s%a%a%a%s%a%s%a@."
@@ -56,133 +185,9 @@ let rec parse
                 (Fmt.fmt_list Fmt.sep_spc fmt_arg)
                 args
     ) (
-        fun () -> inner_parse token dtyps args var_annots
+        inner
     )
-
-
-
-(* Instruction parser. *)
-and inner_parse
-    (token : string)
-    (dtyps : Dtyp.t list)
-    (args : args)
-    (annots : Annot.vars)
-    : Mic.t
-=
-    let full_arity_check typs_x args_x anns_x =
-        Check.param_arity (fun () -> token) (typs_x, dtyps) (args_x, args);
-        Check.Annots.var_arity_le (fun () -> token) anns_x annots
-    in
-    let inner () =
-        match token with
-        | "EMPTY_SET" ->
-            full_arity_check 1 0 1;
-            Mic.EmptySet (List.hd dtyps)
-        | "EMPTY_MAP" ->
-            full_arity_check 2 0 1;
-            Mic.EmptyMap (List.hd dtyps, List.tl dtyps |> List.hd)
-        | "NONE" ->
-            full_arity_check 1 0 1;
-            Mic.Non (List.hd dtyps)
-        | "LEFT" ->
-            full_arity_check 1 0 1;
-            Mic.Left (List.hd dtyps)
-        | "RIGHT" ->
-            full_arity_check 1 0 1;
-            Mic.Right (List.hd dtyps)
-        | "NIL" ->
-            full_arity_check 1 0 1;
-            Mic.Nil (List.hd dtyps)
-        | "IF" ->
-            full_arity_check 0 2 0;
-            let bt, args = next_mic_arg args in
-            let bf, _ = next_mic_arg args in
-            Mic.If (bt, bf)
-        | "IF_NONE" ->
-            full_arity_check 0 2 0;
-            let bt, args = next_mic_arg args in
-            let bf, _ = next_mic_arg args in
-            Mic.IfNone (bt, bf)
-        | "IF_LEFT" ->
-            full_arity_check 0 2 0;
-            let bt, args = next_mic_arg args in
-            let bf, _ = next_mic_arg args in
-            Mic.IfLeft (bt, bf)
-        | "IF_RIGHT" ->
-            full_arity_check 0 2 0;
-            let bt, args = next_mic_arg args in
-            let bf, _ = next_mic_arg args in
-            IfRight (bt, bf)
-        | "IF_CONS" ->
-            full_arity_check 0 2 0;
-            let bt, args = next_mic_arg args in
-            let bf, _ = next_mic_arg args in
-            IfCons (bt, bf)
-        | "LOOP" ->
-            full_arity_check 0 1 0;
-            let code, _ = next_mic_arg args in
-            Loop code
-        | "LOOP_LEFT" ->
-            full_arity_check 0 1 0;
-            let code, _ = next_mic_arg args in
-            LoopLeft code
-        | "DIP" ->
-            full_arity_check 0 1 0;
-            let code, _ = next_mic_arg args in
-            Dip code
-        | "PUSH" ->
-            full_arity_check 1 1 1;
-            let const, _ = next_const_arg args in
-            Push (List.hd dtyps, const)
-        | "LAMBDA" ->
-            full_arity_check 2 1 1;
-            let code, _ = next_mic_arg args in
-            Lambda (List.hd dtyps, List.tl dtyps |> List.hd, code)
-        | "ITER" ->
-            full_arity_check 0 1 0;
-            let code, _ = next_mic_arg args in
-            Iter code
-        | "CREATE_CONTRACT" when (List.length args) = 0 ->
-            full_arity_check 0 0 1;
-            CreateContract None
-        | "CREATE_CONTRACT" -> (
-            full_arity_check 0 1 1;
-            let contract, _ = next_const_arg args in
-            match contract with
-            | Contract c -> CreateContract (Some c)
-            | cst -> [
-                "while parsing `CREATE_CONTRACT`" ;
-                asprintf "expected constant contract, found `%a`" Mic.fmt_const cst
-            ] |> Exc.throws
-        )
-        | _ -> (
-            let args = args_to_mic args in
-            match Mic.leaf_of_string token with
-            | Some leaf ->
-                (* log_1 "token: `%s` (%i)@." token (List.length args); *)
-                let var_arity = Mic.var_arity_of_leaf leaf in
-                full_arity_check 0 0 var_arity;
-                Leaf leaf
-            | None -> (
-                match parse_macro token dtyps args annots with
-                | Some ins -> ins
-                | None -> sprintf "unknown instruction `%s`" token |> Exc.throw
-            )
-        )
-    in
-    Exc.chain_err (
-        fun () ->
-            let dtyps =
-                if dtyps = [] then ""
-                else asprintf " %a" (Fmt.fmt_list Fmt.sep_spc (Fmt.fmt_paren Dtyp.fmt)) dtyps
-            in
-            let args =
-                if args = [] then ""
-                else asprintf " %a" (Fmt.fmt_list Fmt.sep_spc (Either.fmt_through Mic.fmt Mic.fmt_const)) args
-            in
-            sprintf "while parsing \"%s%s%s\"" token dtyps args
-    ) inner
-    |> fun ins -> Mic.mk ~vars:(annots) ins
+    |> Mic.mk ~typs:(typ_annots) ~vars:(var_annots) ~fields:(field_annots)
 
 and full_arity_check (token : string) (dtyps : Dtyp.t list) (args : 'a list) (annots : Annot.vars) (typ_x : int) (arg_x : int) (annot_x : int) : unit =
     Check.param_arity (fun () -> token) (typ_x, dtyps) (arg_x, args);

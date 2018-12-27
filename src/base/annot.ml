@@ -17,7 +17,7 @@ module Field = struct
     let of_string (s : string) : t = if s = "" then None else Some s
 
     let fmt (fmt : formatter) (t : t) : unit =
-        t |> unwrap_or "" |> fprintf fmt "@@%s"
+        t |> unwrap_or "" |> fprintf fmt "%%%s"
 end
 
 module Typ = struct
@@ -26,7 +26,7 @@ module Typ = struct
     let of_string (s : string) : t = if s = "" then None else Some s
 
     let fmt (fmt : formatter) (t : t) : unit =
-        t |> unwrap_or "" |> fprintf fmt "@@%s"
+        t |> unwrap_or "" |> fprintf fmt ":%s"
 end
 
 type typs = Typ.t list

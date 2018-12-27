@@ -49,8 +49,9 @@ module Macro : sig
 
     (** Formatter for macros.
 
-        First parameter is the instruction formatter. *)
-    val fmt : (formatter -> 'ins -> unit) -> formatter -> 'ins t -> unit
+        First parameter is the instruction formatter. If it is `None`, instructions will be printed
+        as `...`. *)
+    val fmt : (formatter -> 'ins -> unit) option -> formatter -> 'ins t -> unit
 end
 
 (** Nullary instructions. *)
@@ -105,6 +106,14 @@ val fmt_leaf : formatter -> leaf -> unit
 
 (** String to leaf conversion. *)
 val leaf_of_string : string -> leaf option
+
+(** Returns the maximum number of annotations supported by a leaf.
+
+    - type annot arity
+    - var annot arity
+    - field annot arity
+*)
+val annot_arity_of_leaf : leaf -> int * int * int
 
 (** Returns the maximum number of variable annotations supported by a leaf. *)
 val var_arity_of_leaf : leaf -> int

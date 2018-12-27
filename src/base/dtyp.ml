@@ -73,7 +73,6 @@ and t = {
 
 let mk ?alias:(alias = None) (typ : dtyp) : t = { typ ; alias }
 
-
 let fmt (fmtt : formatter) (typ : t) =
     (* Forms the stack frame for types with annotated subtypes. *)
     let frame_of_named (named : named) : (Fmt.sep * t * Fmt.sep) =
@@ -179,7 +178,7 @@ let fmt (fmtt : formatter) (typ : t) =
                             frame_of_named lft ;
                             frame_of_named rgt
                         ],
-                        (fun () -> fprintf fmtt "@]@,@]" ; post ())
+                        (fun () -> fprintf fmtt "@])@]" ; post ())
                     ) :: stack
 
                 | Map (k, v) ->

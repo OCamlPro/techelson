@@ -6,6 +6,10 @@ let if_let_some (f : 'a -> unit) (opt : 'a option) : unit = match opt with
 | None -> ()
 | Some a -> f a
 
+let is_some (opt : 'a option) : bool = match opt with
+| Some _ -> true
+| None -> false
+
 let unwrap (opt : 'a option) : 'a = match opt with
 | Some a -> a
 | None -> Exc.unreachable ()

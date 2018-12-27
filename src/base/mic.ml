@@ -51,50 +51,56 @@ module Macro = struct
     | MapCadr of unpair_op list * 'ins
 
     let fmt
-        (fmt_ins : formatter -> 'ins -> unit)
+        (fmt_ins : (formatter -> 'ins -> unit) option)
         (fmt : formatter)
         (t : 'ins t)
         : unit
-    = match t with
-    | Cmp op -> fprintf fmt "CMP%a" fmt_op op
-    | If (op, _, _) ->
-        fprintf fmt "IF%a ..." fmt_op op
-    | IfCmp (op, _, _) ->
-        fprintf fmt "IFCMP%a ..." fmt_op op
-    | IfSome _ ->
-        fprintf fmt "IF_SOME ..."
+    =
+        let fmt_ins =
+            match fmt_ins with
+            | Some fmt_ins -> fmt_ins
+            | None -> fun fmt _ -> fprintf fmt "..."
+        in
+        match t with
+        | Cmp op -> fprintf fmt "CMP%a" fmt_op op
+        | If (op, _, _) ->
+            fprintf fmt "IF%a ..." fmt_op op
+        | IfCmp (op, _, _) ->
+            fprintf fmt "IFCMP%a ..." fmt_op op
+        | IfSome _ ->
+            fprintf fmt "IF_SOME ..."
 
-    | Fail -> fprintf fmt "FAIL"
-    | Assert -> fprintf fmt "ASSERT"
-    | Assert_ op -> fprintf fmt "ASSERT_%a" fmt_op op
-    | AssertCmp op -> fprintf fmt "ASSERT_CMP%a" fmt_op op
-    | AssertNone -> fprintf fmt "ASSERT_NONE"
-    | AssertSome -> fprintf fmt "ASSERT_SOME"
-    | AssertLeft -> fprintf fmt "ASSERT_LEFT"
-    | AssertRight -> fprintf fmt "ASSERT_RIGHT"
-    | Dip (n, ins) ->
-        fprintf fmt "DI";
-        for _ = 1 to n do
-            fprintf fmt "I"
-        done;
-        fprintf fmt "P";
-        fmt_ins fmt ins
-    | Dup n ->
-        fprintf fmt "DU";
-        for _ = 1 to n do
-            fprintf fmt "U"
-        done;
-        fprintf fmt "P"
-    | P ops ->
-        fprintf fmt "P%aR" (Fmt.fmt_list Fmt.sep_non fmt_pair_op) ops
-    | Unp ops ->
-        fprintf fmt "UNP%aR" (Fmt.fmt_list Fmt.sep_non fmt_pair_op) ops
-    | CadR ops ->
-        fprintf fmt "C%aR" (Fmt.fmt_list Fmt.sep_non fmt_unpair_op) ops
-    | SetCadr ops ->
-        fprintf fmt "SET_C%aR" (Fmt.fmt_list Fmt.sep_non fmt_unpair_op) ops
-    | MapCadr (ops, ins) ->
-        fprintf fmt "MAP_C%aR %a" (Fmt.fmt_list Fmt.sep_non fmt_unpair_op) ops fmt_ins ins
+        | Fail -> fprintf fmt "FAIL"
+        | Assert -> fprintf fmt "ASSERT"
+        | Assert_ op -> fprintf fmt "ASSERT_%a" fmt_op op
+        | AssertCmp op -> fprintf fmt "ASSERT_CMP%a" fmt_op op
+        | AssertNone -> fprintf fmt "ASSERT_NONE"
+        | AssertSome -> fprintf fmt "ASSERT_SOME"
+        | AssertLeft -> fprintf fmt "ASSERT_LEFT"
+        | AssertRight -> fprintf fmt "ASSERT_RIGHT"
+        | Dip (n, ins) ->
+            fprintf fmt "DI";
+            for _ = 1 to n do
+                fprintf fmt "I"
+            done;
+            fprintf fmt "P ";
+            fmt_ins fmt ins
+        | Dup n ->
+            fprintf fmt "DU";
+            for _ = 1 to n do
+                fprintf fmt "U"
+            done;
+            fprintf fmt "P"
+        | P ops ->
+            fprintf fmt "P%aR" (Fmt.fmt_list Fmt.sep_non fmt_pair_op) ops
+        | Unp ops ->
+            fprintf fmt "UNP%aR" (Fmt.fmt_list Fmt.sep_non fmt_pair_op) ops
+        | CadR ops ->
+            fprintf fmt "C%aR" (Fmt.fmt_list Fmt.sep_non fmt_unpair_op) ops
+        | SetCadr ops ->
+            fprintf fmt "SET_C%aR" (Fmt.fmt_list Fmt.sep_non fmt_unpair_op) ops
+        | MapCadr (ops, ins) ->
+            fprintf fmt "MAP_C%aR %a" (Fmt.fmt_list Fmt.sep_non fmt_unpair_op) ops fmt_ins ins
 end
 
 type leaf =
@@ -259,6 +265,71 @@ let leaf_of_string (token : string) : leaf option = match token with
 | "CHECK_SIGNATURE" -> Some CheckSignature
 | "RENAME" -> Some Rename
 | _ -> None
+
+let annot_arity_of_leaf (leaf : leaf) : (int * int * int) = match leaf with
+(* Supports nothing. *)
+| Failwith
+| Swap
+| Drop -> (0, 0, 0)
+
+(* One variable annotation, one field annotation. *)
+| Car
+| Cdr
+| Cons
+| Som -> (0, 1, 1)
+
+(* One variable annotation, two field annotations. *)
+| Pair -> (0, 1, 2)
+
+(* Others. *)
+| Exec
+| Dup
+| Unit
+| Eq
+| Neq
+| Lt
+| Le
+| Gt
+| Ge
+| Or
+| And
+| Xor
+| Not
+| Neg
+| Abs
+| Add
+| Sub
+| Mul
+| EDiv
+| Lsl
+| Lsr
+| Compare
+| Concat
+| Size
+| Get
+| Mem
+| Update
+| TransferTokens
+| SetDelegate
+| Balance
+| Contract
+| Source
+| Sender
+| Self
+| Amount
+| ImplicitAccount
+| StepsToQuota
+| Now
+| Pack
+| Unpack
+| Slice
+| HashKey
+| Blake2B
+| Sha256
+| Sha512
+| CreateAccount
+| CheckSignature
+| Rename -> (0, 1, 0)
 
 let var_arity_of_leaf (leaf : leaf) : int = match leaf with
 | Failwith
@@ -473,13 +544,20 @@ let fmt_if_like
     (key : string)
     (bt : t)
     (bf : t)
-    (stack : ( (Fmt.sep * t) list * Fmt.seq_end) list)
+    (stack : ( (Fmt.sep * t * bool) list * Fmt.seq_end) list)
 =
     fprintf fmt "%s @[<v>" key;
     (
-        [ (ignore, bt) ; (Fmt.sep_brk fmt, bf) ],
+        [ (ignore, bt, true) ; (Fmt.sep_brk fmt, bf, true) ],
         Fmt.cls fmt
     ) :: stack
+
+(* True if the instruction needs parens when used as an argument. *)
+let needs_parens (t : t) : bool =
+    match t.ins with
+    | Leaf _ -> t.typs <> [] || t.vars <> [] || t.fields <> []
+    | Seq _ -> false
+    | _ -> true
 
 (* Formats contracts. *)
 let rec fmt_contract (fmtt : formatter) ({ storage ; param ; entry } : contract) : unit =
@@ -508,147 +586,157 @@ and fmt_const (fmtt : formatter) (c : const) : unit =
     goes down a macro.
 *)
 and fmt (fmtt : formatter) (t : t) : unit =
-    let rec loop (stack : ( (Fmt.sep * t) list * Fmt.seq_end) list) : unit = match stack with
-    | [] -> ()
-    | ( [], seq_end) :: tail ->
-        seq_end ();
-        loop tail
-    | ( ((sep, to_do) :: to_do_tail, seq_end) :: tail ) ->
-        sep ();
-        let tail = (to_do_tail, seq_end) :: tail in
-        let { ins = to_do ; vars ; fields ; typs } = to_do in
-        let fmt_annots () : unit =
-            Annot.fmt_typs fmtt typs;
-            Annot.fmt_vars fmtt vars;
-            Annot.fmt_fields fmtt fields
-        in
-        let tail =
-            match to_do with
-            | EmptySet dtyp ->
-                fprintf fmtt "EMPTY_SET (%a)" Dtyp.fmt dtyp;
-                fmt_annots ();
-                tail
-            | EmptyMap (k, v) ->
-                fprintf fmtt "EMPTY_MAP %a %a" Dtyp.fmt k Dtyp.fmt v;
-                fmt_annots ();
-                tail
-            | Non dtyp ->
-                fprintf fmtt "NONE %a" Dtyp.fmt dtyp;
-                fmt_annots ();
-                tail
-            | Left dtyp ->
-                fprintf fmtt "LEFT %a" Dtyp.fmt dtyp;
-                fmt_annots ();
-                tail
-            | Right dtyp ->
-                fprintf fmtt "RIGHT %a" Dtyp.fmt dtyp;
-                fmt_annots ();
-                tail
-            | Nil dtyp ->
-                fprintf fmtt "NIL %a" Dtyp.fmt dtyp;
-                fmt_annots ();
-                tail
-            | Leaf leaf ->
-                fmt_leaf fmtt leaf;
-                fmt_annots ();
-                tail
+    let rec loop (stack : ( (Fmt.sep * t * bool) list * Fmt.seq_end) list) : unit =
+        match stack with
+        | [] -> ()
+        | ( [], seq_end) :: tail ->
+            seq_end ();
+            loop tail
+        | ( ((sep, to_do, sub) :: to_do_tail, seq_end) :: tail ) ->
+            sep ();
+            let tail = (to_do_tail, seq_end) :: tail in
 
-            | Seq ts -> (
-                assert (vars = []);
-                match ts with
-                | [] ->
-                    fprintf fmtt "{}";
+            let paren = sub && needs_parens to_do in
+            let tail =
+                if paren then (
+                    fprintf fmtt "(";
+                    ([], Fmt.cls_paren fmtt) :: tail
+                ) else tail
+            in
+
+            let { ins = to_do ; vars ; fields ; typs } = to_do in
+            let fmt_annots fmtt () : unit =
+                Annot.fmt_typs fmtt typs;
+                Annot.fmt_vars fmtt vars;
+                Annot.fmt_fields fmtt fields
+            in
+            let tail =
+                match to_do with
+                | EmptySet dtyp ->
+                    fprintf fmtt "EMPTY_SET%a %a" fmt_annots () Dtyp.fmt dtyp;
                     tail
-                | hd :: tl ->
-                    fprintf fmtt "@[<v>@[<v 2>{";
-                    (
-                        (Fmt.sep_brk fmtt, hd) ::  (
-                            tl |> List.map (
-                                fun to_do -> (fun () -> fprintf fmtt " ;@,"), to_do
-                            )
-                        ),
-                        fun () -> fprintf fmtt "@]@,}@]"
-                    ) :: tail
-            )
-
-            | Loop t ->
-                assert (vars = []);
-                fprintf fmtt "@[<v 2>LOOP@,";
-                ([ignore, t], Fmt.cls fmtt) :: tail
-
-            | LoopLeft t ->
-                assert (vars = []);
-                fprintf fmtt "@[<v 2>LOOP_LEFT@,";
-                ([ignore, t], Fmt.cls fmtt) :: tail
-
-            | If (bt, bf) ->
-                assert (vars = []);
-                fmt_if_like fmtt "IF" bt bf tail
-            | IfNone (bt, bf) ->
-                assert (vars = []);
-                fmt_if_like fmtt "IF_NONE" bt bf tail
-            | IfLeft (bt, bf) ->
-                assert (vars = []);
-                fmt_if_like fmtt "IF_LEFT" bt bf tail
-            | IfRight (bt, bf) ->
-                assert (vars = []);
-                fmt_if_like fmtt "IF_RIGHT" bt bf tail
-            | IfCons (bt, bf) ->
-                assert (vars = []);
-                fmt_if_like fmtt "IF_CONS" bt bf tail
-
-            | Dip t ->
-                fprintf fmtt "DIP ";
-                ([ignore, t], fmt_annots) :: tail
-
-            | Iter t ->
-                assert (vars = []);
-                fprintf fmtt "ITER ";
-                ([ignore, t], ignore) :: tail
-
-            | Push (dtyp, c) ->
-                fprintf fmtt "PUSH @[<v>(@[%a@])@,%a@]" Dtyp.fmt dtyp fmt_const c;
-                tail
-
-            | Lambda (dom, codom, t) ->
-                fprintf fmtt "LAMBDA @[<v>(@[%a@])@,(@[%a@])@,(" Dtyp.fmt dom Dtyp.fmt codom;
-                (
-                    [ignore, t], Fmt.unit_combine (Fmt.cls_of fmtt ")") fmt_annots
-                ) :: tail
-
-            | CreateContract c -> (
-                fprintf fmtt "@[@[<v 4>CREATE_CONTRACT";
-                match c with
-                | None ->
-                    fprintf fmtt "@]@]";
+                | EmptyMap (k, v) ->
+                    fprintf fmtt "EMPTY_MAP%a %a %a" fmt_annots () Dtyp.fmt k Dtyp.fmt v;
                     tail
-                | Some c ->
+                | Non dtyp ->
+                    fprintf fmtt "NONE%a %a" fmt_annots () Dtyp.fmt dtyp;
+                    tail
+                | Left dtyp ->
+                    fprintf fmtt "LEFT%a %a" fmt_annots () Dtyp.fmt dtyp;
+                    tail
+                | Right dtyp ->
+                    fprintf fmtt "RIGHT%a %a" fmt_annots () Dtyp.fmt dtyp;
+                    tail
+                | Nil dtyp ->
+                    fprintf fmtt "NIL%a %a" fmt_annots () Dtyp.fmt dtyp;
+                    tail
+                | Leaf leaf ->
+                    fmt_leaf fmtt leaf;
+                    fmt_annots fmtt ();
+                    tail
+
+                | Seq ts -> (
+                    assert (vars = []);
+                    match ts with
+                    | [] ->
+                        fprintf fmtt "{}";
+                        tail
+                    | hd :: tl ->
+                        fprintf fmtt "@[<v>@[<v 2>{";
+                        (
+                            (Fmt.sep_brk fmtt, hd, false) ::  (
+                                tl |> List.map (
+                                    fun to_do -> (fun () -> fprintf fmtt " ;@,"), to_do, false
+                                )
+                            ),
+                            fun () -> fprintf fmtt "@]@,}@]"
+                        ) :: tail
+                )
+
+                | Loop t ->
+                    assert (vars = []);
+                    fprintf fmtt "@[<v 2>LOOP@,";
+                    ([ignore, t, true], Fmt.cls fmtt) :: tail
+
+                | LoopLeft t ->
+                    assert (vars = []);
+                    fprintf fmtt "@[<v 2>LOOP_LEFT@,";
+                    ([ignore, t, true], Fmt.cls fmtt) :: tail
+
+                | If (bt, bf) ->
+                    assert (vars = []);
+                    fmt_if_like fmtt "IF" bt bf tail
+                | IfNone (bt, bf) ->
+                    assert (vars = []);
+                    fmt_if_like fmtt "IF_NONE" bt bf tail
+                | IfLeft (bt, bf) ->
+                    assert (vars = []);
+                    fmt_if_like fmtt "IF_LEFT" bt bf tail
+                | IfRight (bt, bf) ->
+                    assert (vars = []);
+                    fmt_if_like fmtt "IF_RIGHT" bt bf tail
+                | IfCons (bt, bf) ->
+                    assert (vars = []);
+                    fmt_if_like fmtt "IF_CONS" bt bf tail
+
+                | Dip t ->
+                    fprintf fmtt "@[<hv 2>DIP%a@ " fmt_annots ();
+                    ([ignore, t, true], fun () -> fprintf fmtt "@]") :: tail
+
+                | Iter t ->
+                    assert (vars = []);
+                    fprintf fmtt "ITER ";
+                    ([ignore, t, true], ignore) :: tail
+
+                | Push (dtyp, c) ->
                     fprintf
-                        fmtt " {@,storage %a;@,parameter %a;@,code "
-                        Dtyp.fmt c.storage Dtyp.fmt c.param;
-                    (
-                        [ignore, c.entry], fun () -> fprintf fmtt "@]}@]"
-                    ) :: tail
-            )
-
-            | Macro (ts, macro) -> (
-                match ts with
-                | [] ->
-                    fprintf fmtt "@[{ # Expansion of `%a`@,}@]" (Macro.fmt fmt) macro;
+                        fmtt "PUSH%a @[<hov>@[%a@]@ %a@]"
+                        fmt_annots () Dtyp.fmt dtyp fmt_const c;
                     tail
-                | hd :: tl ->
-                    fprintf fmtt "@[<v>@[<v 2>{ # Expansion of `%a`" (Macro.fmt fmt) macro;
+
+                | Lambda (dom, codom, t) ->
+                    fprintf
+                        fmtt "LAMBDA%a @[<v>@[%a@]@,(@[%a@])@,("
+                        fmt_annots () Dtyp.fmt dom Dtyp.fmt codom;
                     (
-                        ((fun () -> fprintf fmtt "@,"), hd)
-                        :: (
-                            tl |> List.map (
-                                fun to_do -> (fun () -> fprintf fmtt " ;@,"), to_do
-                            )
-                        ),
-                        fun () -> fprintf fmtt "@]@,}@]"
+                        [ignore, t, true], fun () -> fprintf fmtt ")@]"
                     ) :: tail
-            )
-        in
-        loop tail
+
+                | CreateContract c -> (
+                    fprintf fmtt "@[@[<v 4>CREATE_CONTRACT%a" fmt_annots ();
+                    match c with
+                    | None ->
+                        fprintf fmtt "@]@]";
+                        tail
+                    | Some c ->
+                        fprintf
+                            fmtt " {@,storage %a;@,parameter %a;@,code "
+                            Dtyp.fmt c.storage Dtyp.fmt c.param;
+                        (
+                            [ignore, c.entry, true], fun () -> fprintf fmtt "@]}@]"
+                        ) :: tail
+                )
+
+                | Macro (ts, macro) -> (
+                    match ts with
+                    | [] ->
+                        fprintf fmtt "@[{ # Expansion of `%a%a`@,}@]"
+                            (Macro.fmt None) macro fmt_annots ();
+                        tail
+                    | hd :: tl ->
+                        fprintf fmtt "@[<v>@[<v 2>{ # Expansion of `%a%a`@,"
+                            (Macro.fmt None) macro fmt_annots ();
+                        (
+                            (ignore, hd, false)
+                            :: (
+                                tl |> List.map (
+                                    fun to_do -> (fun () -> fprintf fmtt " ;@,"), to_do, false
+                                )
+                            ),
+                            fun () -> fprintf fmtt "@]@,}@]"
+                        ) :: tail
+                )
+            in
+            loop tail
     in
-    loop [ [ignore, t], ignore ]
+    loop [ [ignore, t, false], ignore ]

@@ -1,4 +1,9 @@
-(** Michelson lexer. *)
+(** Michelson lexer.
+
+    # TODO
+    
+    - escape sequences in strings
+    - bytes *)
 
 {
     open Micparse
