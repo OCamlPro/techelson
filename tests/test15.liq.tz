@@ -1,0 +1,27 @@
+parameter int;
+storage
+  (pair :storage
+     (pair :vector %v
+        (pair :point %orig (string %x) (pair (bool %y) (option %z int)))
+        (pair :point %dest (string %x) (pair (bool %y) (option %z int))))
+     (unit %whatever));
+code { DUP ;
+       DIP { CDR @storage_slash_1 } ;
+       CAR @parameter_slash_2 ;
+       DUUP @storage ;
+       CDR %whatever ;
+       DUUUP @storage ;
+       DIIIP { DROP } ;
+       CAR %v ;
+       CDR %dest ;
+       DUUUP ;
+       DIIIP { DROP } ;
+       SOME ;
+       PUSH bool True ;
+       PAIR %y %z ;
+       PUSH string "0" ;
+       PAIR %x ;
+       PAIR %orig %dest ;
+       PAIR @storage %v %whatever ;
+       NIL operation ;
+       PAIR };

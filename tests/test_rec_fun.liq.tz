@@ -1,0 +1,29 @@
+parameter int;
+storage int;
+code { DUP ;
+       DIP { CDR @_storage_slash_1 } ;
+       DIP { DROP } ;
+       CAR @parameter_slash_2 ;
+       LAMBDA @f
+         int
+         int
+         { RENAME @x_slash_3 ;
+           DUP @x ;
+           LEFT int ;
+           LOOP_LEFT
+             { RENAME @x_slash_4 ;
+               PUSH int 0 ;
+               DUUP @x ;
+               COMPARE ;
+               GT ;
+               IF { PUSH int 1 ; DUUP @x ; SUB ; LEFT int } { DUP @x ; RIGHT int } ;
+               DIP { DROP } } ;
+           DIP { DROP } } ;
+       DUP ;
+       SWAP ;
+       DUUUP ;
+       DIIIP { DROP } ;
+       EXEC @storage ;
+       EXEC @storage ;
+       NIL operation ;
+       PAIR };

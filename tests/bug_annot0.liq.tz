@@ -1,0 +1,8 @@
+parameter unit;
+storage (pair :storage (big_map string int) unit);
+code { DUP ;
+       DIP { CDR @storage_slash_1 } ;
+       CAR @parameter_slash_2 ;
+       DUUP @storage ;
+       CDR %b ;
+       FAILWITH };

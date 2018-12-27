@@ -57,5 +57,8 @@ and t = {
 (** Named datatype constructor. *)
 val mk : ?alias : Annot.Typ.t option -> dtyp -> t
 
+(** Named datatype constructor from a leaf. *)
+val mk_leaf : ?alias : Annot.Typ.t option -> leaf -> t
+
 (** Formatter for datatypes. *)
 val fmt : formatter -> t -> unit

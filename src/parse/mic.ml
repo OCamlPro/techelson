@@ -52,6 +52,10 @@ let rec parse
     in
     let inner () =
         match token with
+        | "CAST" ->
+            param_arity_check 1 0;
+            annot_arity_check 0 1 0;
+            Mic.Cast (List.hd dtyps)
         | "EMPTY_SET" ->
             param_arity_check 1 0;
             annot_arity_check 0 1 0;
@@ -173,7 +177,7 @@ let rec parse
     in
     Exc.chain_err (
         fun () ->
-            asprintf "parsing %s%a%a%a%s%a%s%a@."
+            asprintf "parsing %s%a%a%a%s%a%s%a"
                 token
                 Annot.fmt_typs typ_annots
                 Annot.fmt_vars var_annots
@@ -195,7 +199,7 @@ and full_arity_check (token : string) (dtyps : Dtyp.t list) (args : 'a list) (an
 
 and parse_macro_cmp
     (token : string)
-    (dtyps: Dtyp.t list)
+    (dtyps : Dtyp.t list)
     (args : Mic.t list)
     (annots : Annot.vars)
     : Mic.t Mic.ins option
@@ -218,7 +222,7 @@ and parse_macro_cmp
 
 and parse_macro_if
     (token : string)
-    (dtyps: Dtyp.t list)
+    (dtyps : Dtyp.t list)
     (args : Mic.t list)
     (annots : Annot.vars)
     : Mic.t Mic.ins option
@@ -242,7 +246,7 @@ and parse_macro_if
 
 and parse_macro_if_cmp
     (token : string)
-    (dtyps: Dtyp.t list)
+    (dtyps : Dtyp.t list)
     (args : Mic.t list)
     (annots : Annot.vars)
     : Mic.t Mic.ins option
@@ -266,7 +270,7 @@ and parse_macro_if_cmp
 
 and parse_macro_fail
     (token : string)
-    (dtyps: Dtyp.t list)
+    (dtyps : Dtyp.t list)
     (args : Mic.t list)
     (annots : Annot.vars)
     : Mic.t Mic.ins option
@@ -279,7 +283,7 @@ and parse_macro_fail
 (* Parses (variations of) the assert macro. *)
 and parse_macro_assert
     (token : string)
-    (dtyps: Dtyp.t list)
+    (dtyps : Dtyp.t list)
     (args : Mic.t list)
     (annots : Annot.vars)
     : Mic.t Mic.ins option
@@ -392,7 +396,7 @@ and parse_macro_diup
 
 and parse_macro_dip
     (token : string)
-    (dtyps: Dtyp.t list)
+    (dtyps : Dtyp.t list)
     (args : Mic.t list)
     (annots : Annot.vars)
     : Mic.t Mic.ins option
@@ -412,7 +416,7 @@ and parse_macro_dip
 
 and parse_macro_dup
     (token : string)
-    (dtyps: Dtyp.t list)
+    (dtyps : Dtyp.t list)
     (args : Mic.t list)
     (annots : Annot.vars)
     : Mic.t Mic.ins option
@@ -431,7 +435,7 @@ and parse_macro_dup
 
 and parse_macro_pair
     (token : string)
-    (dtyps: Dtyp.t list)
+    (dtyps : Dtyp.t list)
     (args : Mic.t list)
     (annots : Annot.vars)
     : Mic.t Mic.ins option
@@ -455,7 +459,7 @@ and parse_macro_pair
 
 and parse_macro_unpair
     (token : string)
-    (dtyps: Dtyp.t list)
+    (dtyps : Dtyp.t list)
     (args : Mic.t list)
     (annots : Annot.vars)
     : Mic.t Mic.ins option
@@ -479,7 +483,7 @@ and parse_macro_unpair
 
 and parse_macro_cadr
     (token : string)
-    (dtyps: Dtyp.t list)
+    (dtyps : Dtyp.t list)
     (args : Mic.t list)
     (annots : Annot.vars)
     : Mic.t Mic.ins option
@@ -503,7 +507,7 @@ and parse_macro_cadr
 
 and parse_macro_set_cadr
     (token : string)
-    (dtyps: Dtyp.t list)
+    (dtyps : Dtyp.t list)
     (args : Mic.t list)
     (annots : Annot.vars)
     : Mic.t Mic.ins option
@@ -527,7 +531,7 @@ and parse_macro_set_cadr
 
 and parse_macro_map_cadr
     (token : string)
-    (dtyps: Dtyp.t list)
+    (dtyps : Dtyp.t list)
     (args : Mic.t list)
     (annots : Annot.vars)
     : Mic.t Mic.ins option
@@ -552,7 +556,7 @@ and parse_macro_map_cadr
 
 and parse_macro_if_some
     (token : string)
-    (dtyps: Dtyp.t list)
+    (dtyps : Dtyp.t list)
     (args : Mic.t list)
     (annots : Annot.vars)
     : Mic.t Mic.ins option
@@ -567,10 +571,26 @@ and parse_macro_if_some
         None
     )
 
+and parse_macro_int
+    (token : string)
+    (dtyps : Dtyp.t list)
+    (args : Mic.t list)
+    (annots : Annot.vars)
+    : Mic.t Mic.ins option
+=
+    if token = "INT" then (
+        full_arity_check token dtyps args annots 0 0 1;
+        let expanded = Expand.macro_int in
+        let macro = Mic.Macro.Int in
+        Some (Macro (expanded, macro))
+    ) else (
+        None
+    )
+
 (* Macro parser. *)
 and parse_macro
     (token : string)
-    (dtyps: Dtyp.t list)
+    (dtyps : Dtyp.t list)
     (args : Mic.t list)
     (annots : Annot.vars)
     : Mic.t Mic.ins option
@@ -591,6 +611,7 @@ and parse_macro
             (fun () -> parse_macro_cadr token dtyps args annots) ;
             (fun () -> parse_macro_set_cadr token dtyps args annots) ;
             (fun () -> parse_macro_map_cadr token dtyps args annots) ;
+            (fun () -> parse_macro_int token dtyps args annots) ;
         ]
     in
     let rec loop = function

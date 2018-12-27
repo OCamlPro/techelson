@@ -233,7 +233,7 @@ const :
         Base.Mic.Int i
     }
     | s = STR {
-        Base.Mic.mk_str s
+        Base.Mic.mk_str_const s
     }
     | s = BYTES {
         Base.Mic.Bytes s

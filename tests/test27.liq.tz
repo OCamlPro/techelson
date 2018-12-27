@@ -1,0 +1,24 @@
+parameter (contract :NatContract nat);
+storage (pair bool (contract :NatContract nat));
+code { DUP ;
+       DIP { CDR @storage_slash_1 } ;
+       CAR @parameter_slash_2 ;
+       DUUP @storage ;
+       DUP ;
+       CAR @b ;
+       IF { DUUUP @storage ; CDR ; PUSH bool False ; PAIR ; NIL operation ; PAIR }
+          { DUP ;
+            CDR @c ;
+            PUSH mutez 0 ;
+            PUSH nat 0 ;
+            TRANSFER_TOKENS @op ;
+            DUUUUP @storage ;
+            CDR ;
+            PUSH bool True ;
+            PAIR ;
+            NIL operation ;
+            DUUUP @op ;
+            DIIIP { DROP } ;
+            CONS ;
+            PAIR } ;
+       DIP { DROP ; DROP ; DROP } };

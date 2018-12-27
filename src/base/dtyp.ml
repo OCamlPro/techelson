@@ -73,6 +73,8 @@ and t = {
 
 let mk ?alias:(alias = None) (typ : dtyp) : t = { typ ; alias }
 
+let mk_leaf ?alias:(alias = None) (leaf : leaf) : t = { typ = Leaf leaf ; alias }
+
 let fmt (fmtt : formatter) (typ : t) =
     (* Forms the stack frame for types with annotated subtypes. *)
     let frame_of_named (named : named) : (Fmt.sep * t * Fmt.sep) =

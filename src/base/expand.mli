@@ -71,3 +71,6 @@ val macro_map_cadr : Mic.Macro.unpair_op list -> Mic.t -> Mic.t list
 
 (** Expands a `IF_SOME` macro. *)
 val macro_if_some : Mic.t -> Mic.t -> Mic.t list
+
+(** Expands a `INT` macro. *)
+val macro_int : Mic.t list

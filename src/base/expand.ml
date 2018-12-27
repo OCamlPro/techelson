@@ -424,3 +424,6 @@ let macro_map_cadr (ops : Mic.Macro.unpair_op list) (ins : Mic.t) : Mic.t list =
 
 let macro_if_some (ins_1 : Mic.t) (ins_2 : Mic.t) : Mic.t list =
     [ Mic.IfNone (ins_2, ins_1) |> Mic.mk ]
+
+let macro_int : Mic.t list =
+    [ Mic.Cast (Dtyp.mk_leaf Dtyp.Int) |> Mic.mk ]

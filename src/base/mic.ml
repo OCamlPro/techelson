@@ -33,6 +33,7 @@ module Macro = struct
     | Cmp of op
     | If of (op * 'ins * 'ins)
     | IfCmp of (op * 'ins * 'ins)
+    | Int
     | Fail
     | Assert
     | Assert_ of op
@@ -70,6 +71,7 @@ module Macro = struct
         | IfSome _ ->
             fprintf fmt "IF_SOME ..."
 
+        | Int -> fprintf fmt "INT"
         | Fail -> fprintf fmt "FAIL"
         | Assert -> fprintf fmt "ASSERT"
         | Assert_ op -> fprintf fmt "ASSERT_%a" fmt_op op
@@ -451,6 +453,7 @@ let field_arity_of_leaf (leaf : leaf) : int = match leaf with
 
 type 'sub ins =
 | Leaf of leaf
+| Cast of Dtyp.t
 | EmptySet of Dtyp.t
 | EmptyMap of Dtyp.t * Dtyp.t
 | Non of Dtyp.t
@@ -501,7 +504,7 @@ and t = {
     fields : Annot.fields ;
 }
 
-let mk_str (s : string) : const =
+let mk_str_const (s : string) : const =
     let rec loop (acc : string list) (ss : string list) : string =
         match ss with
         | [] -> List.rev acc |> String.concat ""
@@ -631,6 +634,9 @@ and fmt (fmtt : formatter) (t : t) : unit =
             in
             let tail =
                 match to_do with
+                | Cast dtyp ->
+                    fprintf fmtt "CAST%a %a" fmt_annots () Dtyp.fmt dtyp;
+                    tail
                 | EmptySet dtyp ->
                     fprintf fmtt "EMPTY_SET%a %a" fmt_annots () Dtyp.fmt dtyp;
                     tail

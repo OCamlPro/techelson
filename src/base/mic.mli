@@ -30,6 +30,7 @@ module Macro : sig
     | Cmp of op
     | If of (op * 'ins * 'ins)
     | IfCmp of (op * 'ins * 'ins)
+    | Int
     | Fail
     | Assert
     | Assert_ of op
@@ -124,6 +125,7 @@ val field_arity_of_leaf : leaf -> int
 (** Instructions. *)
 type 'sub ins =
 | Leaf of leaf
+| Cast of Dtyp.t
 | EmptySet of Dtyp.t
 | EmptyMap of Dtyp.t * Dtyp.t
 | Non of Dtyp.t
@@ -178,7 +180,7 @@ and t = {
 (** Creates a string constant.
 
     De-escapes escape characters. *)
-val mk_str : string -> const
+val mk_str_const : string -> const
 
 (** Creates an instruction. *)
 val mk :

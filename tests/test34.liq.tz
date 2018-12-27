@@ -1,0 +1,18 @@
+parameter bool;
+storage bool;
+code { DUP ;
+       DIP { CDR @storage_slash_1 } ;
+       CAR @parameter_slash_2 ;
+       DUUP @storage ;
+       DUUP @parameter ;
+       COMPARE ;
+       EQ ;
+       DUUUP @storage ;
+       DIIIP { DROP } ;
+       DUUUP ;
+       DIIIP { DROP } ;
+       COMPARE ;
+       NEQ ;
+       AND ;
+       NIL operation ;
+       PAIR };

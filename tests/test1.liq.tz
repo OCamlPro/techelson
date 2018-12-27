@@ -1,0 +1,44 @@
+parameter timestamp;
+storage
+  (pair string
+        (pair timestamp
+              (pair (pair mutez mutez)
+                    (pair (contract :UnitContract unit)
+                          (pair (contract :UnitContract unit)
+                                (pair (contract :UnitContract unit)
+                                      (pair (pair timestamp mutez) (pair mutez timestamp))))))));
+code { DUP ;
+       DIP { CDR @storage_slash_1 } ;
+       CAR @parameter_slash_2 ;
+       AMOUNT @amount ;
+       DUUUP @storage ;
+       DUUUP @parameter ;
+       DUUUP @amount ;
+       PAIR @ap ;
+       DUUUP @amount ;
+       DIIIP { DROP } ;
+       DIIIIP { DROP } ;
+       DUUUUP ;
+       DIIIIP { DROP } ;
+       PAIR @pa ;
+       PAIR ;
+       DUUP ;
+       CDDDDDAR @b ;
+       PAIR ;
+       DUUP ;
+       CDDDDAR @a ;
+       PAIR ;
+       DUUP ;
+       CDDDAR @x ;
+       PAIR ;
+       DUUP ;
+       CDDAR @n ;
+       PAIR ;
+       DUUP ;
+       CDAR @t ;
+       PAIR ;
+       SWAP ;
+       CAR @s ;
+       PAIR @storage ;
+       NIL operation ;
+       PAIR };

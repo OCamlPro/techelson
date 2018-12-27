@@ -1,0 +1,15 @@
+parameter bool;
+storage (pair bool (pair (option int) (map string int)));
+code { CDR @storage_slash_1 ;
+       DUP ;
+       CAR ;
+       SWAP ;
+       CDR ;
+       CDR ;
+       PUSH @x int 3 ;
+       SOME @option ;
+       PAIR ;
+       SWAP ;
+       PAIR @storage ;
+       NIL operation ;
+       PAIR };

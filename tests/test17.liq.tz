@@ -1,0 +1,30 @@
+parameter int;
+storage (or :storage (unit %Nothing) (or (int %Int) (pair %String string int)));
+code { DUP ;
+       DIP { CDR @storage_slash_1 } ;
+       CAR @parameter_slash_2 ;
+       PUSH @c
+         (or :storage (unit %Nothing) (or (int %Int) (pair %String string int)))
+         (Right (Right (Pair "toto" 0))) ;
+       IF_LEFT
+         { DROP ;
+           PUSH @b
+             (or :storage (unit %Nothing) (or (int %Int) (pair %String string int)))
+             (Right (Left 3)) }
+         { IF_LEFT
+             { RENAME @n_slash_6 ; LEFT %Int % (pair string int) ; RIGHT % %_ unit }
+             { RENAME @s_slash_7 ;
+               PUSH string "toto" ;
+               DUUP @s ;
+               CAR ;
+               COMPARE ;
+               EQ ;
+               IF { PUSH (or :storage (unit %Nothing) (or (int %Int) (pair %String string int)))
+                         (Right (Left 0)) }
+                  { PUSH (or :storage (unit %Nothing) (or (int %Int) (pair %String string int)))
+                         (Right (Left 1)) } ;
+               DIP { DROP } } } ;
+       DIP { DROP ; DROP } ;
+       RENAME @storage ;
+       NIL operation ;
+       PAIR };

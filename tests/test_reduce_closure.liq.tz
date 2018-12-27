@@ -1,0 +1,36 @@
+parameter (list int);
+storage int;
+code { DUP ;
+       DIP { CDR @storage_slash_1 } ;
+       CAR @parameter_slash_2 ;
+       PUSH int 0 ;
+       DUUP @parameter ;
+       ITER { RENAME @_fold_arg_slash_7 ;
+              DIP { DUP } ;
+              PAIR ;
+              PUSH @c int 1 ;
+              LAMBDA
+                (pair (pair int int) int)
+                int
+                { RENAME @closure_env_slash_4 ;
+                  DUP ;
+                  CAR @x_slash_5 ;
+                  CAR ;
+                  DUUP ;
+                  CDR @c_slash_3 ;
+                  DUUUP ;
+                  DIIIP { DROP } ;
+                  CAR @x_slash_5 ;
+                  CDR ;
+                  ADD ;
+                  ADD } ;
+              PAIR @f ;
+              DUUP ;
+              DIP { DUP ; CAR ; SWAP ; CDR } ;
+              DIIIP { DROP ; DROP } ;
+              PAIR ;
+              EXEC } ;
+       DIP { DROP ; DROP } ;
+       RENAME @storage ;
+       NIL operation ;
+       PAIR };
