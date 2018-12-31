@@ -196,7 +196,16 @@ let rec parse
     )
     |> Mic.mk ~typs:(typ_annots) ~vars:(var_annots) ~fields:(field_annots)
 
-and full_arity_check (token : string) (dtyps : Dtyp.t list) (args : 'a list) (annots : Annot.vars) (typ_x : int) (arg_x : int) (annot_x : int) : unit =
+and full_arity_check
+    (token : string)
+    (dtyps : Dtyp.t list)
+    (args : 'a list)
+    (annots : Annot.vars)
+    (typ_x : int)
+    (arg_x : int)
+    (annot_x : int)
+    : unit
+=
     Check.param_arity (fun () -> token) (typ_x, dtyps) (arg_x, args);
     Check.Annots.var_arity_le (fun () -> token) annot_x annots
 
@@ -223,7 +232,8 @@ and parse_macro_cmp
         (
             fun () -> [
                 sprintf "token `%s` looks like a CMP-like macro, but is not" token ;
-                sprintf "please refer to https://tezos.gitlab.io/master/whitedoc/michelson.html#compare" ;
+                sprintf "please refer to \
+                    https://tezos.gitlab.io/master/whitedoc/michelson.html#compare" ;
             ]
         )
         "CMP"
@@ -247,7 +257,8 @@ and parse_macro_if
         (
             fun () -> [
                 sprintf "token `%s` looks like an IF-like macro, but is not" token ;
-                sprintf "please refer to https://tezos.gitlab.io/master/whitedoc/michelson.html#compare" ;
+                sprintf "please refer to \
+                    https://tezos.gitlab.io/master/whitedoc/michelson.html#compare" ;
             ]
         )
         "IF"
@@ -271,7 +282,8 @@ and parse_macro_if_cmp
         (
             fun () -> [
                 sprintf "token `%s` looks like an IFCMP-like macro, but is not" token ;
-                sprintf "please refer to https://tezos.gitlab.io/master/whitedoc/michelson.html#compare" ;
+                sprintf "please refer to \
+                    https://tezos.gitlab.io/master/whitedoc/michelson.html#compare" ;
             ]
         )
         "IFCMP"
@@ -308,7 +320,8 @@ and parse_macro_assert
     let bail (branch : string) : (Mic.t list * Mic.t Mic.Macro.t) =
         [
             sprintf "token `%s` looks like an %s-like macro, but is not" token branch ;
-            sprintf "please refer to https://tezos.gitlab.io/master/whitedoc/michelson.html#assertion-macros" ;
+            sprintf "please refer to \
+                https://tezos.gitlab.io/master/whitedoc/michelson.html#assertion-macros" ;
         ] |> Exc.throws
     in
     (* Calls `Macro.Parse.op` on `s` minus the `n` first characters. *)
@@ -381,7 +394,8 @@ and parse_macro_diup
     let bail () : int =
         [
             sprintf "token `%s` looks like a %s%c+%c-like macro, but is not" token pref rep finish ;
-            sprintf "please refer to https://tezos.gitlab.io/master/whitedoc/michelson.html#syntactic-conveniences" ;
+            sprintf "please refer to \
+                https://tezos.gitlab.io/master/whitedoc/michelson.html#syntactic-conveniences" ;
         ] |> Exc.throws
     in
     match Utils.tail_of_pref ~pref:pref token with
@@ -470,8 +484,9 @@ and parse_macro_pair
         )
         | _ ->
             [
-                sprintf "token `%s` looks like a P[API]+R-like macro, but is not" token ;
-                sprintf "please refer to https://tezos.gitlab.io/master/whitedoc/michelson.html#syntactic-conveniences" ;
+                sprintf "token `%s` looks like a P[API]+R-like macro, but is not" token;
+                sprintf "please refer to \
+                    https://tezos.gitlab.io/master/whitedoc/michelson.html#syntactic-conveniences";
             ] |> Exc.throws
     )
 
@@ -497,8 +512,9 @@ and parse_macro_unpair
         )
         | _ ->
             [
-                sprintf "token `%s` looks like a UNP[API]+R-like macro, but is not" token ;
-                sprintf "please refer to https://tezos.gitlab.io/master/whitedoc/michelson.html#syntactic-conveniences" ;
+                sprintf "token `%s` looks like a UNP[API]+R-like macro, but is not" token;
+                sprintf "please refer to \
+                    https://tezos.gitlab.io/master/whitedoc/michelson.html#syntactic-conveniences";
             ] |> Exc.throws
     )
 
@@ -523,8 +539,9 @@ and parse_macro_cadr
         )
         | _ ->
             [
-                sprintf "token `%s` looks like a C[AD]+R-like macro, but is not" token ;
-                sprintf "please refer to https://tezos.gitlab.io/master/whitedoc/michelson.html#syntactic-conveniences" ;
+                sprintf "token `%s` looks like a C[AD]+R-like macro, but is not" token;
+                sprintf "please refer to \
+                    https://tezos.gitlab.io/master/whitedoc/michelson.html#syntactic-conveniences";
             ] |> Exc.throws
     )
 
@@ -549,8 +566,9 @@ and parse_macro_set_cadr
         )
         | _ ->
             [
-                sprintf "token `%s` looks like a SET_C[AD]+R-like macro, but is not" token ;
-                sprintf "please refer to https://tezos.gitlab.io/master/whitedoc/michelson.html#syntactic-conveniences" ;
+                sprintf "token `%s` looks like a SET_C[AD]+R-like macro, but is not" token;
+                sprintf "please refer to \
+                    https://tezos.gitlab.io/master/whitedoc/michelson.html#syntactic-conveniences";
             ] |> Exc.throws
     )
 
@@ -576,8 +594,9 @@ and parse_macro_map_cadr
         )
         | _ ->
             [
-                sprintf "token `%s` looks like a MAP_C[AD]+R-like macro, but is not" token ;
-                sprintf "please refer to https://tezos.gitlab.io/master/whitedoc/michelson.html#syntactic-conveniences" ;
+                sprintf "token `%s` looks like a MAP_C[AD]+R-like macro, but is not" token;
+                sprintf "please refer to \
+                    https://tezos.gitlab.io/master/whitedoc/michelson.html#syntactic-conveniences";
             ] |> Exc.throws
     )
 

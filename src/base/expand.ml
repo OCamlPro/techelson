@@ -230,16 +230,13 @@ module PairHelp = struct
             | Pair (LeafA, LeafI) ->
                 let field_a, fields = lst_split fields in
                 let field_b, fields = lst_split fields in
-                Format.printf "leaves:%a |%a@." Annot.fmt_fields field_a Annot.fmt_fields field_b;
                 go_up fields stack [pair stack (field_a @ field_b)]
             (* Left part is fine, go down the left part. *)
             | Pair (LeafA, right) ->
-                Format.printf "leaf A@.";
                 let field, fields = lst_split fields in
                 go_down fields ((UppDipPost field) :: stack) right
             (* Right part is fine, go down the left part. *)
             | Pair (left, LeafI) ->
-                Format.printf "leaf B@.";
                 go_down fields (UppPref :: stack) left
             (* Go down left first, then right. *)
             | Pair (left, right) ->
