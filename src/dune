@@ -3,6 +3,7 @@
     (libraries
         micheltest.base
         micheltest.parse
+        micheltest.eval
         micheltest.test
     )
 )
