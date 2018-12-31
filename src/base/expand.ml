@@ -258,14 +258,14 @@ module PairHelp = struct
             match stack with
             (* Going up an `A`: `DIP` instructions and add `PAIR` at the end. *)
             | (UppDipPost field) :: stack ->
-                let pair_fields = field @ [Annot.Field.wild] in
+                let pair_fields = if field <> [] then field @ [Annot.Field.wild] else [] in
                 let dipped = Mic.Dip (Mic.mk_seq lst) |> Mic.mk in
                 let pair = pair stack pair_fields in
                 go_up fields stack [dipped ; pair]
             (* Going up an `I`: prefix with `PAIR`. *)
             | UppPref :: stack ->
                 let field, fields = lst_split fields in
-                let pair_fields = Annot.Field.wild :: field in
+                let pair_fields = if field <> [] then Annot.Field.wild :: field else [] in
                 let pair = pair stack pair_fields in
                 go_up fields stack (lst @ [pair])
             (* Need to go down `tree`, memorize `lst` in the stack for later. *)
