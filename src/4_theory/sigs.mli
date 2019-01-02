@@ -1,5 +1,6 @@
 (** Input/output signatures for the functors that create evaluators. *)
 
+open Base
 open Base.Common
 
 module type SigT = sig
@@ -15,10 +16,10 @@ module type SigArith = sig
 
     val of_str : string -> t
     val add : t -> t -> t
-    val sub : t -> t -> t
     val mul : t -> t -> t
     val div : t -> t -> t
     val compare : t -> t -> int
+    val zero : t
 end
 
 module type SigStr = sig
@@ -32,12 +33,15 @@ end
 module type SigCmp = sig
     module Int : sig
         include SigArith
+        val sub : t -> t -> t
 
         val of_int : int -> t
+        val to_int : t -> int
     end
 
     module Nat : sig
         include SigArith
+        val sub : t -> t -> Int.t
 
         val to_int : t -> Int.t
         val of_int : Int.t -> t option
@@ -58,7 +62,7 @@ module type SigCmp = sig
     end
 end
 
-module type SigEval = sig
+module type SigTheory = sig
     module Cmp : sig
         include SigCmp
         type t =
@@ -70,6 +74,7 @@ module type SigEval = sig
 
         val cmp : t -> t -> int
         val fmt : formatter -> t -> unit
+        val dtyp : t -> Dtyp.t
     end
 
     module Unwrap : sig
@@ -89,6 +94,7 @@ module type SigEval = sig
         val fold : ('acc -> elm -> 'acc) -> 'acc -> t -> 'acc
         val fold_as : (elm -> 'a) -> ('acc -> 'a -> 'acc) -> 'acc -> t -> 'acc
         val size : t -> Cmp.Nat.t
+        val fmt : formatter -> t -> unit
     end
 
     module Map : sig
@@ -103,6 +109,7 @@ module type SigEval = sig
         val fold : ('acc -> key -> 'a -> 'acc) -> 'acc -> 'a t -> 'acc
         val fold_as : (key -> 'k) -> ('a -> 'b) -> ('acc -> 'k -> 'b -> 'acc) -> 'acc -> 'a t -> 'acc
         val size : 'a t -> Cmp.Nat.t
+        val fmt : (formatter -> 'a -> unit) -> formatter -> 'a t -> unit
     end
 
     module BigMap : sig
@@ -117,12 +124,21 @@ module type SigEval = sig
         val fold : ('acc -> key -> 'a -> 'acc) -> 'acc -> 'a t -> 'acc
         val fold_as : (key -> 'k) -> ('a -> 'b) -> ('acc -> 'k -> 'b -> 'acc) -> 'acc -> 'a t -> 'acc
         val size : 'a t -> Cmp.Nat.t
+        val fmt : (formatter -> 'a -> unit) -> formatter -> 'a t -> unit
     end
 
     module Either : sig
         type ('l, 'r) t =
         | Lft of 'l
         | Rgt of 'r
+
+        val fmt : (formatter -> 'l -> unit) -> (formatter -> 'r -> unit) -> formatter -> ('l, 'r) t -> unit
+    end
+
+    module Option : sig
+        type 'a t = 'a option
+
+        val fmt : (formatter -> 'a -> unit) -> formatter -> 'a t -> unit
     end
 
     module Lst : sig
@@ -133,24 +149,42 @@ module type SigEval = sig
         val map : ('a -> 'b) -> 'a t -> 'b t
         val fold : ('acc -> 'a -> 'acc) -> 'acc -> 'a t -> 'acc
         val size : 'a t -> Cmp.Nat.t
+        val fmt : (formatter -> 'a -> unit) -> formatter -> 'a t -> unit
+
+        val head : 'a t -> ('a * 'a t) option
     end
 
     type value = private
+    | U
     | C of Cmp.t
     | Set of Set.t
     | Map of value Map.t
     | BigMap of value BigMap.t
     | Either of (value, value) Either.t
+    | Option of value Option.t
     | Lst of value Lst.t
     | Pair of value * value
 
     module Of : sig
+        val int : Cmp.Int.t -> value
+        val nat : Cmp.Nat.t -> value
+        val str : Cmp.Str.t -> value
+
+        val unit : value
+        val const : Mic.const -> value
         val cmp : Cmp.t -> value
         val set : Set.t -> value
         val map : value Map.t -> value
         val big_map : value BigMap.t -> value
         val either : (value, value) Either.t -> value
         val list : value Lst.t -> value
+        val option : value Option.t -> value
         val pair : value -> value -> value
     end
+
+    module Inspect : sig
+        val list : value -> value Lst.t
+    end
+
+    val cons : value -> value -> value
 end

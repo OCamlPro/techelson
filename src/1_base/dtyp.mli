@@ -62,3 +62,24 @@ val mk_leaf : ?alias : Annot.Typ.t option -> leaf -> t
 
 (** Formatter for datatypes. *)
 val fmt : formatter -> t -> unit
+
+(** The unit type *)
+val unit : t
+
+(** The integer type. *)
+val int : t
+
+(** The natural type. *)
+val nat : t
+
+(** Type destructors. *)
+module Inspect : sig
+    (** Retrieves the two type parameters of a union type. *)
+    val either : t -> t * t
+
+    (** Retrieves the type parameter of an option type. *)
+    val option : t -> t
+
+    (** Retrieves the type parameter of a list type. *)
+    val list : t -> t
+end

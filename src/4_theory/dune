@@ -1,0 +1,10 @@
+(library
+    (name theo)
+    (public_name micheltest.theo)
+    (synopsis "Theories, for evaluation.")
+    (modules_without_implementation sigs)
+    (libraries
+        base
+        parse
+    )
+)

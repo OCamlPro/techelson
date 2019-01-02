@@ -204,3 +204,26 @@ let fmt (fmtt : formatter) (typ : t) =
     fprintf fmtt "@[";
     loop [ [ignore, typ, ignore], ignore ];
     fprintf fmtt "@]"
+
+module Inspect = struct
+
+    let either (dtyp : t) : t * t =
+        match dtyp.typ with
+        | Or (lft, rgt) -> lft.inner, rgt.inner
+        | _ -> asprintf "expected union type, found %a" fmt dtyp |> Exc.throw
+
+    let option (dtyp : t) : t =
+        match dtyp.typ with
+        | Option sub -> sub
+        | _ -> asprintf "expected option type, found %a" fmt dtyp |> Exc.throw
+
+    let list (dtyp : t) : t =
+        match dtyp.typ with
+        | List sub -> sub
+        | _ -> asprintf "expected list type, found %a" fmt dtyp |> Exc.throw
+
+end
+
+let unit : t = mk_leaf Unit
+let int : t = mk_leaf Int
+let nat : t = mk_leaf Nat

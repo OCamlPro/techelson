@@ -2,9 +2,9 @@
     (name eval)
     (public_name micheltest.eval)
     (synopsis "Constructs evaluators.")
-    (modules_without_implementation signatures)
+    (modules_without_implementation sigs)
     (libraries
         base
-        parse
+        theo
     )
 )

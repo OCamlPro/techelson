@@ -13,6 +13,9 @@ module Var : sig
     (** The wildcard variable annotation. *)
     val wild : t
 
+    (** True if an annotation is the wildcard annotation. *)
+    val is_wild : t -> bool
+
     (** Variable annotation formatter. *)
     val fmt : formatter -> t -> unit
 end
@@ -28,6 +31,9 @@ module Field : sig
     (** The wildcard field annotation. *)
     val wild : t
 
+    (** True if an annotation is the wildcard annotation. *)
+    val is_wild : t -> bool
+
     (** Field annotation formatter. *)
     val fmt : formatter -> t -> unit
 end
@@ -42,6 +48,9 @@ module Typ : sig
 
     (** The wildcard type annotation. *)
     val wild : t
+
+    (** True if an annotation is the wildcard annotation. *)
+    val is_wild : t -> bool
 
     (** Type annotation formatter. *)
     val fmt : formatter -> t -> unit
@@ -73,3 +82,16 @@ type fields = Field.t list
     If the list's not empty, inserts a space `" "` before printing the list.
 *)
 val fmt_fields : formatter -> fields -> unit
+
+(** Aggregates all three kinds of annotations. *)
+type t = {
+    typs : typs ;
+    (** Type annotations. *)
+    vars : vars ;
+    (** Variable annotations. *)
+    fields : fields ;
+    (** Field annotations. *)
+}
+
+(** Formats some annotations. *)
+val fmt : formatter -> t -> unit

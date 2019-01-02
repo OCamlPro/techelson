@@ -69,6 +69,11 @@ module Lst = struct
         | _ :: tl -> Some tl
         | [] -> None
     let fold = List.fold_left
+
+    let of_opt (opt : 'a option) : 'a list =
+        match opt with
+        | None -> []
+        | Some a -> [a]
 end
 
 module Fmt = struct

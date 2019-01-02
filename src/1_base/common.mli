@@ -51,6 +51,9 @@ module Lst : sig
 
     (** Fold over lists. *)
     val fold : ('acc -> 'a -> 'acc) -> 'acc -> 'a list -> 'acc
+
+    (** Turns an option into a list. *)
+    val of_opt : 'a option -> 'a list
 end
 
 (** Formatting-related stuff. *)

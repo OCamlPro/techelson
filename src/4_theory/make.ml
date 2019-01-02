@@ -1,0 +1,339 @@
+(** Functors combining evaluators. *)
+
+open Base
+open Base.Common
+
+module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
+
+    module Cmp = struct
+        include C
+        type t =
+        | B of bool
+        | I of Int.t
+        | N of Nat.t
+        | S of Str.t
+        | By of Bytes.t
+
+        let fmt (fmt : formatter) (c : t) : unit =
+            match c with
+            | B b -> if b then fprintf fmt "True" else fprintf fmt "False"
+            | I i -> Int.fmt fmt i
+            | N n -> Nat.fmt fmt n
+            | S s -> Str.fmt fmt s
+            | By by -> Bytes.fmt fmt by
+
+        let cmp (lft : t) (rgt : t) : int =
+            match (lft, rgt) with
+            | (B b_1), (B b_2) -> compare b_1 b_2
+            | (B _), _ ->
+                asprintf "cannot compare values %a and %a" fmt lft fmt rgt
+                |> Exc.throw
+            | _ -> failwith "aaa"
+
+        let dtyp (t : t) : Dtyp.t =
+            match t with
+            | B _ -> Dtyp.mk_leaf Dtyp.Bool
+            | I _ -> Dtyp.mk_leaf Dtyp.Int
+            | N _ -> Dtyp.mk_leaf Dtyp.Nat
+            | S _ -> Dtyp.mk_leaf Dtyp.Str
+            | By _ -> Dtyp.mk_leaf Dtyp.Bytes
+    end
+
+    module Unwrap = struct
+        let bool (c : Cmp.t) : bool =
+            match c with
+            | B b -> b
+            | _ -> asprintf "unwrapping %a as bool" Cmp.fmt c |> Exc.throw
+        let int (c : Cmp.t) : Cmp.Int.t =
+            match c with
+            | I i -> i
+            | _ -> asprintf "unwrapping %a as int" Cmp.fmt c |> Exc.throw
+        let nat (c : Cmp.t) : Cmp.Nat.t =
+            match c with
+            | N n -> n
+            | _ -> asprintf "unwrapping %a as nat" Cmp.fmt c |> Exc.throw
+        let str (c : Cmp.t) : Cmp.Str.t =
+            match c with
+            | S s -> s
+            | _ -> asprintf "unwrapping %a as string" Cmp.fmt c |> Exc.throw
+        let bytes (c : Cmp.t) : Cmp.Bytes.t =
+            match c with
+            | By by -> by
+            | _ -> asprintf "unwrapping %a as bytes" Cmp.fmt c |> Exc.throw
+    end
+
+    module Set = struct
+        module Inner = Set.Make(
+            struct
+                type t = Cmp.t
+                let compare = Cmp.cmp
+            end
+        )
+        type t = Inner.t
+        type elm = Cmp.t
+        let empty = Inner.empty
+        let mem = Inner.mem
+        let update (e : elm) (add : bool) = if add then Inner.add e else Inner.remove e
+        let fold (f : 'acc -> elm -> 'acc) (acc : 'acc) (set : t) : 'acc =
+            Inner.fold (fun a acc -> f acc a) set acc
+        let fold_as (pre : elm -> 'a) (f : 'acc -> 'a -> 'acc) (acc : 'acc) (set : t) : 'acc =
+            fold (fun acc a -> f acc (pre a)) acc set
+        let size (t : t) : Cmp.Nat.t =
+            Inner.cardinal t |> sprintf "%i" |> Cmp.Nat.of_str
+        let fmt (fmt : formatter) (set : t) : unit =
+            fprintf fmt "@[@[<hv 2>{";
+            fold (
+                fun () c -> fprintf fmt "@ %a," Cmp.fmt c
+            ) () set |> ignore;
+            fprintf fmt "}@]@]"
+    end
+
+    module Map = struct
+        module Inner = Map.Make(
+            struct
+                type t = Cmp.t
+                let compare = Cmp.cmp
+            end
+        )
+        type 'a t = 'a Inner.t
+        type key = Cmp.t
+        let empty = Inner.empty
+        let mem = Inner.mem
+        let get (k : key) (map : 'a t) : 'a option =
+            try Some (Inner.find k map) with
+            | Not_found -> None
+        let update (e : key) (v : 'a option) (map : 'a t) : 'a t =
+            Inner.update e (fun _ -> v) map
+        let fold (f : 'acc -> key -> 'a -> 'acc) (acc : 'acc) (map : 'a t) : 'acc =
+            Inner.fold (fun k a acc -> f acc k a) map acc
+        let fold_as (f_k : key -> 'k) (f_v : 'a -> 'b) (f : 'acc -> 'k -> 'b -> 'acc) (acc : 'acc) (map : 'a t) : 'acc =
+            fold (fun acc k v -> f acc (f_k k) (f_v v)) acc map
+        let map (f : key -> 'a -> 'b) (t : 'a t) : 'b t = Inner.mapi f t
+        let map_as (f_k : key -> 'k) (f_v : 'a -> 'b) (f : 'k -> 'b -> 'c) (t : 'a t) : 'c t =
+            map (
+                fun k v -> f (f_k k) (f_v v)
+            ) t
+        let size (t : 'a t) : Cmp.Nat.t =
+            Inner.cardinal t |> sprintf "%i" |> Cmp.Nat.of_str
+        let fmt (fmt_a : formatter -> 'a -> unit) (fmt : formatter) (map : 'a t) : unit =
+            fprintf fmt "@[@[<hv 2>{";
+            fold (
+                fun () k v -> fprintf fmt "@ %a -> %a," Cmp.fmt k fmt_a v
+            ) () map |> ignore;
+            fprintf fmt "@]";
+            if Cmp.Nat.compare Cmp.Nat.zero (size map) > 0 then ( 
+                fprintf fmt "@ "
+            );
+            fprintf fmt "}@]"
+    end
+
+    module BigMap = Map
+
+    module Either = struct
+        type ('l, 'r) t =
+        | Lft of 'l
+        | Rgt of 'r
+
+        let fmt
+            (fmt_l : formatter -> 'l -> unit)
+            (fmt_r : formatter -> 'r -> unit)
+            (fmt : formatter)
+            (either : ('l, 'r) t)
+            : unit
+        =
+            match either with
+            | Lft l -> fprintf fmt "(Left %a)" fmt_l l
+            | Rgt r  -> fprintf fmt "(Right %a)" fmt_r r
+    end
+
+    module Option = struct
+        type 'a t = 'a option
+
+        let fmt
+            (fmt_a : formatter -> 'a -> unit)
+            (fmt : formatter)
+            (opt : 'a t)
+            : unit
+        =
+            match opt with
+            | Some a -> fprintf fmt "(Some %a)" fmt_a a
+            | None  -> fprintf fmt "None"
+    end
+
+    module Lst = struct
+        type 'a t = 'a list
+
+        let size (l : 'a t) : Cmp.Nat.t =
+            List.length l |> sprintf "%i" |> Cmp.Nat.of_str
+        let fold = List.fold_left
+        let map = List.map
+        let is_nil lst = lst = []
+        let cons hd tl = hd :: tl
+        let nil = []
+        let fmt (fmt_a : formatter -> 'a -> unit) (fmt : formatter) (lst : 'a t) : unit =
+            fprintf fmt "@[@[<hv 2>[";
+            fold (
+                fun () a -> fprintf fmt "@ %a," fmt_a a
+            ) () lst |> ignore;
+            fprintf fmt "@]";
+            if lst <> [] then (
+                fprintf fmt "@ "
+            );
+            fprintf fmt "]@]"
+        
+        let head (lst : 'a t) : ('a * 'a t) option =
+            match lst with
+            | [] -> None
+            | hd :: tl -> Some (hd, tl)
+    end
+
+    type value =
+    | U
+    | C of Cmp.t
+    | Set of Set.t
+    | Map of value Map.t
+    | BigMap of value BigMap.t
+    | Either of (value, value) Either.t
+    | Option of value Option.t
+    | Lst of value Lst.t
+    | Pair of value * value
+
+    let fmt (fmt : formatter) (v : value) : unit =
+
+        let rec go_down (stack : ((string * value) list * string) list) (v : value) : unit =
+            match v with
+            | U -> fprintf fmt "Unit"
+            | C c -> Cmp.fmt fmt c
+
+            | Set set ->
+                fprintf fmt "Set {";
+                let _, elms =
+                    Set.fold (
+                        fun (is_first, acc) value ->
+                            let pref = if is_first then " " else ", " in
+                            false, (pref, C value) :: acc
+                    ) (true, []) set
+                in
+                go_up ((elms, " }") :: stack)
+            | Map map ->
+                fprintf fmt "Map {";
+                let _, elms =
+                    Map.fold (
+                        fun (is_first, acc) key value ->
+                            let pref = if is_first then " " else ", " in
+                            false, (pref, C key) :: (" -> ", value) :: acc
+                    ) (true, []) map
+                in
+                go_up ((elms, " }") :: stack)
+            | BigMap map ->
+                fprintf fmt "BigMap {";
+                let _, elms =
+                    Map.fold (
+                        fun (is_first, acc) key value ->
+                            let pref = if is_first then " " else ", " in
+                            false, (pref, C key) :: (" -> ", value) :: acc
+                    ) (true, []) map
+                in
+                go_up ((elms, " }") :: stack)
+
+            | Either disj -> (
+                match disj with
+                | Lft l ->
+                    fprintf fmt "(Left ";
+                    go_down (([], ")") :: stack) l
+                |Rgt r ->
+                    fprintf fmt "(Right ";
+                    go_down (([], ")") :: stack) r
+            )
+
+            | Option opt -> (
+                match opt with
+                | Some sub ->
+                    fprintf fmt "(Some ";
+                    go_down (([], ")") :: stack) sub
+                | None -> fprintf fmt "None"
+            )
+
+            | Lst lst ->
+                fprintf fmt "[";
+                let _, elms =
+                    lst |> List.fold_left (
+                        fun (is_first, acc) value ->
+                            let pref = if is_first then " " else ", " in
+                            false, (pref, value) :: acc
+                    ) (false, [])
+                in
+                go_up ((elms, " ]") :: stack)
+
+            | Pair (lft ,rgt) ->
+                fprintf fmt "(";
+                go_down ( ([", ", rgt], ")") :: stack ) lft
+
+        and go_up (stack : ((string * value) list * string) list) : unit =
+            match stack with
+            | [] -> ()
+            | ([], close) :: stack ->
+                fprintf fmt "%s" close;
+                go_up stack
+            | ( (sep, to_do) :: to_do_tail, close ) :: stack ->
+                fprintf fmt "%s" sep;
+                let stack = (to_do_tail, close) :: stack in
+                go_down stack to_do
+                
+        in
+
+        go_down [] v
+
+    module Of = struct
+        let int (i : Cmp.Int.t) : value = C (Cmp.I i)
+        let nat (i : Cmp.Nat.t) : value = C (Cmp.N i)
+        let str (i : Cmp.Str.t) : value = C (Cmp.S i)
+
+        let unit : value = U
+        let cmp (cmp : Cmp.t) : value = C cmp
+        let set (set : Set.t) : value = Set set
+        let map (map : value Map.t) : value = Map map
+        let big_map (map : value BigMap.t) : value = BigMap map
+        let either (e : (value, value) Either.t) : value = Either e
+        let option (o : value Option.t) : value = Option o
+        let list (l : value Lst.t) : value = Lst l
+        let pair (lft : value) (rgt : value) : value = Pair (lft, rgt)
+
+        let const (c : Mic.const) : value =
+            let rec go_down (stack : (value -> value) list) (c : Mic.const) : value =
+                match c with
+                | Unit -> U
+
+                | Bool b -> C (Cmp.B b) |> go_up stack
+                | Int i -> C (Cmp.I (Cmp.Int.of_str i)) |> go_up stack
+                | Str s -> C (Cmp.S (Cmp.Str.of_str s)) |> go_up stack
+                | Bytes by -> C (Cmp.By (Cmp.Bytes.of_str by)) |> go_up stack
+
+                | No -> Option None |> go_up stack
+
+                | So c -> go_down ((fun v -> Option (Some v)) :: stack) c
+                | Lft c -> go_down ((fun v -> Either (Either.Lft v)) :: stack) c
+                | Rgt c -> go_down ((fun v -> Either (Either.Rgt v)) :: stack) c
+
+                | Contract _ ->
+                    Exc.throw "constant contracts in instruction is not supported yet"
+
+            and go_up (stack : (value -> value) list) (v : value) : value =
+                match stack with
+                | [] -> v
+                | constructor :: stack -> constructor v |> go_up stack
+            in
+            go_down [] c
+    end
+
+    module Inspect = struct
+        let list (v : value) : value Lst.t =
+            match v with
+            | Lst l -> l
+            | _ -> asprintf "expected a list value, found `%a`" fmt v |> Exc.throw
+    end
+
+    let cons (head : value) (tail : value) : value =
+        let tail = Inspect.list tail in
+        Lst (head :: tail)
+end
