@@ -10,28 +10,77 @@
 %token OCURL CCURL
 %token OPAR CPAR
 %token SEMICOL
-%token PARAMETER STORAGE CODE
+%token CONTRACT TEST PARAMETER STORAGE CODE
 %token EOF
 
-%start <string -> Base.Contract.t> just_contract
+%start <string -> Base.Common.Source.t -> Base.Contract.t> just_contract
+%start <Base.Common.Source.t -> Base.Contract.t> named_contract
+%start <Base.Common.Source.t -> (Base.Contract.t list * Base.Testcase.t list)> scenario
 %start <Base.Mic.t> just_mic
 %%
 
-just_mic :
-    | ins = instruction
-    ; EOF { ins }
-
-just_contract :
-    | c = contract
+scenario :
+    | res = scenario_inner
     ; EOF {
-        fun (name : string) ->
+        let contracts, tests = res in
+        fun (src : Base.Common.Source.t) ->
+            (contracts |> List.rev |> List.map (fun mk -> mk src)),
+            (tests |> List.rev |> List.map (fun mk -> mk src))
+    }
+
+scenario_inner :
+    | res = scenario_inner
+    ; contract = named_contract {
+        let contracts, tests = res in
+        (contract :: contracts), tests
+    }
+    | res = scenario_inner
+    ; test = named_test {
+        let contracts, tests = res in
+        contracts, (test :: tests)
+    }
+    | { [], [] }
+
+named_contract :
+    | CONTRACT
+    ; name = CONSTRTKN
+    ; OCURL
+    ; c = contract
+    ; CCURL
+    ; SEMICOL {
+        fun (source : Base.Common.Source.t) ->
             Base.Contract.mk
-                name
+                name source
                 ~storage:(c.Base.Mic.storage)
                 ~entry_param:(c.Base.Mic.param)
                 c.Base.Mic.entry
                 None
     }
+
+named_test :
+    | TEST
+    ; name = CONSTRTKN
+    ; code = instruction
+    ; SEMICOL {
+        fun (source : Base.Common.Source.t) ->
+            Base.Testcase.mk name source code
+    }
+
+just_contract :
+    | c = contract
+    ; EOF {
+        fun (name : string) (source : Base.Common.Source.t) ->
+            Base.Contract.mk
+                name source
+                ~storage:(c.Base.Mic.storage)
+                ~entry_param:(c.Base.Mic.param)
+                c.Base.Mic.entry
+                None
+    }
+
+just_mic :
+    | ins = instruction
+    ; EOF { ins }
 
 contract :
     | sub = contract_sub {

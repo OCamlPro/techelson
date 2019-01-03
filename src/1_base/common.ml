@@ -2,6 +2,8 @@
 
 include Format
 
+let id (a : 'a) : 'a = a
+
 let if_let_some (f : 'a -> unit) (opt : 'a option) : unit = match opt with
 | None -> ()
 | Some a -> f a
@@ -124,6 +126,15 @@ module Fmt = struct
     let plurify (n : int) : string = if n = 1 then "" else "s"
 end
 
+module StrMap = struct
+    include Map.Make(String)
+    let get (key : key) (map : 'a t) : 'a option =
+        try Some (find key map) with | Not_found -> None
+    let insert (key : key) (value : 'a) (map : 'a t) : 'a t * 'a option =
+        let prev = get key map in
+        add key value map, prev
+end
+
 module Source = struct
     type t =
     | Stdin
@@ -148,8 +159,15 @@ let conf () : Conf.t = ! conf_ref
 
 let out = formatter_of_out_channel stdout
 
+let rec indent (fmt : formatter) (count : int) : unit =
+    if count > 0 then (
+        fprintf fmt " ";
+        count - 1 |> indent fmt
+    ) else ()
+
 let log (lvl : int) (args : ('a, formatter, unit) format) : 'a =
     if lvl <= (!conf_ref).verb then (
+        (lvl - 1) * 4 |> indent out;
         fprintf out args;
     ) else (
         ifprintf out args
@@ -159,3 +177,4 @@ let log_0 (args : ('a, Format.formatter, unit) format) : 'a = log 0 args
 let log_1 (args : ('a, Format.formatter, unit) format) : 'a = log 1 args
 let log_2 (args : ('a, Format.formatter, unit) format) : 'a = log 2 args
 let log_3 (args : ('a, Format.formatter, unit) format) : 'a = log 3 args
+let log_4 (args : ('a, Format.formatter, unit) format) : 'a = log 4 args

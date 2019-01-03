@@ -18,6 +18,7 @@ let fmt_sig (fmt : formatter) {
 
 type t = {
     name : string ;
+    source : Source.t ;
     storage : Dtyp.t ;
     entry_param : Dtyp.t ;
     entry : Mic.t ;
@@ -26,20 +27,21 @@ type t = {
 
 let mk
     (name : string)
+    (source : Source.t)
     ~(storage : Dtyp.t)
     ~(entry_param : Dtyp.t)
     (entry : Mic.t)
     (init : Mic.t option)
     : t
-= { name ; storage ; entry_param ; entry ; init }
+= { name ; source ; storage ; entry_param ; entry ; init }
 
-let fmt (full : bool) (fmt : formatter) {
-    name ; storage ; entry_param ; entry ; init
+let fmt ~(full : bool) (fmt : formatter) {
+    name ; source ; storage ; entry_param ; entry ; init
 } : unit =
     fprintf
         fmt
-        "@[<v>@[<v 4>contract %s {@,storage : %a@,entry_param : %a@,"
-        name Dtyp.fmt storage Dtyp.fmt entry_param;
+        "@[<v>@[<v 4>contract %s { # loaded from %a@,storage : %a@,entry_param : %a@,"
+        name Source.fmt source Dtyp.fmt storage Dtyp.fmt entry_param;
     (
         if full then (
             fprintf fmt "entry: @[%a@]@,init: " Mic.fmt entry;
@@ -71,3 +73,5 @@ let name_of_file (s : string) : string =
     let head = String.sub s 0 1 |> String.capitalize_ascii in
     let tail = String.sub s 1 ((String.length s) - 1) in
     head ^ tail
+
+let rename (name : string) (self : t) : t = { self with name }

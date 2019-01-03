@@ -17,6 +17,8 @@ val fmt_sig : formatter -> signature -> unit
 type t = {
     name : string ;
     (** Name of the contract. *)
+    source : Source.t ;
+    (** Source of the contract. *)
     storage : Dtyp.t ;
     (** Type of the contract's storage. *)
     entry_param : Dtyp.t ;
@@ -28,10 +30,10 @@ type t = {
 }
 
 (** Contract constructor. *)
-val mk : string -> storage:Dtyp.t -> entry_param:Dtyp.t -> Mic.t -> Mic.t option -> t
+val mk : string -> Source.t -> storage:Dtyp.t -> entry_param:Dtyp.t -> Mic.t -> Mic.t option -> t
 
 (** Contract formatter. *)
-val fmt : bool -> formatter -> t -> unit
+val fmt : full : bool -> formatter -> t -> unit
 
 (** Name of a contract from the name of the file it was loaded from.
 
@@ -40,3 +42,6 @@ val fmt : bool -> formatter -> t -> unit
     - capitalizes the first letter.
 *)
 val name_of_file : string -> string
+
+(** Changs the name of a contract. *)
+val rename : string -> t -> t

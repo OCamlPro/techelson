@@ -6,6 +6,10 @@
 
 rule token = parse
 | [' ' '\t' '\n'] { token lexbuf }
+| "#" [^'\n']* "\n" { token lexbuf }
+
+| "contract" { CONTRACT }
+| "test" { TEST }
 
 | "parameter" { PARAMETER }
 | "storage" { STORAGE }

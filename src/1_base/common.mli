@@ -2,6 +2,9 @@
 
 include (module type of Format)
 
+(** Identity function. *)
+val id : 'a -> 'a
+
 (** Iterator over options. *)
 val if_let_some : ('a -> unit) -> 'a option -> unit
 
@@ -114,6 +117,19 @@ module Fmt : sig
     val plurify : int -> string
 end
 
+(** String maps. *)
+module StrMap : sig
+    type 'a t
+    type key = string
+    val find : key -> 'a t -> 'a
+    val add : key -> 'a -> 'a t -> 'a t
+    val empty : 'a t
+    val iter : (key -> 'a -> unit) -> 'a t -> unit
+
+    val get : key -> 'a t -> 'a option
+    val insert : key -> 'a -> 'a t -> 'a t * 'a option
+end
+
 (** Handles information about where tests came from. *)
 module Source : sig
     (** Either stdin or a file. *)
@@ -150,3 +166,6 @@ val log_2 : ('a, Format.formatter, unit) format -> 'a
 
 (** Logs something at log level 3. *)
 val log_3 : ('a, Format.formatter, unit) format -> 'a
+
+(** Logs something at log level 4. *)
+val log_4 : ('a, Format.formatter, unit) format -> 'a
