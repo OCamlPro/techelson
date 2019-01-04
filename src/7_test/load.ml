@@ -8,8 +8,8 @@ type error_count = int
 let of_source (src : Source.t list) : in_channel list * error_count =
     Lst.fold (
         fun (res, err_count) src ->
-            let () = log_4 "Extracting input channel from %a.@." Source.fmt src in
-            match Exc.catch_print (fun () -> Source.to_channel src) with
+            let () = log_3 "extracting input channel from %a.@." Source.fmt src in
+            match Exc.catch_print 3 (fun () -> Source.to_channel src) with
             | None -> log_0 "@." ; res, err_count + 1
             | Some chan -> res @ [chan], err_count
     ) ([], 0) src
@@ -39,12 +39,14 @@ let load_map
                         fun () -> sprintf "while loading %s file `%s`" desc file
                     )
                 )
-                |> Exc.catch_print
+                |> Exc.catch_print 3
             with
-            | None -> log_0 "@." ; acc, err_count + 1
-            | Some stuff -> stuff :: acc, err_count
+            | None -> log_3 "failed@." ; acc, err_count + 1
+            | Some stuff -> log_3 "success@." ; stuff :: acc, err_count
     ) ([], 0)
-    |> fun (result, count) -> (List.rev result), count
+    |> fun (result, count) ->
+        assert (count + List.length result = List.length files);
+        (List.rev result), count
 
 let contracts (files : Conf.contract list) : Contract.t list * error_count =
     load_map "contract" files (fun contract -> contract.Conf.file) (

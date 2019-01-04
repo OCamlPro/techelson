@@ -227,3 +227,4 @@ end
 let unit : t = mk_leaf Unit
 let int : t = mk_leaf Int
 let nat : t = mk_leaf Nat
+let timestamp : t = mk_leaf Timestamp

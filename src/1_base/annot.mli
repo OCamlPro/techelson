@@ -93,5 +93,11 @@ type t = {
     (** Field annotations. *)
 }
 
+(** Constructor. *)
+val mk : typs -> vars -> fields -> t
+
+(** Empty annotation. *)
+val empty : t
+
 (** Formats some annotations. *)
 val fmt : formatter -> t -> unit

@@ -57,7 +57,7 @@ let get_contract (name : string) ({ contracts ; _ } : t) : Contract.t =
 let get_tests ({ tests ; _ } : t) : Testcase.t list = tests
 
 let fmt ~(full : bool) (fmt : formatter) ({ contracts ; tests } : t) : unit =
-    fprintf fmt "@[";
+    fprintf fmt "@[<v>";
     contracts |> StrMap.iter (
         fun _ contract ->
             Contract.fmt ~full fmt contract;

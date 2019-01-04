@@ -1,4 +1,5 @@
 open Base
+open Common
 
 module type SigStack = sig
     module Theory : Theo.Sigs.SigTheory
@@ -30,6 +31,8 @@ module type SigStack = sig
 
     val cons : t -> unit
     val nil : Dtyp.t -> t -> unit
+
+    val fmt : formatter -> t -> unit
 end
 
 
@@ -40,7 +43,7 @@ module type SigCxt = sig
     type t
 
     val init : (Theory.value * Dtyp.t * Annot.Var.t option) list -> Mic.t list -> t
-    val step : Mic.t -> t -> bool
+    val step : t -> bool
     val last_ins : t -> Mic.t option
     val next_ins : t -> Mic.t option
     val stack : t -> Stack.t

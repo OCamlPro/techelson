@@ -7,12 +7,14 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
 
     module Cmp = struct
         include C
+
         type t =
         | B of bool
         | I of Int.t
         | N of Nat.t
         | S of Str.t
         | By of Bytes.t
+        | Ts of TStamp.t
 
         let fmt (fmt : formatter) (c : t) : unit =
             match c with
@@ -21,14 +23,24 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
             | N n -> Nat.fmt fmt n
             | S s -> Str.fmt fmt s
             | By by -> Bytes.fmt fmt by
+            | Ts ts -> TStamp.fmt fmt ts
 
         let cmp (lft : t) (rgt : t) : int =
             match (lft, rgt) with
             | (B b_1), (B b_2) -> compare b_1 b_2
-            | (B _), _ ->
+            | (I i_1), (I i_2) -> compare i_1 i_2
+            | (N n_1), (N n_2) -> compare n_1 n_2
+            | (S s_1), (S s_2) -> compare s_1 s_2
+            | (By by_1), (By by_2) -> compare by_1 by_2
+            | (Ts ts_1), (Ts ts_2) -> compare ts_1 ts_2
+            | (B _), _
+            | (I _), _
+            | (N _), _
+            | (S _), _
+            | (By _), _
+            | (Ts _), _ ->
                 asprintf "cannot compare values %a and %a" fmt lft fmt rgt
                 |> Exc.throw
-            | _ -> failwith "aaa"
 
         let dtyp (t : t) : Dtyp.t =
             match t with
@@ -37,6 +49,58 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
             | N _ -> Dtyp.mk_leaf Dtyp.Nat
             | S _ -> Dtyp.mk_leaf Dtyp.Str
             | By _ -> Dtyp.mk_leaf Dtyp.Bytes
+            | Ts _ -> Dtyp.mk_leaf Dtyp.Timestamp
+
+        let cast (dtyp : Dtyp.t) (t : t) : t =
+            let bail () =
+                asprintf "cannot cast value `%a` to type `%a`" fmt t Dtyp.fmt dtyp |> Exc.throw
+            in
+            match t with
+            | I i -> (
+                match dtyp.typ with
+                | Leaf Nat -> (
+                    match NatConv.int_to_nat i with
+                    | Some n -> N n
+                    | None -> bail ()
+                )
+                | _ -> bail ()
+            )
+            | _ -> bail ()
+
+    end
+
+    module Int = struct
+        include Cmp.Int
+        let to_nat : t -> Cmp.Nat.t option = Cmp.NatConv.int_to_nat
+        let of_nat : Cmp.Nat.t -> t = Cmp.NatConv.nat_to_int
+    end
+
+    module Nat = struct
+        include Cmp.Nat
+        let sub : t -> t -> Int.t = Cmp.NatConv.nat_sub
+        let of_int : Int.t -> t option = Cmp.NatConv.int_to_nat
+        let to_int : t -> Int.t = Cmp.NatConv.nat_to_int
+    end
+
+    module Str = struct
+        include Cmp.Str
+        let size : t -> Nat.t = Cmp.StrConv.size
+        let slice : Nat.t -> Nat.t -> t -> t = Cmp.StrConv.slice
+        let compare : t -> t -> Int.t = Cmp.StrConv.compare
+    end
+
+    module Bytes = struct
+        include Cmp.Bytes
+        let size : t -> Nat.t = Cmp.BytesConv.size
+        let slice : Nat.t -> Nat.t -> t -> t = Cmp.BytesConv.slice
+        let compare : t -> t -> Int.t = Cmp.BytesConv.compare
+    end
+
+    module TStamp = struct
+        include Cmp.TStamp
+        let add : t -> Int.t -> t = Cmp.TStampConv.add
+        let sub_int : t -> Int.t -> t = Cmp.TStampConv.sub_int
+        let sub : t -> t -> Int.t = Cmp.TStampConv.sub
     end
 
     module Unwrap = struct
@@ -288,6 +352,8 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
         let int (i : Cmp.Int.t) : value = C (Cmp.I i)
         let nat (i : Cmp.Nat.t) : value = C (Cmp.N i)
         let str (i : Cmp.Str.t) : value = C (Cmp.S i)
+        let bytes (by : Cmp.Bytes.t) : value = C (Cmp.By by)
+        let timestamp (ts : Cmp.TStamp.t) : value = C (Cmp.Ts ts)
 
         let unit : value = U
         let cmp (cmp : Cmp.t) : value = C cmp

@@ -62,6 +62,9 @@ type t = {
     fields : fields ;
 }
 
+let mk (typs : typs) (vars : vars) (fields : fields) : t = { typs ; vars ; fields }
+let empty : t = mk [] [] []
+
 let fmt (fmt : formatter) (t : t) : unit =
     fmt_typs fmt t.typs;
     fmt_vars fmt t.vars;

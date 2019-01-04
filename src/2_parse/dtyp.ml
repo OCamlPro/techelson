@@ -5,10 +5,20 @@ open Base.Common
 
 let parse
     (token : string)
-    (name : Annot.Typ.t option)
+    (annot : Annot.t)
     (dtyps : (Dtyp.t * Annot.Field.t option) list)
-    : Dtyp.t
+    : (Dtyp.t * Annot.Field.t option)
 =
+    if annot.vars <> [] then (
+        "type constructors do not accept variable annotations" |> Base.Exc.throw
+    ) else if List.length annot.typs > 1 then (
+        "type constructors do not accept more than one type annotation" |> Base.Exc.throw
+    ) else if List.length annot.fields > 1 then (
+        "type constructors do not accept more than one field annotation" |> Base.Exc.throw
+    ) ;
+
+    let typ_annot, field_annot = Lst.hd annot.typs, Lst.hd annot.fields in
+
     let typ_arity (expected : int) : unit =
         Check.typ_arity
             (fun () -> sprintf "type constructor `%s`" token)
@@ -112,6 +122,6 @@ let parse
                         )
                         dtyps
             in
-            sprintf "while parsing \"%s%s\"" token dtyps
+            asprintf "while parsing \"%s%a%s\"" token Annot.fmt annot dtyps
     ) inner
-    |> fun dtyp -> Dtyp.mk ~alias:(name) dtyp
+    |> fun dtyp -> (Dtyp.mk ~alias:typ_annot dtyp, field_annot)

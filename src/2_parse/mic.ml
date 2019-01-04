@@ -35,9 +35,7 @@ let fmt_arg = Either.fmt Mic.fmt Mic.fmt_const
 
 let rec parse
     (token : string)
-    (typ_annots : Annot.typs)
-    (var_annots : Annot.vars)
-    (field_annots : Annot.fields)
+    (annots : Annot.t)
     (dtyps : Dtyp.t list)
     (args : args)
     : Mic.t
@@ -46,9 +44,9 @@ let rec parse
         Check.param_arity (fun () -> token) (typs_x, dtyps) (args_x, args);
     in
     let annot_arity_check typs_x vars_x fields_x =
-        Check.Annots.typ_arity_le (fun () -> token) typs_x typ_annots;
-        Check.Annots.var_arity_le (fun () -> token) vars_x var_annots;
-        Check.Annots.field_arity_le (fun () -> token) fields_x field_annots
+        Check.Annots.typ_arity_le (fun () -> token) typs_x annots.typs;
+        Check.Annots.var_arity_le (fun () -> token) vars_x annots.vars;
+        Check.Annots.field_arity_le (fun () -> token) fields_x annots.fields
     in
     let inner () =
         match token with
@@ -169,9 +167,9 @@ let rec parse
                 Mic.Leaf leaf
             )
             | None -> (
-                match parse_macro token var_annots field_annots dtyps args with
+                match parse_macro token annots.vars annots.fields dtyps args with
                 | Some ins -> (
-                    Check.Annots.typ_arity_le (fun () -> token) 0 typ_annots;
+                    Check.Annots.typ_arity_le (fun () -> token) 0 annots.typs;
                     ins
                 )
                 | None -> sprintf "unknown instruction `%s`" token |> Exc.throw
@@ -180,11 +178,9 @@ let rec parse
     in
     Exc.chain_err (
         fun () ->
-            asprintf "parsing %s%a%a%a%s%a%s%a"
+            asprintf "parsing %s%a%s%a%s%a"
                 token
-                Annot.fmt_typs typ_annots
-                Annot.fmt_vars var_annots
-                Annot.fmt_fields field_annots
+                Annot.fmt annots
                 (if dtyps = [] then "" else " ")
                 (Fmt.fmt_list Fmt.sep_spc Dtyp.fmt)
                 dtyps
@@ -194,7 +190,7 @@ let rec parse
     ) (
         inner
     )
-    |> Mic.mk ~typs:(typ_annots) ~vars:(var_annots) ~fields:(field_annots)
+    |> Mic.mk ~typs:(annots.typs) ~vars:(annots.vars) ~fields:(annots.fields)
 
 and full_arity_check
     (token : string)

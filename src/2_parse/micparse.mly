@@ -92,48 +92,60 @@ contract :
 contract_sub :
     | sub = contract_sub
     ; STORAGE
-    ; storage = top_datatype {
+    ; storage = top_datatype
+    ; SEMICOL {
         let (s, p ,e) = sub in
         (storage :: s), p, e
     }
     | sub = contract_sub
     ; PARAMETER
-    ; param = top_datatype {
+    ; param = top_datatype
+    ; SEMICOL {
         let (s, p ,e) = sub in
         s, (param :: p), e
     }
     | sub = contract_sub
     ; CODE
-    ; entry = instruction {
+    ; entry = instruction
+    ; SEMICOL {
         let (s, p ,e) = sub in
         s, p, (entry :: e)
-    }
-    | sub = contract_sub
-    ; SEMICOL {
-        sub
     }
     | { [], [], [] }
 
 instruction :
     | OCURL
-    ; inss = rev_instructions_semicol
+    ; inss = instructions_semicol
     ; CCURL {
-        List.rev inss |> Base.Mic.mk_seq
+        Base.Mic.mk_seq inss
     }
 
     | token = INSTKN
-    ; annots = rev_annotations
-    ; dtyps = rev_datatypes
-    ; args = rev_instructions_space {
-        let typs, vars, fields = annots in
-        let typs, vars, fields =
-            List.rev typs, List.rev vars, List.rev fields
+    ; annots = annotations
+    ; dtyps = datatypes
+    ; args = instructions_space {
+        let dtyps =
+            dtyps |> List.map (
+                fun (dtyp, annot) ->
+                    annot |> Base.Common.if_let_some (
+                        fun a -> [
+                            Format.asprintf
+                                "illegal field annotation `%a` in top-level datatype" Base.Annot.Field.fmt a ;
+                            Format.asprintf
+                                "while parsing instruction `%s%a`" token Base.Annot.fmt annots
+                        ] |> Base.Exc.throws
+                    );
+                    dtyp
+            )
         in
-        let args = List.rev args in
-        let dtyps = List.rev dtyps |> List.map fst in
-        Mic.parse token typs vars fields dtyps args
+        Mic.parse token annots dtyps args
     }
 ;
+
+instructions_semicol :
+    | inss = rev_instructions_semicol {
+        List.rev inss
+    }
 
 rev_instructions_semicol :
     | i = instruction { [i] }
@@ -143,7 +155,7 @@ rev_instructions_semicol :
 
 instruction_arg :
     | token = INSTKN {
-        Mic.parse token [] [] [] [] []
+        Mic.parse token Base.Annot.empty [] []
         |> Base.Common.Either.lft
     }
 
@@ -154,16 +166,13 @@ instruction_arg :
     | OPAR
     ; i = instruction
     ; CPAR {
-        (* Format.printf "parsed %a@." Base.Mic.fmt i ; *)
         Base.Common.Either.lft i
     }
 
     | OCURL
-    ; is = rev_instructions_semicol
+    ; is = instructions_semicol
     ; CCURL {
-        let i = List.rev is |> Base.Mic.mk_seq in
-        (* Format.printf "parsed %a@." Base.Mic.fmt i ; *)
-        Base.Common.Either.lft i
+        Base.Mic.mk_seq is |> Base.Common.Either.lft
     }
 
     | OCURL
@@ -178,17 +187,19 @@ instruction_arg :
     }
 ;
 
+instructions_space :
+    | inss = rev_instructions_space {
+        List.rev inss
+    }
+
 rev_instructions_space :
     | is = rev_instructions_space ; i = instruction_arg {
-        let i : (Base.Mic.t, Base.Mic.const) Base.Common.Either.t = i in
-        (* Format.printf "ins spc %a@." (Base.Common.Either.fmt Base.Mic.fmt Base.Mic.fmt_const) i ; *)
         i :: is
     }
     | i = instruction_arg {
         [i]
     }
     | {
-        (* Format.printf "empty ins spc@." ; *)
         []
     }
 ;
@@ -208,38 +219,32 @@ top_datatype :
 datatype :
     (* Leaf type. *)
     | token = TYPTKN {
-        (Dtyp.parse token None [], None)
+        Dtyp.parse token Base.Annot.empty []
     }
 
-    (* Annotated/aliased type. *)
+    (* Compound type. *)
     | OPAR
     ; token = TYPTKN
-    ; annot = COLANNOT
-    ; dtyps = rev_datatypes
+    ; annots = annotations
+    ; dtyps = datatypes
     ; CPAR {
-        let dtyps = List.rev dtyps in
-        (Dtyp.parse token (Some annot) dtyps, None)
+        Dtyp.parse token annots dtyps
     }
 
-    (* Field-annotated type. *)
+    (* Contract type. *)
     | OPAR
-    ; token = TYPTKN
-    ; annot = PERANNOT
-    ; dtyps = rev_datatypes
+    ; CONTRACT
+    ; annots = annotations
+    ; dtyps = datatypes
     ; CPAR {
-        let dtyps = List.rev dtyps in
-        (Dtyp.parse token None dtyps, Some annot)
-    }
-
-    (* Non-annotated compound types. *)
-    | OPAR
-    ; token = TYPTKN
-    ; dtyps = rev_datatypes
-    ; CPAR {
-        let dtyps = List.rev dtyps in
-        (Dtyp.parse token None dtyps, None)
+        Dtyp.parse "contract" annots dtyps
     }
 ;
+
+datatypes :
+    | dtyps = rev_datatypes {
+        List.rev dtyps
+    }
 
 rev_datatypes :
     | dtyps = rev_datatypes
@@ -249,6 +254,12 @@ rev_datatypes :
     | { [] }
 ;
 
+annotations :
+    | annots = rev_annotations {
+        let t, v, f = annots in
+        let t, v, f = List.rev t, List.rev v, List.rev f in
+        Base.Annot.mk t v f
+    }
 rev_annotations :
     | annots = rev_annotations
     ; annot = COLANNOT {
@@ -294,11 +305,16 @@ const :
     }
     | OPAR
     ; token = CONSTRTKN
-    ; subs = rev_consts
+    ; subs = consts
     ; CPAR {
-        List.rev subs |> Const.parse token
+        Const.parse token subs
     }
 ;
+
+consts :
+    | cs = rev_consts {
+        List.rev cs
+    }
 
 rev_consts :
     | tail = rev_consts

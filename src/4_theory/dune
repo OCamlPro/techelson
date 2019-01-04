@@ -1,8 +1,8 @@
 (library
     (name theo)
     (public_name micheltest.theo)
-    (synopsis "Theories, for evaluation.")
     (modules_without_implementation sigs)
+    (synopsis "Theories, for evaluation.")
     (libraries
         base
         parse

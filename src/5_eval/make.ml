@@ -41,6 +41,12 @@ module Cxt (T : Sigs.SigStack) : Sigs.SigCxt = struct
     let is_done ({ stack = _ ; blocks ; next ; last = _ } : t) : bool =
         blocks = [] && next = []
 
+    let last_ins (self : t) : Mic.t option = self.last
+
+    let next_ins (self : t) : Mic.t option =  Lst.hd self.next
+
+    let stack (self : t) : Stack.t = self.stack
+
     (* Fetches the next instruction to run.
 
         The instruction returned does not appear in `self.next` (anymore). This function might go
@@ -66,7 +72,7 @@ module Cxt (T : Sigs.SigStack) : Sigs.SigCxt = struct
             | None -> None
         )
 
-    let step (mic : Mic.t) (self : t) : bool =
+    let interpret (mic : Mic.t) (self : t) : bool =
         let run () : bool = match fetch_next self with
         (* Nothing left to do, done. *)
         | None -> true
@@ -263,6 +269,13 @@ module Cxt (T : Sigs.SigStack) : Sigs.SigCxt = struct
                     let len = Theory.Lst.size lst |> Theory.Of.nat in
                     Stack.push (Dtyp.nat) len self.stack
 
+                (* # Domain-specific. *)
+
+                | Mic.Leaf Now ->
+                    let binding = Lst.hd mic.vars in
+                    let now = Theory.TStamp.now () |> Theory.Of.timestamp in
+                    Stack.push ~binding Dtyp.timestamp now self.stack
+
                 (* # Unimplemented stuff. *)
 
                 | _ -> asprintf "unsupported instruction @[%a@]" Mic.fmt mic |> Exc.throw
@@ -273,6 +286,11 @@ module Cxt (T : Sigs.SigStack) : Sigs.SigCxt = struct
         run |> Exc.chain_err (
             fun () -> asprintf "while making a step in the evaluator : @[%a@]" Mic.fmt  mic
         )
+
+    let step (self : t) : bool =
+        match next_ins self with
+        | None -> true
+        | Some ins -> interpret ins self
 
     let init (values : (Theory.value * Dtyp.t * Annot.Var.t option) list) (inss : Mic.t list) : t = 
         let cxt =
@@ -288,10 +306,4 @@ module Cxt (T : Sigs.SigStack) : Sigs.SigCxt = struct
                 Stack.push ~binding dtyp value cxt.stack
         );
         cxt
-
-    let last_ins (self : t) : Mic.t option = self.last
-
-    let next_ins (self : t) : Mic.t option =  Lst.hd self.next
-
-    let stack (self : t) : Stack.t = self.stack
 end

@@ -15,11 +15,27 @@ module type SigArith = sig
     include SigTFmt
 
     val of_str : string -> t
+    val of_native : int -> t
+    val to_native : t -> int
+
     val add : t -> t -> t
     val mul : t -> t -> t
     val div : t -> t -> t
     val compare : t -> t -> int
     val zero : t
+end
+
+module type SigInt = sig
+    include SigArith
+    val sub : t -> t -> t
+end
+
+module type SigNatConv = sig
+    type int
+    type nat
+    val int_to_nat : int -> nat option
+    val nat_to_int : nat -> int
+    val nat_sub : nat -> nat -> int
 end
 
 module type SigStr = sig
@@ -30,29 +46,43 @@ module type SigStr = sig
     val fmt : formatter -> t -> unit
 end
 
-module type SigCmp = sig
-    module Int : sig
-        include SigArith
-        val sub : t -> t -> t
+module type SigStrConv = sig
+    type str
+    type nat
+    type int
+    val size : str -> nat
+    val slice : nat -> nat -> str -> str
+    val compare : str -> str -> int
+end
 
-        val of_int : int -> t
-        val to_int : t -> int
-    end
+module type SigTStamp = sig
+    include SigTFmt
+
+    val now : unit -> t
+    val compare : t -> t -> int
+end
+
+module type SigTStampConv = sig
+    type t_stamp
+    type int
+
+    val add : t_stamp -> int -> t_stamp
+    val sub_int : t_stamp -> int -> t_stamp
+    val sub : t_stamp -> t_stamp -> int
+end
+
+module type SigCmp = sig
+    module Int : SigInt
 
     module Nat : sig
         include SigArith
-        val sub : t -> t -> Int.t
-
-        val to_int : t -> Int.t
-        val of_int : Int.t -> t option
     end
+    module NatConv : SigNatConv with type int = Int.t and type nat = Nat.t
 
     module Str : sig
         include SigStr
-        val size : t -> Nat.t
-        val slice : Nat.t -> Nat.t -> t -> t
-        val compare : t -> t -> Int.t
     end
+    module StrConv : SigStrConv with type str = Str.t and type int = Int.t and type nat = Nat.t
 
     module Bytes : sig
         include SigStr
@@ -60,6 +90,10 @@ module type SigCmp = sig
         val slice : Nat.t -> Nat.t -> t -> t
         val compare : t -> t -> Int.t
     end
+    module BytesConv : SigStrConv with type str = Bytes.t and type int = Int.t and type nat = Nat.t
+
+    module TStamp : SigTStamp
+    module TStampConv : SigTStampConv with type t_stamp = TStamp.t and type int = Int.t
 end
 
 module type SigTheory = sig
@@ -71,10 +105,48 @@ module type SigTheory = sig
         | N of Nat.t
         | S of Str.t
         | By of Bytes.t
+        | Ts of TStamp.t
 
         val cmp : t -> t -> int
         val fmt : formatter -> t -> unit
         val dtyp : t -> Dtyp.t
+
+        val cast : Dtyp.t -> t -> t
+    end
+
+    module Int : sig
+        include SigArith with type t = Cmp.Int.t
+        val sub : t -> t -> t
+        val to_nat : t -> Cmp.Nat.t option
+        val of_nat : Cmp.Nat.t -> t
+    end
+
+    module Nat : sig
+        include SigArith with type t = Cmp.Nat.t
+        val sub : t -> t -> Int.t
+        val of_int : Int.t -> t option
+        val to_int : t -> Int.t
+    end
+
+    module Str : sig
+        include SigStr with type t = Cmp.Str.t
+        val size : t -> Nat.t
+        val slice : Nat.t -> Nat.t -> t -> t
+        val compare : t -> t -> Int.t
+    end
+
+    module Bytes : sig
+        include SigStr with type t = Cmp.Bytes.t
+        val size : t -> Nat.t
+        val slice : Nat.t -> Nat.t -> t -> t
+        val compare : t -> t -> Int.t
+    end
+
+    module TStamp : sig
+        include SigTStamp with type t = Cmp.TStamp.t
+        val add : t -> Int.t -> t
+        val sub_int : t -> Int.t -> t
+        val sub : t -> t -> Int.t
     end
 
     module Unwrap : sig
@@ -165,10 +237,14 @@ module type SigTheory = sig
     | Lst of value Lst.t
     | Pair of value * value
 
+    val fmt : formatter -> value -> unit
+
     module Of : sig
-        val int : Cmp.Int.t -> value
-        val nat : Cmp.Nat.t -> value
-        val str : Cmp.Str.t -> value
+        val int : Int.t -> value
+        val nat : Nat.t -> value
+        val str : Str.t -> value
+        val bytes : Bytes.t -> value
+        val timestamp : TStamp.t -> value
 
         val unit : value
         val const : Mic.const -> value

@@ -735,10 +735,10 @@ and fmt (fmtt : formatter) (t : t) : unit =
                         tail
                     | Some c ->
                         fprintf
-                            fmtt " {@,storage %a;@,parameter %a;@,code "
+                            fmtt " {@ storage %a;@ parameter %a;@ code "
                             Dtyp.fmt c.storage Dtyp.fmt c.param;
                         (
-                            [ignore, c.entry, true], fun () -> fprintf fmtt "@]}@]"
+                            [ignore, c.entry, true], fun () -> fprintf fmtt ";@]@,}@]"
                         ) :: tail
                 )
 

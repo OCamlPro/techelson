@@ -18,8 +18,11 @@ val erase_err : (unit -> string) -> (unit -> 'a) -> 'a
 (** Chains an error to a trace of errors. *)
 val chain_err : (unit -> string) -> (unit -> 'a) -> 'a
 
-(** Catches an exception and prints it. *)
-val catch_print : (unit -> 'a) -> 'a option
+(** Catches an exception and prints it.
+
+    First parameter is the indentation of the error.
+*)
+val catch_print : int -> (unit -> 'a) -> 'a option
 
 (** Catches an exception, prints it, and exits with code `2` *)
 val catch_fail : (unit -> 'a) -> 'a

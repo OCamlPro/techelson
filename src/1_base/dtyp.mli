@@ -72,6 +72,9 @@ val int : t
 (** The natural type. *)
 val nat : t
 
+(** The timestamp type. *)
+val timestamp : t
+
 (** Type destructors. *)
 module Inspect : sig
     (** Retrieves the two type parameters of a union type. *)
