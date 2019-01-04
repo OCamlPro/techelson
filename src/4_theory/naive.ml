@@ -10,6 +10,8 @@ module Int : Sigs.SigInt with type t = int = struct
             sprintf "failed to convert string `%s` to int" s ;
             sprintf "%s" (Printexc.to_string e)
         ] |> Exc.throws
+    let to_str (t : t) : string =
+        sprintf "%i" t
 
     let compare (t_1 : t) (t_2 : t) : int = compare t_1 t_2
     let zero : t = 0
@@ -42,6 +44,9 @@ module Nat : Sigs.SigArith with type t = int = struct
             ] |> Exc.throws
         in
         of_native i
+    let to_str (t : t) : string =
+        sprintf "%i" t
+
     let compare (t_1 : t) (t_2 : t) : int = compare t_1 t_2
     let zero : t = 0
 
@@ -58,6 +63,7 @@ module Str : sig
 end = struct
     type t = string
     let of_str (s : string) : t = s
+    let to_str (t : t) : string = t
 
     let concat (t_1 : t) (t_2 : t) : t = t_1 ^ t_2
 
@@ -73,6 +79,7 @@ module Bytes : sig
 end = struct
     type t = string
     let of_str (s : string) : t = s
+    let to_str (t : t) : string = t
 
     let size (t : t) : Nat.t = String.length t |> sprintf "%i" |> Nat.of_str
     let slice (start : Nat.t) (len : Nat.t) (t : t) : t =
@@ -88,7 +95,10 @@ end
 module TStamp : Sigs.SigTStamp with type t = int = struct
     type t = int
 
-    let now () : t = 42
+    let to_str (t : t) : string =
+        sprintf "%i" t
+
+    let now () : t = 42. +. (100. *. Sys.time ()) |> Float.floor |> Float.to_int
 
     let compare (t_1 : t) (t_2 : t) : Int.t = compare t_1 t_2 |> Int.of_native
 
@@ -122,8 +132,8 @@ module TStampConv
     type t_stamp = TStamp.t
     type int = Int.t
 
-    let add (t : t_stamp) (i : int) : t_stamp = t + i
-    let sub_int (t : t_stamp) (i : int) : t_stamp = t - i |> Int.of_native
+    let add (t : t_stamp) (i : int) : t_stamp = t + (i * 100)
+    let sub_int (t : t_stamp) (i : int) : t_stamp = t - (i * 100) |> Int.of_native
     let sub (t_1 : t_stamp) (t_2 : t_stamp) : int = t_1 - t_2 |> Int.of_native
 end
 

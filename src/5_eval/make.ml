@@ -72,7 +72,7 @@ module Cxt (T : Sigs.SigStack) : Sigs.SigCxt = struct
             | None -> None
         )
 
-    let interpret (mic : Mic.t) (self : t) : bool =
+    let step (self : t) : bool =
         let run () : bool = match fetch_next self with
         (* Nothing left to do, done. *)
         | None -> true
@@ -87,7 +87,8 @@ module Cxt (T : Sigs.SigStack) : Sigs.SigCxt = struct
 
                 | Mic.Push (dtyp, const) ->
                     let binding = Lst.hd mic.vars in
-                    self.stack |> Stack.push ~binding dtyp (Theory.Of.const const)
+                    let value = Theory.Of.const const |> Theory.cast dtyp in
+                    self.stack |> Stack.push ~binding dtyp value
 
                 | Mic.Leaf Drop ->
                     let _ = Stack.pop self.stack in
@@ -254,6 +255,27 @@ module Cxt (T : Sigs.SigStack) : Sigs.SigCxt = struct
                         self.next <- [ mic_else ]
                 )
 
+                (* # Basic value creation. *)
+
+                | Mic.Leaf Pair ->
+                    let binding = Lst.hd mic.vars in
+                    let alias = Lst.hd mic.typs in
+                    let (snd, snd_dtyp), (fst, fst_dtyp) = Stack.pop self.stack, Stack.pop self.stack in
+                    let value = Theory.Of.pair fst snd in
+
+                    let fst_field = Lst.hd mic.fields in
+                    let snd_field =
+                        match Lst.tl mic.fields with
+                        | None -> None
+                        | Some fields -> Lst.hd fields
+                    in
+                    let fst_typ, snd_typ =
+                        Dtyp.mk_named fst_field fst_dtyp, Dtyp.mk_named snd_field snd_dtyp
+                    in
+                    let dtyp = Dtyp.Pair (fst_typ, snd_typ) |> Dtyp.mk ~alias in
+
+                    Stack.push ~binding dtyp value self.stack
+
                 (* # List operations. *)
 
                 | Mic.Leaf Cons ->
@@ -275,6 +297,18 @@ module Cxt (T : Sigs.SigStack) : Sigs.SigCxt = struct
                     let binding = Lst.hd mic.vars in
                     let now = Theory.TStamp.now () |> Theory.Of.timestamp in
                     Stack.push ~binding Dtyp.timestamp now self.stack
+                
+                | Mic.CreateContract (Some c) ->
+                    let binding = Lst.hd mic.vars in
+                    let typ = Mic.typ_of_contract c in
+                    let value = Theory.Of.contract c in
+                    Stack.push ~binding typ value self.stack
+
+                (* # Macros. *)
+
+                | Mic.Macro (subs, _) ->
+                    push_block (Nop (mic, self.next)) self;
+                    self.next <- subs
 
                 (* # Unimplemented stuff. *)
 
@@ -284,13 +318,8 @@ module Cxt (T : Sigs.SigStack) : Sigs.SigCxt = struct
         )
         in
         run |> Exc.chain_err (
-            fun () -> asprintf "while making a step in the evaluator : @[%a@]" Mic.fmt  mic
+            fun () -> "while making a step in the evaluator"
         )
-
-    let step (self : t) : bool =
-        match next_ins self with
-        | None -> true
-        | Some ins -> interpret ins self
 
     let init (values : (Theory.value * Dtyp.t * Annot.Var.t option) list) (inss : Mic.t list) : t = 
         let cxt =

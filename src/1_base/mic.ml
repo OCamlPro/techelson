@@ -765,3 +765,6 @@ and fmt (fmtt : formatter) (t : t) : unit =
             loop tail
     in
     loop [ [ignore, t, false], ignore ]
+
+let typ_of_contract ?alias:(alias = None) (c : contract) : Dtyp.t =
+    Dtyp.Contract c.param |> Dtyp.mk ~alias

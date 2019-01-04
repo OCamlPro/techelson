@@ -52,6 +52,10 @@ let run () : unit =
                 let is_done = NaiveCxt.step cxt in
                 if not is_done then loop () else ()
             in
-            loop ();
+            loop |> Exc.chain_err (
+                fun () ->
+                    asprintf
+                        "while running test case `%s` from %a" test.name Source.fmt test.source
+            );
             log_1 "done with test `%s`@." test.name
     )

@@ -57,6 +57,9 @@ and t = {
 (** Named datatype constructor. *)
 val mk : ?alias : Annot.Typ.t option -> dtyp -> t
 
+(** Constructs a datatype with a field annotation. *)
+val mk_named : Annot.Field.t option -> t -> named
+
 (** Named datatype constructor from a leaf. *)
 val mk_leaf : ?alias : Annot.Typ.t option -> leaf -> t
 

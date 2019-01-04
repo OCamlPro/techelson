@@ -165,8 +165,11 @@ and const =
 
 and contract = {
     storage : Dtyp.t ;
+    (** Type of the storage. *)
     param : Dtyp.t ;
+    (** Type of the parameter of the entry point. *)
     entry : t ;
+    (** Code for the entry point. *)
 }
 
 (** Instruction with variable bindings. *)
@@ -176,6 +179,9 @@ and t = {
     vars : Annot.vars ;
     fields : Annot.fields ;
 }
+
+(** Type of a contract. *)
+val typ_of_contract : ?alias : Annot.Typ.t option -> contract -> Dtyp.t
 
 (** Creates a string constant.
 

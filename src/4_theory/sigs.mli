@@ -9,6 +9,7 @@ end
 module type SigTFmt = sig
     include SigT
     val fmt : formatter -> t -> unit
+    val to_str : t -> string
 end
 
 module type SigArith = sig
@@ -28,6 +29,26 @@ end
 module type SigInt = sig
     include SigArith
     val sub : t -> t -> t
+end
+
+module type SigTez = sig
+    include SigTFmt
+    type nat
+
+    val of_str : string -> t
+    val of_native : int -> t
+    val to_native : t -> int
+
+    val add : t -> t -> t
+    val sub : t -> t -> t
+    val mul_nat : t -> nat -> t
+    val div_nat : t -> nat -> t
+    val div : t -> t -> t
+    val compare : t -> t -> int
+    val zero : t
+
+    val to_nat : t -> nat
+    val of_nat : nat -> t
 end
 
 module type SigNatConv = sig
@@ -99,6 +120,9 @@ end
 module type SigTheory = sig
     module Cmp : sig
         include SigCmp
+
+        module Tez : SigTez with type nat = Nat.t
+
         type t =
         | B of bool
         | I of Int.t
@@ -106,6 +130,7 @@ module type SigTheory = sig
         | S of Str.t
         | By of Bytes.t
         | Ts of TStamp.t
+        | Tz of Tez.t
 
         val cmp : t -> t -> int
         val fmt : formatter -> t -> unit
@@ -127,6 +152,8 @@ module type SigTheory = sig
         val of_int : Int.t -> t option
         val to_int : t -> Int.t
     end
+
+    module Tez : SigTez with type t = Cmp.Tez.t and type nat = Nat.t
 
     module Str : sig
         include SigStr with type t = Cmp.Str.t
@@ -236,8 +263,10 @@ module type SigTheory = sig
     | Option of value Option.t
     | Lst of value Lst.t
     | Pair of value * value
+    | Contract of Mic.contract
 
     val fmt : formatter -> value -> unit
+    val cast : Dtyp.t -> value -> value
 
     module Of : sig
         val int : Int.t -> value
@@ -256,6 +285,7 @@ module type SigTheory = sig
         val list : value Lst.t -> value
         val option : value Option.t -> value
         val pair : value -> value -> value
+        val contract : Mic.contract -> value
     end
 
     module Inspect : sig

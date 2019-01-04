@@ -14,7 +14,7 @@ module Naive : Sigs.SigStack = struct
         { value ; typ ; binding }
     
     let fmt_frame (fmt : formatter) (frame : frame) : unit =
-        fprintf fmt "@[<h>%-11s| %-17s | %-13s@]"
+        fprintf fmt "@[<h>%-11s| %-57s | %-23s@]"
             (
                 match frame.binding with
                 | None -> ""
@@ -27,19 +27,19 @@ module Naive : Sigs.SigStack = struct
     }
 
     let fmt (fmt : formatter) (self : t) : unit =
-        fprintf fmt "@[<v>|================================================|";
+        fprintf fmt "@[<v>|==================================================================================================|";
         self.stack |> List.rev |> List.iter (
             fprintf fmt "@,| %a |" fmt_frame
         );
 
         if self.dipped <> [] then (
-            fprintf fmt "@,|====================dipped======================|";
+           fprintf fmt "@,|================================================dipped============================================|";
             self.dipped |> List.iter (
                 fprintf fmt "@,| %a |" fmt_frame
             )
         );
 
-        fprintf fmt "@,|================================================|";
+        fprintf fmt "@,|==================================================================================================|";
         fprintf fmt "@]"
 
     let empty : t = { dipped = [] ; stack = [] }

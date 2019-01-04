@@ -4,9 +4,67 @@ open Base
 open Base.Common
 
 module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
-
     module Cmp = struct
         include C
+
+        module Tez = struct
+            type t = Int64.t
+            type nat = C.Nat.t
+
+            let to_str (t : t) : string =
+                Int64.to_string t
+
+            let fmt (fmt : formatter) (t : t) : unit =
+                Int64.to_string t |> fprintf fmt "%stz"
+
+            let to_nat (t : t) : nat =
+                (fun () -> Int64.to_string t |> C.Nat.of_str)
+                |> Exc.erase_err (
+                    fun () -> asprintf "cannot convert %a to nat" fmt t
+                )
+            let of_nat (n : nat) : t =
+                (fun () -> C.Nat.to_str n |> Int64.of_string)
+                |> Exc.chain_err (
+                    fun () -> asprintf "cannot convert %a to mutez" C.Nat.fmt n
+                )
+
+            let of_str (s : string) : t =
+                (fun () -> Int64.of_string s)
+                |> Exc.erase_err (
+                    fun () -> sprintf "cannot convert string `%s` to tezos" s
+                )
+            let of_native (n : int) : t = Int64.of_int n
+            let to_native (t : t) : int = Int64.to_int t
+
+            let add (t_1 : t) (t_2 : t) : t =
+                Int64.add t_1 t_2
+            let sub (t_1 : t) (t_2 : t) : t =
+                if t_1 < t_2 then (
+                    sprintf
+                        "underflow on thezos subtraction `%s - %s`"
+                        (Int64.to_string t_1) (Int64.to_string t_2)
+                    |> Exc.throw
+                ) else Int64.sub t_1 t_2
+            let mul_nat (t : t) (n : nat) : t =
+                (fun () -> of_nat n |> Int64.mul t)
+                |> Exc.erase_err (
+                    fun () -> asprintf "while evaluating `%a * %a`" fmt t C.Nat.fmt n
+                )
+            let div_nat (t : t) (n : nat) : t =
+                (fun () -> of_nat n |> Int64.mul t)
+                |> Exc.erase_err (
+                    fun () -> asprintf "while evaluating `%a / %a`" fmt t C.Nat.fmt n
+                )
+            let div (t_1 : t) (t_2 : t) : t =
+                if t_2 = Int64.zero then (
+                    asprintf "cannot divide by zero in `%a / %a`" fmt t_1 fmt t_2
+                    |> Exc.throw
+                );
+                Int64.div t_1 t_2
+            let compare (t_1 : t) (t_2 : t) : int =
+                compare t_1 t_2
+            let zero : t = Int64.zero
+        end
 
         type t =
         | B of bool
@@ -15,6 +73,7 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
         | S of Str.t
         | By of Bytes.t
         | Ts of TStamp.t
+        | Tz of Tez.t
 
         let fmt (fmt : formatter) (c : t) : unit =
             match c with
@@ -24,6 +83,7 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
             | S s -> Str.fmt fmt s
             | By by -> Bytes.fmt fmt by
             | Ts ts -> TStamp.fmt fmt ts
+            | Tz tz -> Tez.fmt fmt tz
 
         let cmp (lft : t) (rgt : t) : int =
             match (lft, rgt) with
@@ -33,12 +93,14 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
             | (S s_1), (S s_2) -> compare s_1 s_2
             | (By by_1), (By by_2) -> compare by_1 by_2
             | (Ts ts_1), (Ts ts_2) -> compare ts_1 ts_2
+            | (Tz tz_1), (Tz tz_2) -> compare tz_1 tz_2
             | (B _), _
             | (I _), _
             | (N _), _
             | (S _), _
             | (By _), _
-            | (Ts _), _ ->
+            | (Ts _), _
+            | (Tz _), _ ->
                 asprintf "cannot compare values %a and %a" fmt lft fmt rgt
                 |> Exc.throw
 
@@ -50,24 +112,44 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
             | S _ -> Dtyp.mk_leaf Dtyp.Str
             | By _ -> Dtyp.mk_leaf Dtyp.Bytes
             | Ts _ -> Dtyp.mk_leaf Dtyp.Timestamp
+            | Tz _ -> Dtyp.mk_leaf Dtyp.Mutez
 
         let cast (dtyp : Dtyp.t) (t : t) : t =
             let bail () =
                 asprintf "cannot cast value `%a` to type `%a`" fmt t Dtyp.fmt dtyp |> Exc.throw
             in
-            match t with
-            | I i -> (
-                match dtyp.typ with
-                | Leaf Nat -> (
-                    match NatConv.int_to_nat i with
-                    | Some n -> N n
-                    | None -> bail ()
-                )
-                | _ -> bail ()
+
+            match t, dtyp.typ with
+
+            | I _, Leaf Int -> t
+            | I i, Leaf Nat -> (
+                match NatConv.int_to_nat i with
+                | Some n -> N n
+                | None -> bail ()
             )
+            | I i, Leaf Mutez -> (
+                match NatConv.int_to_nat i with
+                | Some n -> Tz (Tez.of_nat n)
+                | None -> bail ()
+            )
+
+            | N _, Leaf Nat -> t
+            | N n, Leaf Int -> I (NatConv.nat_to_int n)
+            | N n, Leaf Mutez -> Tz (Tez.of_nat n)
+
+            | B _, Leaf Bool -> t
+
+            | S _, Leaf Str -> t
+
+            | By _, Leaf Bytes -> t
+
+            | Ts _, Leaf Timestamp -> t
+
             | _ -> bail ()
 
     end
+
+    module Tez = Cmp.Tez
 
     module Int = struct
         include Cmp.Int
@@ -261,13 +343,18 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
     | Option of value Option.t
     | Lst of value Lst.t
     | Pair of value * value
+    | Contract of Mic.contract
 
     let fmt (fmt : formatter) (v : value) : unit =
 
         let rec go_down (stack : ((string * value) list * string) list) (v : value) : unit =
             match v with
-            | U -> fprintf fmt "Unit"
-            | C c -> Cmp.fmt fmt c
+            | U ->
+                fprintf fmt "Unit";
+                go_up stack
+            | C c ->
+                Cmp.fmt fmt c;
+                go_up stack
 
             | Set set ->
                 fprintf fmt "Set {";
@@ -315,7 +402,9 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
                 | Some sub ->
                     fprintf fmt "(Some ";
                     go_down (([], ")") :: stack) sub
-                | None -> fprintf fmt "None"
+                | None ->
+                    fprintf fmt "None";
+                    go_up stack
             )
 
             | Lst lst ->
@@ -333,6 +422,13 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
                 fprintf fmt "(";
                 go_down ( ([", ", rgt], ")") :: stack ) lft
 
+            | Contract contract ->
+                fprintf fmt "{ storage : @[%a@] ; param : @[%a@] ; code : @[%a@] ; }"
+                    Dtyp.fmt contract.Mic.storage
+                    Dtyp.fmt contract.Mic.param
+                    Mic.fmt contract.Mic.entry;
+                go_up stack
+
         and go_up (stack : ((string * value) list * string) list) : unit =
             match stack with
             | [] -> ()
@@ -347,6 +443,14 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
         in
 
         go_down [] v
+
+    let cast (dtyp : Dtyp.t) (v : value) : value =
+        let bail () =
+            asprintf "cannot cast value `%a` to type `%a`" fmt v Dtyp.fmt dtyp |> Exc.throw
+        in
+        match v with
+        | C cmp -> C (Cmp.cast dtyp cmp)
+        | _ -> bail ()
 
     module Of = struct
         let int (i : Cmp.Int.t) : value = C (Cmp.I i)
@@ -364,6 +468,8 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
         let option (o : value Option.t) : value = Option o
         let list (l : value Lst.t) : value = Lst l
         let pair (lft : value) (rgt : value) : value = Pair (lft, rgt)
+
+        let contract (c : Mic.contract) : value = Contract c
 
         let const (c : Mic.const) : value =
             let rec go_down (stack : (value -> value) list) (c : Mic.const) : value =

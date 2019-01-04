@@ -73,6 +73,9 @@ and t = {
 
 let mk ?alias:(alias = None) (typ : dtyp) : t = { typ ; alias }
 
+let mk_named (name : Annot.Field.t option) (inner : t) : named =
+    { inner ; name }
+
 let mk_leaf ?alias:(alias = None) (leaf : leaf) : t = { typ = Leaf leaf ; alias }
 
 let fmt (fmtt : formatter) (typ : t) =
