@@ -189,4 +189,24 @@ module Cmp : Sigs.SigCmp = struct
 end
 
 
-module Theory : Sigs.SigTheory = Make.Colls(Cmp)
+
+module Address : Sigs.SigAddress = struct
+    type t = {
+        uid : int ;
+        tag : Annot.Var.t option ;
+    }
+    let cnt : int ref = ref 0
+
+    let fresh (tag : Annot.Var.t option) : t =
+        let uid = !cnt in
+        cnt := !cnt + 1;
+        { uid ; tag }
+    let fmt (fmt : formatter) (self : t) : unit =
+        fprintf fmt "address[%i]" self.uid;
+        self.tag |> if_let_some (fprintf fmt "%a" Annot.Var.fmt)
+    let equal (self : t) (other : t) : bool =
+        self.uid = other.uid
+end
+
+
+module Theory : Sigs.SigTheory = Make.Colls (Cmp) (Address)

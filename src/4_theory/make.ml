@@ -3,7 +3,13 @@
 open Base
 open Base.Common
 
-module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
+module Colls (
+    C : Sigs.SigCmp
+) (
+    A : Sigs.SigAddress
+) : Sigs.SigTheory = struct
+    module Address = A
+
     module Cmp = struct
         include C
 
@@ -332,6 +338,7 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
         let is_nil lst = lst = []
         let cons hd tl = hd :: tl
         let nil = []
+
         let fmt (fmt_a : formatter -> 'a -> unit) (fmt : formatter) (lst : 'a t) : unit =
             fprintf fmt "@[@[<hv 2>[";
             fold (
@@ -361,8 +368,53 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
     | Lst of value Lst.t
     | Pair of value * value
     | Contract of Mic.contract
+    | Operation of operation
+    | Address of Address.t
 
-    let fmt (fmt : formatter) (v : value) : unit =
+    and contract_params = {
+        address : Address.t ;
+        manager : KeyH.t ;
+        delegate : KeyH.t option ;
+        spendable : bool ;
+        delegatable : bool ;
+        tez : Tez.t ;
+    }
+
+    and operation =
+    | Create of contract_params * Mic.contract
+    | CreateNamed of contract_params * string
+    | InitNamed of contract_params * value * string
+
+    let mk_contract_params
+        ~(spendable : bool)
+        ~(delegatable : bool)
+        (manager : KeyH.t)
+        (delegate : KeyH.t option)
+        (tez : Cmp.Tez.t)
+        (address : Address.t)
+        : contract_params
+    =
+        { address ; manager ; delegate ; spendable ; delegatable ; tez }
+
+    let rec fmt_contract_params (fmtt : formatter) (params : contract_params) : unit =
+        fprintf fmtt "(@%a, %a, %a, %b, %b, %a)"
+            Address.fmt params.address
+            KeyH.fmt params.manager
+            (Option.fmt KeyH.fmt) params.delegate
+            params.spendable params.delegatable
+            Tez.fmt params.tez
+
+    and fmt_operation (fmtt : formatter) (op : operation) : unit =
+        match op with
+        | Create (params, contract) ->
+            fprintf fmtt "@[<hv 4>CREATE %a %a@]" fmt_contract_params params Mic.fmt_contract contract
+        | CreateNamed (params, name) ->
+            fprintf fmtt "@[<hv 4>CREATE %a \"%s\"@]" fmt_contract_params params name
+        | InitNamed (params, value, name) ->
+            fprintf fmtt "@[<hv 4>CREATE %a %a %s@]" fmt_contract_params params fmt value name
+        
+
+    and fmt (fmt : formatter) (v : value) : unit =
 
         let rec go_down (stack : ((string * value) list * string) list) (v : value) : unit =
             match v with
@@ -374,6 +426,9 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
                 go_up stack
             | Key k ->
                 Cmp.Key.fmt fmt k;
+                go_up stack
+            | Address a ->
+                Address.fmt fmt a;
                 go_up stack
 
             | Set set ->
@@ -434,7 +489,7 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
                         fun (is_first, acc) value ->
                             let pref = if is_first then " " else ", " in
                             false, (pref, value) :: acc
-                    ) (false, [])
+                    ) (true, [])
                 in
                 go_up ((elms, " ]") :: stack)
 
@@ -447,6 +502,10 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
                     Dtyp.fmt contract.Mic.storage
                     Dtyp.fmt contract.Mic.param
                     Mic.fmt contract.Mic.entry;
+                go_up stack
+            
+            | Operation op ->
+                fprintf fmt "%a" fmt_operation op;
                 go_up stack
 
         and go_up (stack : ((string * value) list * string) list) : unit =
@@ -468,12 +527,11 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
         let bail_msg () =
             asprintf "cannot cast value `%a` to type `%a`" fmt v Dtyp.fmt dtyp
         in
-        match dtyp.typ with
-        | Dtyp.Leaf Dtyp.Key -> (
-            match v with
-            | C (Cmp.S s) -> Key (Str.to_str s |> Key.of_str)
-            | _ -> bail_msg () |> Exc.throw
-        )
+        match dtyp.typ, v with
+        | Dtyp.Leaf Dtyp.Key, C (Cmp.S s) ->
+            Key (Str.to_str s |> Key.of_str)
+        | Dtyp.Contract param, Contract c ->
+            if c.Mic.param = param then v else bail_msg () |> Exc.throw
         | _ -> (
             match v with
             | C cmp -> C (Cmp.cast dtyp cmp)
@@ -488,6 +546,8 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
         let timestamp (ts : TStamp.t) : value = C (Cmp.Ts ts)
         let key (k : Key.t) : value = Key k
         let key_h (kh : KeyH.t) : value = C (Cmp.KeyH kh)
+
+        let address (a : Address.t) : value = Address a
 
         let primitive_str (dtyp : Dtyp.t) (s : string) : value =
             match dtyp.typ with
@@ -519,14 +579,13 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
                 | Str s -> C (Cmp.S (Cmp.Str.of_str s)) |> go_up stack
                 | Bytes by -> C (Cmp.By (Cmp.Bytes.of_str by)) |> go_up stack
 
+                | Contract c -> Contract c
+
                 | No -> Option None |> go_up stack
 
                 | So c -> go_down ((fun v -> Option (Some v)) :: stack) c
                 | Lft c -> go_down ((fun v -> Either (Either.Lft v)) :: stack) c
                 | Rgt c -> go_down ((fun v -> Either (Either.Rgt v)) :: stack) c
-
-                | Contract _ ->
-                    Exc.throw "constant contracts in instruction is not supported yet"
 
             and go_up (stack : (value -> value) list) (v : value) : value =
                 match stack with
@@ -534,6 +593,15 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
                 | constructor :: stack -> constructor v |> go_up stack
             in
             go_down [] c
+
+        module Operation = struct
+            let create (params : contract_params) (contract : Mic.contract) : value =
+                Operation (Create (params, contract))
+            let create_named (params : contract_params) (name : string) : value =
+                Operation (CreateNamed (params, name))
+            let init_named (params : contract_params) (input : value) (name : string) : value =
+                Operation (InitNamed (params, input, name))
+        end
     end
 
     module Inspect = struct

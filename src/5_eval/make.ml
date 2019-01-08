@@ -9,7 +9,9 @@ module Stack (S : Sigs.SigStackRaw)
         let run () =
             match pop self with
             | Theory.C (Theory.Cmp.B b), dtyp -> b, dtyp
-            | _, dtyp -> asprintf "found a value of type %a" Dtyp.fmt dtyp |> Exc.throw
+            | v, dtyp ->
+                asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v
+                |> Exc.throw
         in
         run |> Exc.chain_err (
             fun () -> "while popping a bool from the stack"
@@ -19,7 +21,9 @@ module Stack (S : Sigs.SigStackRaw)
         let run () =
             match pop self with
             | Theory.C (Theory.Cmp.I i), dtyp -> i, dtyp
-            | _, dtyp -> asprintf "found a value of type %a" Dtyp.fmt dtyp |> Exc.throw
+            | v, dtyp ->
+                asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v
+                |> Exc.throw
         in
         run |> Exc.chain_err (
             fun () -> "while popping an int from the stack"
@@ -29,7 +33,9 @@ module Stack (S : Sigs.SigStackRaw)
         let run () =
             match pop self with
             | Theory.C (Theory.Cmp.N n), dtyp -> n, dtyp
-            | _, dtyp -> asprintf "found a value of type %a" Dtyp.fmt dtyp |> Exc.throw
+            | v, dtyp ->
+                asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v
+                |> Exc.throw
         in
         run |> Exc.chain_err (
             fun () -> "while popping a nat from the stack"
@@ -39,17 +45,45 @@ module Stack (S : Sigs.SigStackRaw)
         let run () =
             match pop self with
             | Theory.C (Theory.Cmp.S s), dtyp -> s, dtyp
-            | _, dtyp -> asprintf "found a value of type %a" Dtyp.fmt dtyp |> Exc.throw
+            | v, dtyp ->
+                asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v
+                |> Exc.throw
         in
         run |> Exc.chain_err (
             fun () -> "while popping a string from the stack"
+        )
+
+    let pop_key_hash (self : t) : Theory.KeyH.t * Dtyp.t =
+        let run () =
+            match pop self with
+            | Theory.C (Theory.Cmp.KeyH kh), dtyp -> kh, dtyp
+            | v, dtyp ->
+                asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v
+                |> Exc.throw
+        in
+        run |> Exc.chain_err (
+            fun () -> "while popping a key hash from the stack"
+        )
+
+    let pop_tez (self : t) : Theory.Tez.t * Dtyp.t =
+        let run () =
+            match pop self with
+            | Theory.C (Theory.Cmp.Tz tz), dtyp -> tz, dtyp
+            | v, dtyp ->
+                asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v
+                |> Exc.throw
+        in
+        run |> Exc.chain_err (
+            fun () -> "while popping a mutez from the stack"
         )
 
     let pop_either (self : t) : (Theory.value, Theory.value) Theory.Either.t * Dtyp.t =
         let run () =
             match pop self with
             | Theory.Either either, dtyp -> either, dtyp
-            | _, dtyp -> asprintf "found a value of type %a" Dtyp.fmt dtyp |> Exc.throw
+            | v, dtyp ->
+                asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v
+                |> Exc.throw
         in
         run |> Exc.chain_err (
             fun () -> "while popping a union (`or`) from the stack"
@@ -59,7 +93,9 @@ module Stack (S : Sigs.SigStackRaw)
         let run () =
             match pop self with
             | Theory.Option opt, dtyp -> opt, dtyp
-            | _, dtyp -> asprintf "found a value of type %a" Dtyp.fmt dtyp |> Exc.throw
+            | v, dtyp ->
+                asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v
+                |> Exc.throw
         in
         run |> Exc.chain_err (
             fun () -> "while popping an option from the stack"
@@ -69,10 +105,70 @@ module Stack (S : Sigs.SigStackRaw)
         let run () =
             match pop self with
             | Theory.Lst opt, dtyp -> opt, dtyp
-            | _, dtyp -> asprintf "found a value of type %a" Dtyp.fmt dtyp |> Exc.throw
+            | v, dtyp ->
+                asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v
+                |> Exc.throw
         in
         run |> Exc.chain_err (
             fun () -> "while popping a list from the stack"
+        )
+
+    let pop_contract_params (address : Theory.Address.t) (self : t) : Theory.contract_params =
+        let run () =
+            let manager =
+                (fun () -> pop_key_hash self |> fst)
+                |> Exc.chain_err (
+                    fun () ->
+                        "while retrieving the `manager` argument"
+                )
+            in
+            let delegate =
+                (fun () ->
+                    let flag, opt_dtyp = pop_option self in
+                    let dtyp = Dtyp.Inspect.option opt_dtyp in
+                    (
+                        if dtyp.typ <> Dtyp.Leaf Dtyp.KeyH then
+                            asprintf
+                                "expected an optional key hash, found a value of type %a"
+                                Dtyp.fmt opt_dtyp
+                            |> Exc.throw
+                    );
+                    match flag with
+                    | Some (Theory.C (Theory.Cmp.KeyH kh)) -> Some kh
+                    | None -> None
+                    | Some value ->
+                        asprintf "unexpected value %a found while retrieving key hash" Theory.fmt value
+                        |> Exc.throw
+                ) |> Exc.chain_err (
+                    fun () ->
+                        "while retrieving the `delegate` argument"
+                )
+            in
+            let spendable =
+                (fun () -> pop_bool self |> fst)
+                |> Exc.chain_err (
+                    fun () ->
+                        "while retrieving the `spendable` argument"
+                )
+            in
+            let delegatable =
+                (fun () -> pop_bool self |> fst)
+                |> Exc.chain_err (
+                    fun () ->
+                        "while retrieving the `delegatable` argument"
+                )
+            in
+            let tez =
+                (fun () -> pop_tez self |> fst)
+                |> Exc.chain_err (
+                    fun () ->
+                        "while retrieving the `mutez` argument"
+                )
+            in
+            Theory.mk_contract_params ~spendable ~delegatable manager delegate tez address
+        in
+        run |> Exc.chain_err (
+            fun () -> "while popping parameters for a contract creation operation"
         )
 
     let some ?alias:(alias=None) (self : t) : unit =
@@ -126,6 +222,7 @@ end
 module Cxt (S : Sigs.SigStackRaw) : Sigs.SigCxt = struct
     module Theory = S.Theory
     module Stack = Stack(S)
+    module Address = Theory.Address
 
     (* Represents the end of a runtime block of instruction. *)
     type block_end =
@@ -445,13 +542,21 @@ module Cxt (S : Sigs.SigStackRaw) : Sigs.SigCxt = struct
 
                 | Mic.CreateContract param -> (
                     let binding = Lst.hd mic.vars in
+                    let address = Address.fresh binding in
+                    let params = Stack.pop_contract_params address self.stack in
+                    (* Push address. *)
+                    let dtyp = Dtyp.Address |> Dtyp.mk_leaf in
+                    Stack.push dtyp (Theory.Of.address address) self.stack;
+                    (* Push operation. *)
+                    let dtyp = Dtyp.Operation |> Dtyp.mk_leaf in
                     match param with
                     | Either.Lft (Some c) ->
-                        let typ = Mic.typ_of_contract c in
-                        let value = Theory.Of.contract c in
-                        Stack.push ~binding typ value self.stack
+                        let operation = Theory.Of.Operation.create params c in
+                        Stack.push ~binding dtyp operation self.stack
                     | Either.Lft None -> Exc.throw "aaa"
-                    | Either.Rgt _ -> Exc.throw "aaa"
+                    | Either.Rgt name ->
+                        let operation = Theory.Of.Operation.create_named params name in
+                        Stack.push ~binding dtyp operation self.stack
                 )
 
                 (* # Macros. *)

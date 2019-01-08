@@ -6,4 +6,4 @@
 end
  *)
 
-module NaiveCxt = Make.Cxt(Stack.Naive)
+module NaiveCxt = Make.Cxt (Stack.Naive)

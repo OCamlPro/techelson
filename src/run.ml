@@ -49,6 +49,9 @@ let run () : unit =
                 NaiveCxt.next_ins cxt |> if_let_some (
                     log_1 "@[<v 4>> %a@]@." Mic.fmt
                 );
+                if conf.Conf.step then (
+                    input_line stdin |> ignore
+                );
                 let is_done = NaiveCxt.step cxt in
                 if not is_done then loop () else ()
             in

@@ -55,6 +55,28 @@ module Cla = struct
                 conf.verb <- i;
                 tail
         )
+    
+    let step : t =
+        mk ['s'] ["step"] (
+            fun args conf -> match Arg.next_value args with
+            | None, tail
+            | Some "on", tail
+            | Some "true", tail
+            | Some "True", tail ->
+                conf.step <- true;
+                tail
+            | Some "off", tail
+            | Some "no", tail
+            | Some "false", tail
+            | Some "False", tail ->
+                conf.step <- false;
+                tail
+            | Some blah, _ ->
+                Exc.throw (
+                    sprintf "expected a truth value `on|true|True|off|no|false|False`, found `%s`" blah
+                )
+        )
+
     let contract : t =
         mk [] ["contract"] (
             fun args conf -> match Arg.next_value args with
@@ -68,7 +90,7 @@ module Cla = struct
                 tail
         )
 
-    let options : t list = [ verb ; contract ]
+    let options : t list = [ verb ; step ; contract ]
 
     let add_all
         (long_map : (string, Arg.t list -> Conf.t -> Arg.t list) Hashtbl.t)

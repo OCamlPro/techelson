@@ -17,6 +17,9 @@ type t = {
     mutable verb : int;
     (** Verbosity level. *)
 
+    mutable step : bool;
+    (** Lockstep evaluation. *)
+
     mutable contracts : contract list;
     (** Contracts of the run. *)
 

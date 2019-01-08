@@ -23,12 +23,17 @@ module type SigStack = sig
     include SigStackRaw
 
     val pop_bool : t -> bool * Dtyp.t
-    val pop_int : t -> Theory.Cmp.Int.t * Dtyp.t
-    val pop_nat : t -> Theory.Cmp.Nat.t * Dtyp.t
-    val pop_str : t -> Theory.Cmp.Str.t * Dtyp.t
+    val pop_int : t -> Theory.Int.t * Dtyp.t
+    val pop_nat : t -> Theory.Nat.t * Dtyp.t
+    val pop_str : t -> Theory.Str.t * Dtyp.t
+    val pop_key_hash : t -> Theory.KeyH.t * Dtyp.t
+    val pop_tez : t -> Theory.Tez.t * Dtyp.t
+
     val pop_either : t -> (Theory.value, Theory.value) Theory.Either.t * Dtyp.t
     val pop_option : t -> Theory.value Theory.Option.t * Dtyp.t
     val pop_list : t -> Theory.value Theory.Lst.t * Dtyp.t
+
+    val pop_contract_params : Theory.Address.t -> t -> Theory.contract_params
 
     val some : ?alias : Dtyp.alias -> t -> unit
     val none : ?alias : Dtyp.alias -> Dtyp.t -> t -> unit
@@ -46,6 +51,7 @@ end
 module type SigCxt = sig
     module Theory : Theo.Sigs.SigTheory
     module Stack : SigStack
+    module Address : Theo.Sigs.SigAddress with type t = Theory.Address.t
 
     type t
 

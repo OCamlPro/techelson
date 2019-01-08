@@ -21,6 +21,7 @@ let mk_contract (file : string) (init : string option) : contract = {
 type t = {
     mutable verb : int;
 
+    mutable step : bool;
     mutable contracts : contract list;
     mutable args : string list;
 }
@@ -28,16 +29,18 @@ type t = {
 
 let default : t = {
     verb = 1;
+    step = false;
     contracts = [];
     args = [];
 }
 
 let fmt (fmt : formatter) ({
-    verb ; contracts ; args
+    verb ; step ; contracts ; args
 } : t) =
     fprintf fmt "@[<v>{@[<v 4>";
 
     fprintf fmt "@,verb: %i," verb;
+    fprintf fmt "@,step: %b," step;
 
     if contracts = [] then (
         fprintf fmt "@,contracts: none"

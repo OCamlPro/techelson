@@ -114,6 +114,13 @@ module type SigKeyHConv = sig
     val sha512 : key -> key_h
 end
 
+module type SigAddress = sig
+    type t
+    val fresh : Annot.Var.t option -> t
+    val fmt : formatter -> t -> unit
+    val equal : t -> t -> bool
+end
+
 module type SigCmp = sig
     module Int : SigInt
 
@@ -144,6 +151,8 @@ module type SigCmp = sig
 end
 
 module type SigTheory = sig
+    module Address : SigAddress
+
     module Cmp : sig
         include SigCmp
 
@@ -301,8 +310,35 @@ module type SigTheory = sig
     | Lst of value Lst.t
     | Pair of value * value
     | Contract of Mic.contract
+    | Operation of operation
+    | Address of Address.t
+
+    and contract_params = private {
+        address : Address.t ;
+        manager : KeyH.t ;
+        delegate : KeyH.t option ;
+        spendable : bool ;
+        delegatable : bool ;
+        tez : Tez.t ;
+    }
+
+    and operation =
+    | Create of contract_params * Mic.contract
+    | CreateNamed of contract_params * string
+    | InitNamed of contract_params * value * string
+
+    val mk_contract_params :
+        spendable : bool ->
+        delegatable : bool ->
+        KeyH.t ->
+        KeyH.t option ->
+        Cmp.Tez.t ->
+        Address.t ->
+        contract_params
 
     val fmt : formatter -> value -> unit
+    val fmt_contract_params : formatter -> contract_params -> unit
+    val fmt_operation : formatter -> operation -> unit
     val cast : Dtyp.t -> value -> value
 
     module Of : sig
@@ -313,6 +349,8 @@ module type SigTheory = sig
         val timestamp : TStamp.t -> value
         val key : Key.t -> value
         val key_h : KeyH.t -> value
+
+        val address : Address.t -> value
 
         val primitive_str : Dtyp.t -> string -> value
 
@@ -327,6 +365,12 @@ module type SigTheory = sig
         val option : value Option.t -> value
         val pair : value -> value -> value
         val contract : Mic.contract -> value
+
+        module Operation : sig
+            val create : contract_params -> Mic.contract -> value
+            val create_named : contract_params -> string -> value
+            val init_named : contract_params -> value -> string -> value
+        end
     end
 
     module Inspect : sig
