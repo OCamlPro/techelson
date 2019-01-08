@@ -20,3 +20,6 @@ test: compile
 			exit 2 ; \
 		fi \
 	done
+
+clean:
+	dune clean
