@@ -144,7 +144,7 @@ type 'sub ins =
 | IfLeft of 'sub * 'sub
 | IfRight of 'sub * 'sub
 | IfCons of 'sub * 'sub
-| CreateContract of contract option
+| CreateContract of (contract option, string) Either.t
 | Macro of 'sub list * 'sub Macro.t
 
 and const =

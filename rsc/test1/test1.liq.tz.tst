@@ -1,4 +1,5 @@
 {
+    NIL operation ;
     PUSH @v_1 string "blah" ;
     NOW @now ;
     PUSH @v_2 mutez 0 ;
@@ -10,5 +11,12 @@
     PUSH @v_4 mutez 0 ;
     PUSH @v_5 mutez 0 ;
     NOW ;
-    PAPAPPAIPAPAPAPPAIPAIR
+    PAPAPPAIPAPAPAPPAIPAIR ;
+    PUSH mutez 42 ;
+    PUSH bool True ;
+    PUSH bool True ;
+    NONE key_hash ;
+    PUSH key "some_key" ;
+    HASH_KEY ;
+    CONS
 }

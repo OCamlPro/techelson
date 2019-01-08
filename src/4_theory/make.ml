@@ -74,6 +74,7 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
         | By of Bytes.t
         | Ts of TStamp.t
         | Tz of Tez.t
+        | KeyH of KeyH.t
 
         let fmt (fmt : formatter) (c : t) : unit =
             match c with
@@ -84,6 +85,7 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
             | By by -> Bytes.fmt fmt by
             | Ts ts -> TStamp.fmt fmt ts
             | Tz tz -> Tez.fmt fmt tz
+            | KeyH kh -> KeyH.fmt fmt kh
 
         let cmp (lft : t) (rgt : t) : int =
             match (lft, rgt) with
@@ -94,13 +96,15 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
             | (By by_1), (By by_2) -> compare by_1 by_2
             | (Ts ts_1), (Ts ts_2) -> compare ts_1 ts_2
             | (Tz tz_1), (Tz tz_2) -> compare tz_1 tz_2
+            | (KeyH kh_1), (KeyH kh_2) -> compare kh_1 kh_2
             | (B _), _
             | (I _), _
             | (N _), _
             | (S _), _
             | (By _), _
             | (Ts _), _
-            | (Tz _), _ ->
+            | (Tz _), _
+            | (KeyH _), _ ->
                 asprintf "cannot compare values %a and %a" fmt lft fmt rgt
                 |> Exc.throw
 
@@ -113,6 +117,7 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
             | By _ -> Dtyp.mk_leaf Dtyp.Bytes
             | Ts _ -> Dtyp.mk_leaf Dtyp.Timestamp
             | Tz _ -> Dtyp.mk_leaf Dtyp.Mutez
+            | KeyH _ -> Dtyp.mk_leaf Dtyp.KeyH
 
         let cast (dtyp : Dtyp.t) (t : t) : t =
             let bail () =
@@ -144,6 +149,8 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
             | By _, Leaf Bytes -> t
 
             | Ts _, Leaf Timestamp -> t
+
+            | KeyH _, Leaf KeyH -> t
 
             | _ -> bail ()
 
@@ -184,6 +191,15 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
         let sub_int : t -> Int.t -> t = Cmp.TStampConv.sub_int
         let sub : t -> t -> Int.t = Cmp.TStampConv.sub
     end
+
+    module Key = struct
+        include Cmp.Key
+        let b58check : t -> Cmp.KeyH.t = Cmp.KeyHConv.b58check
+        let blake2b : t -> Cmp.KeyH.t = Cmp.KeyHConv.blake2b
+        let sha256 : t -> Cmp.KeyH.t = Cmp.KeyHConv.sha256
+        let sha512 : t -> Cmp.KeyH.t = Cmp.KeyHConv.sha512
+    end
+    module KeyH = Cmp.KeyH
 
     module Unwrap = struct
         let bool (c : Cmp.t) : bool =
@@ -319,7 +335,7 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
         let fmt (fmt_a : formatter -> 'a -> unit) (fmt : formatter) (lst : 'a t) : unit =
             fprintf fmt "@[@[<hv 2>[";
             fold (
-                fun () a -> fprintf fmt "@ %a," fmt_a a
+                fun () a -> fprintf fmt "@ `%a`," fmt_a a
             ) () lst |> ignore;
             fprintf fmt "@]";
             if lst <> [] then (
@@ -336,6 +352,7 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
     type value =
     | U
     | C of Cmp.t
+    | Key of Key.t
     | Set of Set.t
     | Map of value Map.t
     | BigMap of value BigMap.t
@@ -354,6 +371,9 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
                 go_up stack
             | C c ->
                 Cmp.fmt fmt c;
+                go_up stack
+            | Key k ->
+                Cmp.Key.fmt fmt k;
                 go_up stack
 
             | Set set ->
@@ -445,19 +465,37 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
         go_down [] v
 
     let cast (dtyp : Dtyp.t) (v : value) : value =
-        let bail () =
-            asprintf "cannot cast value `%a` to type `%a`" fmt v Dtyp.fmt dtyp |> Exc.throw
+        let bail_msg () =
+            asprintf "cannot cast value `%a` to type `%a`" fmt v Dtyp.fmt dtyp
         in
-        match v with
-        | C cmp -> C (Cmp.cast dtyp cmp)
-        | _ -> bail ()
+        match dtyp.typ with
+        | Dtyp.Leaf Dtyp.Key -> (
+            match v with
+            | C (Cmp.S s) -> Key (Str.to_str s |> Key.of_str)
+            | _ -> bail_msg () |> Exc.throw
+        )
+        | _ -> (
+            match v with
+            | C cmp -> C (Cmp.cast dtyp cmp)
+            | _ -> bail_msg () |> Exc.throw
+        )
 
     module Of = struct
-        let int (i : Cmp.Int.t) : value = C (Cmp.I i)
-        let nat (i : Cmp.Nat.t) : value = C (Cmp.N i)
-        let str (i : Cmp.Str.t) : value = C (Cmp.S i)
-        let bytes (by : Cmp.Bytes.t) : value = C (Cmp.By by)
-        let timestamp (ts : Cmp.TStamp.t) : value = C (Cmp.Ts ts)
+        let int (i : Int.t) : value = C (Cmp.I i)
+        let nat (i : Nat.t) : value = C (Cmp.N i)
+        let str (i : Str.t) : value = C (Cmp.S i)
+        let bytes (by : Bytes.t) : value = C (Cmp.By by)
+        let timestamp (ts : TStamp.t) : value = C (Cmp.Ts ts)
+        let key (k : Key.t) : value = Key k
+        let key_h (kh : KeyH.t) : value = C (Cmp.KeyH kh)
+
+        let primitive_str (dtyp : Dtyp.t) (s : string) : value =
+            match dtyp.typ with
+            | Dtyp.Leaf Dtyp.Key -> Key (Key.of_str s)
+            | Dtyp.Leaf Dtyp.Bytes -> C (Cmp.By (Bytes.of_str s))
+            | Dtyp.Leaf Dtyp.Timestamp -> C (Cmp.Ts (TStamp.of_str s))
+            | Dtyp.Leaf Dtyp.Str -> C (Cmp.S (Str.of_str s))
+            | _ -> asprintf "cannot cast a primitive string to `%a`" Dtyp.fmt dtyp |> Exc.throw
 
         let unit : value = U
         let cmp (cmp : Cmp.t) : value = C cmp
@@ -499,6 +537,11 @@ module Colls (C : Sigs.SigCmp) : Sigs.SigTheory = struct
     end
 
     module Inspect = struct
+        let key (v : value) : Key.t =
+            match v with
+            | Key k -> k
+            | _ -> asprintf "expected a key, found `%a`" fmt v |> Exc.throw
+
         let list (v : value) : value Lst.t =
             match v with
             | Lst l -> l

@@ -79,6 +79,7 @@ end
 module type SigTStamp = sig
     include SigTFmt
 
+    val of_str : string -> t
     val now : unit -> t
     val compare : t -> t -> int
 end
@@ -90,6 +91,27 @@ module type SigTStampConv = sig
     val add : t_stamp -> int -> t_stamp
     val sub_int : t_stamp -> int -> t_stamp
     val sub : t_stamp -> t_stamp -> int
+end
+
+module type SigKey = sig
+    include SigTFmt
+    val of_str : string -> t
+end
+
+module type SigKeyH = sig
+    include SigTFmt
+
+    val compare : t -> t -> int
+end
+
+module type SigKeyHConv = sig
+    type key_h
+    type key
+
+    val b58check : key -> key_h
+    val blake2b : key -> key_h
+    val sha256 : key -> key_h
+    val sha512 : key -> key_h
 end
 
 module type SigCmp = sig
@@ -115,6 +137,10 @@ module type SigCmp = sig
 
     module TStamp : SigTStamp
     module TStampConv : SigTStampConv with type t_stamp = TStamp.t and type int = Int.t
+
+    module Key : SigKey
+    module KeyH : SigKeyH
+    module KeyHConv : SigKeyHConv with type key = Key.t and type key_h = KeyH.t
 end
 
 module type SigTheory = sig
@@ -131,6 +157,7 @@ module type SigTheory = sig
         | By of Bytes.t
         | Ts of TStamp.t
         | Tz of Tez.t
+        | KeyH of KeyH.t
 
         val cmp : t -> t -> int
         val fmt : formatter -> t -> unit
@@ -175,6 +202,15 @@ module type SigTheory = sig
         val sub_int : t -> Int.t -> t
         val sub : t -> t -> Int.t
     end
+
+    module Key : sig
+        include SigKey with type t = Cmp.Key.t
+        val b58check : t -> Cmp.KeyH.t
+        val blake2b : t -> Cmp.KeyH.t
+        val sha256 : t -> Cmp.KeyH.t
+        val sha512 : t -> Cmp.KeyH.t
+    end
+    module KeyH : SigKeyH with type t = Cmp.KeyH.t
 
     module Unwrap : sig
         val bool : Cmp.t -> bool
@@ -256,6 +292,7 @@ module type SigTheory = sig
     type value = private
     | U
     | C of Cmp.t
+    | Key of Key.t
     | Set of Set.t
     | Map of value Map.t
     | BigMap of value BigMap.t
@@ -274,6 +311,10 @@ module type SigTheory = sig
         val str : Str.t -> value
         val bytes : Bytes.t -> value
         val timestamp : TStamp.t -> value
+        val key : Key.t -> value
+        val key_h : KeyH.t -> value
+
+        val primitive_str : Dtyp.t -> string -> value
 
         val unit : value
         val const : Mic.const -> value
@@ -290,6 +331,7 @@ module type SigTheory = sig
 
     module Inspect : sig
         val list : value -> value Lst.t
+        val key : value -> Key.t
     end
 
     val cons : value -> value -> value

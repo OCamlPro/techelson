@@ -1,20 +1,27 @@
 open Base
 open Common
 
-module type SigStack = sig
+module type SigStackRaw = sig
     module Theory : Theo.Sigs.SigTheory
     type t
+    val fmt : formatter -> t -> unit
 
     val empty : t
     val is_empty : t -> bool
+
     val push : ?binding : Annot.Var.t option -> Dtyp.t -> Theory.value -> t -> unit
+    val pop : t -> Theory.value * Dtyp.t
+    val map_last : (Theory.value -> Dtyp.t -> Theory.value) -> t -> unit
 
     val swap : t -> unit
     val dip : t -> unit
     val dup : t -> unit
     val undip : t -> unit
+end
 
-    val pop : t -> Theory.value * Dtyp.t
+module type SigStack = sig
+    include SigStackRaw
+
     val pop_bool : t -> bool * Dtyp.t
     val pop_int : t -> Theory.Cmp.Int.t * Dtyp.t
     val pop_nat : t -> Theory.Cmp.Nat.t * Dtyp.t
@@ -23,14 +30,14 @@ module type SigStack = sig
     val pop_option : t -> Theory.value Theory.Option.t * Dtyp.t
     val pop_list : t -> Theory.value Theory.Lst.t * Dtyp.t
 
-    val some : t -> unit
-    val none : Dtyp.t -> t -> unit
+    val some : ?alias : Dtyp.alias -> t -> unit
+    val none : ?alias : Dtyp.alias -> Dtyp.t -> t -> unit
 
-    val left : Dtyp.t -> t -> unit
-    val right : Dtyp.t -> t -> unit
+    val left : ?alias : Dtyp.alias -> Dtyp.t -> t -> unit
+    val right : ?alias : Dtyp.alias -> Dtyp.t -> t -> unit
 
     val cons : t -> unit
-    val nil : Dtyp.t -> t -> unit
+    val nil : ?alias : Dtyp.alias -> Dtyp.t -> t -> unit
 
     val fmt : formatter -> t -> unit
 end

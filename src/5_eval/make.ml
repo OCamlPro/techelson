@@ -1,9 +1,131 @@
 open Base
 open Base.Common
 
-module Cxt (T : Sigs.SigStack) : Sigs.SigCxt = struct
-    module Theory = T.Theory
-    module Stack = T
+module Stack (S : Sigs.SigStackRaw)
+    : Sigs.SigStack with type t = S.t and module Theory = S.Theory
+= struct
+    include S
+    let pop_bool (self : t) : bool * Dtyp.t =
+        let run () =
+            match pop self with
+            | Theory.C (Theory.Cmp.B b), dtyp -> b, dtyp
+            | _, dtyp -> asprintf "found a value of type %a" Dtyp.fmt dtyp |> Exc.throw
+        in
+        run |> Exc.chain_err (
+            fun () -> "while popping a bool from the stack"
+        )
+
+    let pop_int (self : t) : Theory.Cmp.Int.t * Dtyp.t =
+        let run () =
+            match pop self with
+            | Theory.C (Theory.Cmp.I i), dtyp -> i, dtyp
+            | _, dtyp -> asprintf "found a value of type %a" Dtyp.fmt dtyp |> Exc.throw
+        in
+        run |> Exc.chain_err (
+            fun () -> "while popping an int from the stack"
+        )
+
+    let pop_nat (self : t) : Theory.Cmp.Nat.t * Dtyp.t =
+        let run () =
+            match pop self with
+            | Theory.C (Theory.Cmp.N n), dtyp -> n, dtyp
+            | _, dtyp -> asprintf "found a value of type %a" Dtyp.fmt dtyp |> Exc.throw
+        in
+        run |> Exc.chain_err (
+            fun () -> "while popping a nat from the stack"
+        )
+
+    let pop_str (self : t) : Theory.Cmp.Str.t * Dtyp.t =
+        let run () =
+            match pop self with
+            | Theory.C (Theory.Cmp.S s), dtyp -> s, dtyp
+            | _, dtyp -> asprintf "found a value of type %a" Dtyp.fmt dtyp |> Exc.throw
+        in
+        run |> Exc.chain_err (
+            fun () -> "while popping a string from the stack"
+        )
+
+    let pop_either (self : t) : (Theory.value, Theory.value) Theory.Either.t * Dtyp.t =
+        let run () =
+            match pop self with
+            | Theory.Either either, dtyp -> either, dtyp
+            | _, dtyp -> asprintf "found a value of type %a" Dtyp.fmt dtyp |> Exc.throw
+        in
+        run |> Exc.chain_err (
+            fun () -> "while popping a union (`or`) from the stack"
+        )
+
+    let pop_option (self : t) : Theory.value Theory.Option.t * Dtyp.t =
+        let run () =
+            match pop self with
+            | Theory.Option opt, dtyp -> opt, dtyp
+            | _, dtyp -> asprintf "found a value of type %a" Dtyp.fmt dtyp |> Exc.throw
+        in
+        run |> Exc.chain_err (
+            fun () -> "while popping an option from the stack"
+        )
+
+    let pop_list (self : t) : Theory.value Theory.Lst.t * Dtyp.t =
+        let run () =
+            match pop self with
+            | Theory.Lst opt, dtyp -> opt, dtyp
+            | _, dtyp -> asprintf "found a value of type %a" Dtyp.fmt dtyp |> Exc.throw
+        in
+        run |> Exc.chain_err (
+            fun () -> "while popping a list from the stack"
+        )
+
+    let some ?alias:(alias=None) (self : t) : unit =
+        let value, dtyp = pop self in
+        let dtyp = Dtyp.Option dtyp |> Dtyp.mk ~alias in
+        push dtyp (Theory.Of.option (Some value)) self
+    let none ?alias:(alias=None) (dtyp : Dtyp.t) (self : t) : unit =
+        let dtyp = Dtyp.Option dtyp |> Dtyp.mk ~alias in
+        push dtyp (Theory.Of.option None) self
+
+    let left ?alias:(alias=None) (rgt_dtyp : Dtyp.t) (self : t) : unit =
+        let value, dtyp = pop self in
+        let lft_dtyp = { Dtyp.inner = dtyp ; name = None} in
+        let rgt_dtyp = { Dtyp.inner = rgt_dtyp ; name = None } in
+        let dtyp = Dtyp.Or (lft_dtyp, rgt_dtyp) |> Dtyp.mk ~alias in
+        push dtyp (Theory.Of.either (Theory.Either.Lft value)) self
+
+    let right ?alias:(alias = None) (lft_dtyp : Dtyp.t) (self : t) : unit =
+        let value, dtyp = pop self in
+        let lft_dtyp = { Dtyp.inner = lft_dtyp ; name = None} in
+        let rgt_dtyp = { Dtyp.inner = dtyp ; name = None } in
+        let dtyp = Dtyp.Or (lft_dtyp, rgt_dtyp) |> Dtyp.mk ~alias in
+        push dtyp (Theory.Of.either (Theory.Either.Rgt value)) self
+
+    let cons (self : t) : unit =
+        let run () =
+            let head_value, head_dtyp = pop self in
+            self |> map_last (
+                fun tail_value tail_dtyp ->
+                    let inner =
+                        (fun () -> Dtyp.Inspect.list tail_dtyp)
+                        |> Exc.chain_err (
+                            fun () -> "while type-checking `CONS`"
+                        )
+                    in
+                    (fun () -> Dtyp.check head_dtyp inner)
+                    |> Exc.chain_err (
+                        fun () -> asprintf "head has type `%a`, but tail has type `%a`" Dtyp.fmt head_dtyp Dtyp.fmt tail_dtyp
+                    );
+                    Theory.cons head_value tail_value
+            )
+        in
+        run |> Exc.chain_err (
+            fun () -> "while running `CONS`"
+        )
+    let nil ?alias:(alias=None) (dtyp : Dtyp.t) (self : t) : unit =
+        let dtyp = Dtyp.List dtyp |> Dtyp.mk ~alias in
+        push dtyp (Theory.Of.list Theory.Lst.nil) self
+end
+
+module Cxt (S : Sigs.SigStackRaw) : Sigs.SigCxt = struct
+    module Theory = S.Theory
+    module Stack = Stack(S)
 
     (* Represents the end of a runtime block of instruction. *)
     type block_end =
@@ -79,6 +201,7 @@ module Cxt (T : Sigs.SigStack) : Sigs.SigCxt = struct
 
         (* Let's do this. *)
         | Some mic -> (
+            log_0 "running @[%a@]@.@." Mic.fmt mic;
             self.last <- Some mic;
             (
                 match mic.ins with
@@ -97,15 +220,20 @@ module Cxt (T : Sigs.SigStack) : Sigs.SigCxt = struct
                 | Mic.Leaf Som ->
                     let _ = Stack.some self.stack in
                     ()
+
                 | Mic.Non dtyp ->
-                    let _ = Stack.none dtyp self.stack in
+                    let alias = Lst.hd mic.typs in
+                    let _ = Stack.none ~alias dtyp self.stack in
                     ()
 
                 | Mic.Left dtyp ->
-                    let _ = Stack.left dtyp self.stack in
+                    let alias = Lst.hd mic.typs in
+                    let _ = Stack.left ~alias dtyp self.stack in
                     ()
+
                 | Mic.Right dtyp ->
-                    let _ = Stack.right dtyp self.stack in
+                    let alias = Lst.hd mic.typs in
+                    let _ = Stack.right ~alias dtyp self.stack in
                     ()
 
                 | Mic.Leaf Dup ->
@@ -279,12 +407,11 @@ module Cxt (T : Sigs.SigStack) : Sigs.SigCxt = struct
                 (* # List operations. *)
 
                 | Mic.Leaf Cons ->
-                    Stack.cons self.stack;
-                    ()
+                    Stack.cons self.stack
 
                 | Mic.Nil dtyp ->
-                    Stack.nil dtyp self.stack;
-                    ()
+                    let alias = Lst.hd mic.typs in
+                    Stack.nil ~alias dtyp self.stack
 
                 | Mic.Leaf Size ->
                     let lst, _ = Stack.pop_list self.stack in
@@ -293,16 +420,39 @@ module Cxt (T : Sigs.SigStack) : Sigs.SigCxt = struct
 
                 (* # Domain-specific. *)
 
+                (* ## Timestamps. *)
+
                 | Mic.Leaf Now ->
                     let binding = Lst.hd mic.vars in
                     let now = Theory.TStamp.now () |> Theory.Of.timestamp in
                     Stack.push ~binding Dtyp.timestamp now self.stack
-                
-                | Mic.CreateContract (Some c) ->
+
+                (* ## Crypto. *)
+
+                | Mic.Leaf HashKey ->
                     let binding = Lst.hd mic.vars in
-                    let typ = Mic.typ_of_contract c in
-                    let value = Theory.Of.contract c in
-                    Stack.push ~binding typ value self.stack
+                    let key, _ = Stack.pop self.stack in
+                    let value =
+                        (fun () ->
+                            let key = Theory.Inspect.key key in
+                            Theory.Key.b58check key |> Theory.Of.key_h
+                        ) |> Exc.chain_err (
+                            fun () -> "while retrieving a key to hash (b58check)"
+                        )
+                    in
+                    let dtyp = Dtyp.KeyH |> Dtyp.mk_leaf in
+                    Stack.push ~binding dtyp value self.stack
+
+                | Mic.CreateContract param -> (
+                    let binding = Lst.hd mic.vars in
+                    match param with
+                    | Either.Lft (Some c) ->
+                        let typ = Mic.typ_of_contract c in
+                        let value = Theory.Of.contract c in
+                        Stack.push ~binding typ value self.stack
+                    | Either.Lft None -> Exc.throw "aaa"
+                    | Either.Rgt _ -> Exc.throw "aaa"
+                )
 
                 (* # Macros. *)
 

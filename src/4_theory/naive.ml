@@ -97,6 +97,11 @@ module TStamp : Sigs.SigTStamp with type t = int = struct
 
     let to_str (t : t) : string =
         sprintf "%i" t
+    let of_str (s : string) : t =
+        (fun () -> int_of_string s)
+        |> Exc.chain_err (
+            fun () -> asprintf "illegal timestamp `%s`" s
+        )
 
     let now () : t = 42. +. (100. *. Sys.time ()) |> Float.floor |> Float.to_int
 
@@ -137,6 +142,32 @@ module TStampConv
     let sub (t_1 : t_stamp) (t_2 : t_stamp) : int = t_1 - t_2 |> Int.of_native
 end
 
+module Key : Sigs.SigKey with type t = string = struct
+    type t = string
+    let fmt (fmt : formatter) (t : t) : unit = fprintf fmt "\"%s\"" t
+    let of_str (s : string) : t = s
+    let to_str (t : t) : string = t
+end
+
+module KeyH : Sigs.SigKeyH with type t = string = struct
+    include Key
+    let compare (t_1 : t) (t_2 : t) : int = compare t_1 t_2
+end
+
+module KeyHConv : Sigs.SigKeyHConv with type key = Key.t and type key_h = KeyH.t = struct
+    type key = Key.t
+    type key_h = KeyH.t
+
+    let b58check (key : key) : key_h =
+        "b58check:" ^ key
+    let blake2b (key : key) : key_h =
+        "blake2b:" ^ key
+    let sha256 (key : key) : key_h =
+        "sha256:" ^ key
+    let sha512 (key : key) : key_h =
+        "sha512:" ^ key
+end
+
 module Cmp : Sigs.SigCmp = struct
     module Int = Int
 
@@ -151,6 +182,10 @@ module Cmp : Sigs.SigCmp = struct
 
     module TStamp = TStamp
     module TStampConv = TStampConv
+
+    module Key = Key
+    module KeyH = KeyH
+    module KeyHConv = KeyHConv
 end
 
 

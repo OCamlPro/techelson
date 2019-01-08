@@ -24,6 +24,9 @@ val fmt_leaf : formatter -> leaf -> unit
 (** String to leaf conversion. *)
 val leaf_of_string : string -> leaf option
 
+(** Type of type aliases. *)
+type alias = Annot.Typ.t option
+
 (** Wraps a datatype with a name. *)
 type named = {
     inner : t ;
@@ -50,18 +53,18 @@ and dtyp =
 and t = {
     typ : dtyp ;
     (** Actual datatype. *)
-    alias : Annot.Typ.t option ;
+    alias : alias ;
     (** Type annotation. *)
 }
 
 (** Named datatype constructor. *)
-val mk : ?alias : Annot.Typ.t option -> dtyp -> t
+val mk : ?alias : alias -> dtyp -> t
 
 (** Constructs a datatype with a field annotation. *)
 val mk_named : Annot.Field.t option -> t -> named
 
 (** Named datatype constructor from a leaf. *)
-val mk_leaf : ?alias : Annot.Typ.t option -> leaf -> t
+val mk_leaf : ?alias : alias -> leaf -> t
 
 (** Formatter for datatypes. *)
 val fmt : formatter -> t -> unit
@@ -89,3 +92,6 @@ module Inspect : sig
     (** Retrieves the type parameter of a list type. *)
     val list : t -> t
 end
+
+(** Checks that two types are compatible. *)
+val check : t -> t -> unit

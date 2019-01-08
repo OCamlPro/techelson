@@ -472,7 +472,7 @@ type 'sub ins =
 | IfLeft of 'sub * 'sub
 | IfRight of 'sub * 'sub
 | IfCons of 'sub * 'sub
-| CreateContract of contract option
+| CreateContract of (contract option, string) Either.t
 | Macro of 'sub list * 'sub Macro.t
 
 and const =
@@ -730,16 +730,19 @@ and fmt (fmtt : formatter) (t : t) : unit =
                 | CreateContract c -> (
                     fprintf fmtt "@[@[<v 4>CREATE_CONTRACT%a" fmt_annots ();
                     match c with
-                    | None ->
+                    | Either.Lft None ->
                         fprintf fmtt "@]@]";
                         tail
-                    | Some c ->
+                    | Either.Lft (Some c) ->
                         fprintf
                             fmtt " {@ storage %a;@ parameter %a;@ code "
                             Dtyp.fmt c.storage Dtyp.fmt c.param;
                         (
                             [ignore, c.entry, true], fun () -> fprintf fmtt ";@]@,}@]"
                         ) :: tail
+                    | Either.Rgt name ->
+                        fprintf fmtt " %s@]@]" name;
+                        tail
                 )
 
                 | Macro (ts, macro) -> (

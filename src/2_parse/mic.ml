@@ -144,13 +144,14 @@ let rec parse
         | "CREATE_CONTRACT" when (List.length args) = 0 ->
             param_arity_check 0 0;
             annot_arity_check 0 2 0;
-            CreateContract None
+            CreateContract (Either.Lft None)
         | "CREATE_CONTRACT" -> (
             param_arity_check 0 1;
             annot_arity_check 0 2 0;
-            let contract, _ = next_const_arg args in
-            match contract with
-            | Contract c -> CreateContract (Some c)
+            let const, _ = next_const_arg args in
+            match const with
+            | Contract c -> CreateContract (Either.Lft (Some c))
+            | Str s -> CreateContract (Either.Rgt s)
             | cst -> [
                 "while parsing `CREATE_CONTRACT`" ;
                 asprintf "expected constant contract, found `%a`" Mic.fmt_const cst

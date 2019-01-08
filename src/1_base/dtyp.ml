@@ -48,6 +48,8 @@ let leaf_of_string (s : string) : leaf option = match s with
 | "timestamp" -> Some Timestamp
 | _ -> None
 
+type alias = Annot.Typ.t option
+
 type named = {
     inner : t ;
     name : Annot.Field.t option ;
@@ -68,7 +70,7 @@ and dtyp =
 
 and t = {
     typ : dtyp ;
-    alias : Annot.Typ.t option ;
+    alias : alias ;
 }
 
 let mk ?alias:(alias = None) (typ : dtyp) : t = { typ ; alias }
@@ -231,3 +233,48 @@ let unit : t = mk_leaf Unit
 let int : t = mk_leaf Int
 let nat : t = mk_leaf Nat
 let timestamp : t = mk_leaf Timestamp
+
+(* # TODO
+
+    - stackless
+*)
+let rec check (t_1 : t) (t_2 : t) : unit =
+    let bail () =
+        asprintf "types `%a` and `%a` are not compatible" fmt t_1 fmt t_2
+        |> Exc.throw
+    in
+    (
+        if t_1.alias <> t_2.alias then bail ()
+    );
+    match t_1.typ, t_2.typ with
+    | Leaf leaf_1, Leaf leaf_2 ->
+        if leaf_1 <> leaf_2 then bail ()
+
+    | Option sub_1, Option sub_2
+    | List sub_1, List sub_2
+    | Set sub_1, Set sub_2
+    | Contract sub_1, Contract sub_2 -> check sub_1 sub_2
+
+    | Map (k_1, v_1), Map (k_2, v_2)
+    | BigMap (k_1, v_1), BigMap (k_2, v_2) ->
+        check k_1 k_2;
+        check v_1 v_2
+
+    | Pair (lft_1, rgt_1), Pair (lft_2, rgt_2)
+    | Or (lft_1, rgt_1), Or (lft_2, rgt_2) -> (
+        if lft_1.name <> lft_2.name
+        || rgt_1.name <> rgt_2.name then bail ();
+
+        check lft_1.inner lft_2.inner;
+        check rgt_1.inner rgt_2.inner
+    )
+
+    | Leaf _, _
+    | Option _, _
+    | List _, _
+    | Set _, _
+    | Contract _, _
+    | Map _, _
+    | BigMap _, _
+    | Pair _, _
+    | Or _, _ -> bail ()
