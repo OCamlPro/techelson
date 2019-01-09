@@ -25,17 +25,25 @@ let of_raw
                 fun prev ->
                     let desc =
                         match head.Contract.source, prev.Contract.source with
-                        | Source.File hd, Source.File pre -> (
+                        | Some Source.File hd, Some Source.File pre -> (
                             if hd = pre then
-                                sprintf "in file `%s`" hd
+                                sprintf "from file `%s`" hd
                             else
-                                sprintf "in files `%s` and `%s`" hd pre
+                                sprintf "from files `%s` and `%s`" hd pre
                         )
-                        | Source.File file, Source.Stdin
-                        | Source.Stdin, Source.File file ->
-                            sprintf "in file `%s` and standard input" file
-                        | Source.Stdin, Source.Stdin ->
-                            "in standard input"
+                        | Some Source.Stdin, Some Source.Stdin ->
+                            "from standard input"
+                        | None, None ->
+                            "from definitions in the code"
+                        | _ -> (
+                            let blah (s : Source.t option) =
+                                match s with
+                                | Some Source.File hd -> sprintf "from file `%s`" hd
+                                | Some Source.Stdin -> "from standard input"
+                                | None -> "from definitions in the code"
+                            in
+                            sprintf "%s and %s" (blah head.Contract.source) (blah prev.Contract.source)
+                        )
                     in
                     sprintf "there is at least two contracts named `%s` %s" head.name desc
                     |> Exc.throw
@@ -54,6 +62,7 @@ let get_contract (name : string) ({ contracts ; _ } : t) : Contract.t =
         fun () -> StrMap.find name contracts
     )
 
+let get_contracts ({ contracts ; _ } : t) : Contract.t list = StrMap.values contracts
 let get_tests ({ tests ; _ } : t) : Testcase.t list = tests
 
 let fmt ~(full : bool) (fmt : formatter) ({ contracts ; tests } : t) : unit =

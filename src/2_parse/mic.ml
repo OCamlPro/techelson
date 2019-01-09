@@ -133,7 +133,7 @@ let rec parse
 
         | "PUSH" ->
             param_arity_check 1 1;
-            annot_arity_check 0 1 0;
+            annot_arity_check 1 1 0;
             let const, _ = next_const_arg args in
             Push (List.hd dtyps, const)
         | "LAMBDA" ->

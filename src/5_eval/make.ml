@@ -113,7 +113,24 @@ module Stack (S : Sigs.SigStackRaw)
             fun () -> "while popping a list from the stack"
         )
 
-    let pop_contract_params (address : Theory.Address.t) (self : t) : Theory.contract_params =
+    let pop_operation_list (self : t) : Theory.operation list =
+        let run () : Theory.operation list =
+            let lst = pop_list self |> fst in
+            lst |> Theory.Lst.fold (
+                fun lst value ->
+                    match value with
+                    | Theory.Operation op -> op :: lst
+                    | _ ->
+                        asprintf "expected an operation but found value %a" Theory.fmt value
+                        |> Exc.throw
+            ) []
+            |> List.rev
+        in
+        run |> Exc.chain_err (
+            fun () -> "while popping a list of operations from the stack"
+        )
+
+    let pop_contract_params (address : Theory.Address.t) (self : t) : Theory.contract_params * Dtyp.t =
         let run () =
             let manager =
                 (fun () -> pop_key_hash self |> fst)
@@ -165,7 +182,13 @@ module Stack (S : Sigs.SigStackRaw)
                         "while retrieving the `mutez` argument"
                 )
             in
-            Theory.mk_contract_params ~spendable ~delegatable manager delegate tez address
+            let storage, dtyp =
+                (fun () -> pop self)
+                |> Exc.chain_err (
+                    fun () -> "while retrieving the storage value"
+                )
+            in
+            Theory.mk_contract_params ~spendable ~delegatable manager delegate tez address storage, dtyp
         in
         run |> Exc.chain_err (
             fun () -> "while popping parameters for a contract creation operation"
@@ -219,10 +242,32 @@ module Stack (S : Sigs.SigStackRaw)
         push dtyp (Theory.Of.list Theory.Lst.nil) self
 end
 
-module Cxt (S : Sigs.SigStackRaw) : Sigs.SigCxt = struct
+module Interpreter (
+    S : Sigs.SigStackRaw
+) (
+    C : Sigs.SigContractEnv with module Theory = S.Theory
+) : Sigs.SigInterpreter = struct
     module Theory = S.Theory
-    module Stack = Stack(S)
+    module Stack = Stack (S)
     module Address = Theory.Address
+    module Contracts = C
+
+    module Src = struct
+        type t =
+        | Test of Testcase.t
+        | Contract of Contract.t
+
+
+        let fmt (fmt : formatter) (src : t) : unit =
+            match src with
+            | Test tc -> fprintf fmt "(test %s)" tc.name
+            | Contract c -> fprintf fmt "(contract %s)" c.name
+
+        let of_test (test : Testcase.t) : t =
+            Test test
+        let of_contract (contract : Contract.t) : t =
+            Contract contract
+    end
 
     (* Represents the end of a runtime block of instruction. *)
     type block_end =
@@ -244,6 +289,8 @@ module Cxt (S : Sigs.SigStackRaw) : Sigs.SigCxt = struct
         mutable blocks : block_end list ;
         mutable next : Mic.t list ;
         mutable last : Mic.t option ;
+        mutable src : Src.t ;
+        env : Contracts.t ;
     }
 
     let push_block (block : block_end) (self : t) : unit =
@@ -257,8 +304,10 @@ module Cxt (S : Sigs.SigStackRaw) : Sigs.SigCxt = struct
 
     module Ops = Ops.Make(Stack)
 
-    let is_done ({ stack = _ ; blocks ; next ; last = _ } : t) : bool =
+    let is_done ({ stack = _ ; blocks ; next ; last = _ ; src = _ ; env = _ } : t) : bool =
         blocks = [] && next = []
+
+    let src ({src ; _} : t) : Src.t = src
 
     let last_ins (self : t) : Mic.t option = self.last
 
@@ -307,6 +356,8 @@ module Cxt (S : Sigs.SigStackRaw) : Sigs.SigCxt = struct
 
                 | Mic.Push (dtyp, const) ->
                     let binding = Lst.hd mic.vars in
+                    let alias = Lst.hd mic.typs in
+                    let dtyp = Dtyp.rename alias dtyp in
                     let value = Theory.Of.const const |> Theory.cast dtyp in
                     self.stack |> Stack.push ~binding dtyp value
 
@@ -543,19 +594,30 @@ module Cxt (S : Sigs.SigStackRaw) : Sigs.SigCxt = struct
                 | Mic.CreateContract param -> (
                     let binding = Lst.hd mic.vars in
                     let address = Address.fresh binding in
-                    let params = Stack.pop_contract_params address self.stack in
+                    let params, storage_val_dtyp = Stack.pop_contract_params address self.stack in
                     (* Push address. *)
                     let dtyp = Dtyp.Address |> Dtyp.mk_leaf in
                     Stack.push dtyp (Theory.Of.address address) self.stack;
                     (* Push operation. *)
                     let dtyp = Dtyp.Operation |> Dtyp.mk_leaf in
+                    let check_storage_dtyp (expected : Dtyp.t) : unit =
+                        if expected <> storage_val_dtyp then (
+                            asprintf
+                                "expected a storage value of type %a, found one of type %a"
+                                Dtyp.fmt expected Dtyp.fmt storage_val_dtyp
+                            |> Exc.throw
+                        )
+                    in
                     match param with
                     | Either.Lft (Some c) ->
+                        check_storage_dtyp c.storage;
                         let operation = Theory.Of.Operation.create params c in
                         Stack.push ~binding dtyp operation self.stack
                     | Either.Lft None -> Exc.throw "aaa"
                     | Either.Rgt name ->
-                        let operation = Theory.Of.Operation.create_named params name in
+                        let contract = Contracts.get name self.env in
+                        check_storage_dtyp contract.storage;
+                        let operation = Theory.Of.Operation.create_named params contract in
                         Stack.push ~binding dtyp operation self.stack
                 )
 
@@ -572,22 +634,39 @@ module Cxt (S : Sigs.SigStackRaw) : Sigs.SigCxt = struct
             false
         )
         in
-        run |> Exc.chain_err (
-            fun () -> "while making a step in the evaluator"
+        run |> Exc.chain_errs (
+            fun () -> [
+                "while making a step in the evaluator" ;
+                asprintf "while running code for %a" Src.fmt self.src
+            ]
         )
 
-    let init (values : (Theory.value * Dtyp.t * Annot.Var.t option) list) (inss : Mic.t list) : t = 
-        let cxt =
+    let init
+        (src : Src.t)
+        (env : Contracts.t)
+        (values : (Theory.value * Dtyp.t * Annot.Var.t option) list)
+        (inss : Mic.t list)
+        : t
+    =
+        let self =
             {
                 stack = Stack.empty ;
                 blocks = [] ;
                 next = inss ;
                 last = None ;
+                src ;
+                env ;
             }
         in
         values |> List.iter (
             fun (value, dtyp, binding) ->
-                Stack.push ~binding dtyp value cxt.stack
+                Stack.push ~binding dtyp value self.stack
         );
-        cxt
+        self
+end
+
+module Cxt (I : Sigs.SigInterpreter) : Sigs.SigCxt = struct
+    module Run = I
+    module Theory = Run.Theory
+    type t = unit
 end

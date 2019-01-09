@@ -5,5 +5,7 @@
     (libraries
         base
         parse
+        theo
+        eval
     )
 )

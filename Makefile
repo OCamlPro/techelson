@@ -21,5 +21,11 @@ test: compile
 		fi \
 	done
 
+test1 : compile
+	./bin/micheltest -vvvvvv --contract rsc/test1/test1.liq.tz --step off -- rsc/test1/test1.liq.tz.tst
+
+test1_step : compile
+	./bin/micheltest -vvvvvv --contract rsc/test1/test1.liq.tz --step on -- rsc/test1/test1.liq.tz.tst
+
 clean:
 	dune clean

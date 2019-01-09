@@ -66,6 +66,9 @@ val mk_named : Annot.Field.t option -> t -> named
 (** Named datatype constructor from a leaf. *)
 val mk_leaf : ?alias : alias -> leaf -> t
 
+(** Renames a datatype. *)
+val rename : alias -> t -> t
+
 (** Formatter for datatypes. *)
 val fmt : formatter -> t -> unit
 

@@ -116,9 +116,11 @@ end
 
 module type SigAddress = sig
     type t
+
     val fresh : Annot.Var.t option -> t
     val fmt : formatter -> t -> unit
     val equal : t -> t -> bool
+    val uid : t -> int
 end
 
 module type SigCmp = sig
@@ -320,11 +322,12 @@ module type SigTheory = sig
         spendable : bool ;
         delegatable : bool ;
         tez : Tez.t ;
+        value : value ;
     }
 
     and operation =
     | Create of contract_params * Mic.contract
-    | CreateNamed of contract_params * string
+    | CreateNamed of contract_params * Contract.t
     | InitNamed of contract_params * value * string
 
     val mk_contract_params :
@@ -334,6 +337,7 @@ module type SigTheory = sig
         KeyH.t option ->
         Cmp.Tez.t ->
         Address.t ->
+        value ->
         contract_params
 
     val fmt : formatter -> value -> unit
@@ -368,7 +372,7 @@ module type SigTheory = sig
 
         module Operation : sig
             val create : contract_params -> Mic.contract -> value
-            val create_named : contract_params -> string -> value
+            val create_named : contract_params -> Contract.t -> value
             val init_named : contract_params -> value -> string -> value
         end
     end

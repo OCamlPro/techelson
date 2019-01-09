@@ -14,6 +14,11 @@ let chain_err (blah : unit -> string) (stuff : unit -> 'a) : 'a =
     | Exc trace -> Exc (blah () :: trace) |> raise
     | e -> Exc [blah () ; (Printexc.to_string e)] |> raise
 
+let chain_errs (blah : unit -> string list) (stuff : unit -> 'a) : 'a =
+    try stuff () with
+    | Exc trace -> Exc (blah () @ trace) |> raise
+    | e -> Exc (blah () @ [Printexc.to_string e]) |> raise
+
 let catch_print (indent : int) (stuff : unit -> 'a) : 'a option =
     let pref () =
         let rec loop n =

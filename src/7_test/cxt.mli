@@ -17,6 +17,9 @@ val of_raw : Contract.t list -> Testcase.t list -> t
     Fails if the contract is unknown. *)
 val get_contract : string -> t -> Contract.t
 
+(** Retrieves all the contracts from a context. *)
+val get_contracts : t -> Contract.t list
+
 (** Retrieves the testcases of a context. *)
 val get_tests : t -> Testcase.t list
 

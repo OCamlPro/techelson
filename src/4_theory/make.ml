@@ -378,11 +378,12 @@ module Colls (
         spendable : bool ;
         delegatable : bool ;
         tez : Tez.t ;
+        value : value ;
     }
 
     and operation =
     | Create of contract_params * Mic.contract
-    | CreateNamed of contract_params * string
+    | CreateNamed of contract_params * Contract.t
     | InitNamed of contract_params * value * string
 
     let mk_contract_params
@@ -392,9 +393,10 @@ module Colls (
         (delegate : KeyH.t option)
         (tez : Cmp.Tez.t)
         (address : Address.t)
+        (value : value)
         : contract_params
     =
-        { address ; manager ; delegate ; spendable ; delegatable ; tez }
+        { address ; manager ; delegate ; spendable ; delegatable ; tez ; value }
 
     let rec fmt_contract_params (fmtt : formatter) (params : contract_params) : unit =
         fprintf fmtt "(@%a, %a, %a, %b, %b, %a)"
@@ -408,8 +410,8 @@ module Colls (
         match op with
         | Create (params, contract) ->
             fprintf fmtt "@[<hv 4>CREATE %a %a@]" fmt_contract_params params Mic.fmt_contract contract
-        | CreateNamed (params, name) ->
-            fprintf fmtt "@[<hv 4>CREATE %a \"%s\"@]" fmt_contract_params params name
+        | CreateNamed (params, contract) ->
+            fprintf fmtt "@[<hv 4>CREATE %a \"%s\"@]" fmt_contract_params params contract.name
         | InitNamed (params, value, name) ->
             fprintf fmtt "@[<hv 4>CREATE %a %a %s@]" fmt_contract_params params fmt value name
         
@@ -597,8 +599,8 @@ module Colls (
         module Operation = struct
             let create (params : contract_params) (contract : Mic.contract) : value =
                 Operation (Create (params, contract))
-            let create_named (params : contract_params) (name : string) : value =
-                Operation (CreateNamed (params, name))
+            let create_named (params : contract_params) (contract : Contract.t) : value =
+                Operation (CreateNamed (params, contract))
             let init_named (params : contract_params) (input : value) (name : string) : value =
                 Operation (InitNamed (params, input, name))
         end

@@ -17,7 +17,7 @@ val fmt_sig : formatter -> signature -> unit
 type t = {
     name : string ;
     (** Name of the contract. *)
-    source : Source.t ;
+    source : Source.t option ;
     (** Source of the contract. *)
     storage : Dtyp.t ;
     (** Type of the contract's storage. *)
@@ -30,7 +30,10 @@ type t = {
 }
 
 (** Contract constructor. *)
-val mk : string -> Source.t -> storage:Dtyp.t -> entry_param:Dtyp.t -> Mic.t -> Mic.t option -> t
+val mk : storage:Dtyp.t -> entry_param:Dtyp.t -> string -> Source.t option -> Mic.t -> Mic.t option -> t
+
+(** Conversion from michelson values. *)
+val of_mic : Mic.contract -> t
 
 (** Contract formatter. *)
 val fmt : full : bool -> formatter -> t -> unit

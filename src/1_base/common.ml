@@ -133,6 +133,8 @@ module StrMap = struct
     let insert (key : key) (value : 'a) (map : 'a t) : 'a t * 'a option =
         let prev = get key map in
         add key value map, prev
+    let values (map : 'a t) : 'a list =
+        fold (fun _ value acc -> value :: acc) map []
 end
 
 module Source = struct

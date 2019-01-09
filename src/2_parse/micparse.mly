@@ -50,9 +50,10 @@ named_contract :
     ; SEMICOL {
         fun (source : Base.Common.Source.t) ->
             Base.Contract.mk
-                name source
                 ~storage:(c.Base.Mic.storage)
                 ~entry_param:(c.Base.Mic.param)
+                name
+                (Some source)
                 c.Base.Mic.entry
                 None
     }
@@ -71,9 +72,10 @@ just_contract :
     ; EOF {
         fun (name : string) (source : Base.Common.Source.t) ->
             Base.Contract.mk
-                name source
                 ~storage:(c.Base.Mic.storage)
                 ~entry_param:(c.Base.Mic.param)
+                name
+                (Some source)
                 c.Base.Mic.entry
                 None
     }

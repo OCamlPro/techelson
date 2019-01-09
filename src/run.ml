@@ -23,7 +23,9 @@ let load_contracts (conf : Conf.t) : Contract.t list =
         fun () -> "while loading contracts from `--contract` arguments"
     ) inner
 
-open Eval.Top
+open Test.Top
+
+module Interp = Cxt.Run
 
 let run () : unit =
     let conf = conf () in
@@ -41,19 +43,31 @@ let run () : unit =
         |> Exc.throw
     );
 
+    let cxt = Cxt.of_cxt context in
+
     Test.Cxt.get_tests context |> List.iter (
         fun (test : Testcase.t) ->
-            let cxt = NaiveCxt.init [] [ test.code ] in
+            Cxt.init cxt test;
             let rec loop () =
-                NaiveCxt.stack cxt |> printf "@.@[<v>%a@]@.@." NaiveCxt.Stack.fmt;
-                NaiveCxt.next_ins cxt |> if_let_some (
-                    log_1 "@[<v 4>> %a@]@." Mic.fmt
-                );
-                if conf.Conf.step then (
-                    input_line stdin |> ignore
-                );
-                let is_done = NaiveCxt.step cxt in
-                if not is_done then loop () else ()
+                if Cxt.is_done cxt then () else (
+                    Cxt.interp cxt |> Interp.stack |> printf "@.@[<v>%a@]@.@." Interp.Stack.fmt;
+                    Cxt.interp cxt |> Interp.next_ins |> if_let_some (
+                        log_1 "@[<v 4>> %a@]@." Mic.fmt
+                    );
+                    if conf.Conf.step then (
+                        input_line stdin |> ignore
+                    );
+                    let is_done = Cxt.step cxt in
+                    if not is_done then loop ()
+                    else (
+                        log_1 "@.@.terminating run@.";
+                        Cxt.terminate_run cxt;
+                        log_1 "staging next operation@.";
+                        let is_done = Cxt.init_next cxt in
+                        log_1 "context: @[<v>%a@]@." Cxt.fmt cxt;
+                        if not is_done then loop () else ()
+                    )
+                )
             in
             loop |> Exc.chain_err (
                 fun () ->

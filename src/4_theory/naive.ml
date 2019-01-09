@@ -206,6 +206,8 @@ module Address : Sigs.SigAddress = struct
         self.tag |> if_let_some (fprintf fmt "%a" Annot.Var.fmt)
     let equal (self : t) (other : t) : bool =
         self.uid = other.uid
+
+    let uid (self : t) : int = self.uid
 end
 
 

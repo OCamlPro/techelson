@@ -128,6 +128,8 @@ module StrMap : sig
 
     val get : key -> 'a t -> 'a option
     val insert : key -> 'a -> 'a t -> 'a t * 'a option
+
+    val values : 'a t -> 'a list
 end
 
 (** Handles information about where tests came from. *)

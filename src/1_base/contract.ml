@@ -18,7 +18,7 @@ let fmt_sig (fmt : formatter) {
 
 type t = {
     name : string ;
-    source : Source.t ;
+    source : Source.t option ;
     storage : Dtyp.t ;
     entry_param : Dtyp.t ;
     entry : Mic.t ;
@@ -26,22 +26,29 @@ type t = {
 }
 
 let mk
-    (name : string)
-    (source : Source.t)
     ~(storage : Dtyp.t)
     ~(entry_param : Dtyp.t)
+    (name : string)
+    (source : Source.t option)
     (entry : Mic.t)
     (init : Mic.t option)
     : t
-= { name ; source ; storage ; entry_param ; entry ; init }
+= { name ; source = source ; storage ; entry_param ; entry ; init }
+
+let of_mic ({ storage ; param ; entry } : Mic.contract) : t =
+    mk ~storage ~entry_param:param "<anonymous>" None entry None
 
 let fmt ~(full : bool) (fmt : formatter) {
     name ; source ; storage ; entry_param ; entry ; init
 } : unit =
     fprintf
         fmt
-        "@[<v>@[<v 4>contract %s { # loaded from %a@,storage : %a@,entry_param : %a@,"
-        name Source.fmt source Dtyp.fmt storage Dtyp.fmt entry_param;
+        "@[<v>@[<v 4>contract %s {" name;
+    source |> if_let_some (
+        fprintf fmt "# loaded from %a" Source.fmt
+    );
+    fprintf fmt "@,storage : %a@,entry_param : %a@,"
+        Dtyp.fmt storage Dtyp.fmt entry_param;
     (
         if full then (
             fprintf fmt "entry: @[%a@]@,init: " Mic.fmt entry;
