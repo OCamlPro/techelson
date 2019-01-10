@@ -367,7 +367,7 @@ module Colls (
     | Option of value Option.t
     | Lst of value Lst.t
     | Pair of value * value
-    | Contract of Mic.contract
+    | Contract of Address.t option * Mic.contract
     | Operation of operation
     | Address of Address.t
 
@@ -385,6 +385,7 @@ module Colls (
     | Create of contract_params * Mic.contract
     | CreateNamed of contract_params * Contract.t
     | InitNamed of contract_params * value * string
+    | Transfer of Address.t * Mic.contract * Tez.t * value
 
     let mk_contract_params
         ~(spendable : bool)
@@ -414,6 +415,8 @@ module Colls (
             fprintf fmtt "@[<hv 4>CREATE %a \"%s\"@]" fmt_contract_params params contract.name
         | InitNamed (params, value, name) ->
             fprintf fmtt "@[<hv 4>CREATE %a %a %s@]" fmt_contract_params params fmt value name
+        | Transfer (address, _, tez, value) ->
+            fprintf fmtt "@[<hv 4> TRANSFER %a %a %a@]" Address.fmt address Tez.fmt tez fmt value
         
 
     and fmt (fmt : formatter) (v : value) : unit =
@@ -499,12 +502,17 @@ module Colls (
                 fprintf fmt "(";
                 go_down ( ([", ", rgt], ")") :: stack ) lft
 
-            | Contract contract ->
-                fprintf fmt "{ storage : @[%a@] ; param : @[%a@] ; code : @[%a@] ; }"
-                    Dtyp.fmt contract.Mic.storage
-                    Dtyp.fmt contract.Mic.param
-                    Mic.fmt contract.Mic.entry;
-                go_up stack
+            | Contract (address, contract) -> (
+                match address with
+                | Some a -> Address.fmt fmt a
+                | None -> (
+                    fprintf fmt "{ storage : @[%a@] ; param : @[%a@] ; code : @[%a@] ; }"
+                        Dtyp.fmt contract.Mic.storage
+                        Dtyp.fmt contract.Mic.param
+                        Mic.fmt contract.Mic.entry;
+                    go_up stack
+                )
+            )
             
             | Operation op ->
                 fprintf fmt "%a" fmt_operation op;
@@ -532,7 +540,7 @@ module Colls (
         match dtyp.typ, v with
         | Dtyp.Leaf Dtyp.Key, C (Cmp.S s) ->
             Key (Str.to_str s |> Key.of_str)
-        | Dtyp.Contract param, Contract c ->
+        | Dtyp.Contract param, Contract (_, c) ->
             if c.Mic.param = param then v else bail_msg () |> Exc.throw
         | _ -> (
             match v with
@@ -569,7 +577,7 @@ module Colls (
         let list (l : value Lst.t) : value = Lst l
         let pair (lft : value) (rgt : value) : value = Pair (lft, rgt)
 
-        let contract (c : Mic.contract) : value = Contract c
+        let contract (a : Address.t) (c : Mic.contract) : value = Contract (Some a, c)
 
         let const (c : Mic.const) : value =
             let rec go_down (stack : (value -> value) list) (c : Mic.const) : value =
@@ -581,7 +589,7 @@ module Colls (
                 | Str s -> C (Cmp.S (Cmp.Str.of_str s)) |> go_up stack
                 | Bytes by -> C (Cmp.By (Cmp.Bytes.of_str by)) |> go_up stack
 
-                | Cont c -> Contract c
+                | Cont c -> Contract (None, c)
 
                 | No -> Option None |> go_up stack
 
@@ -603,6 +611,8 @@ module Colls (
                 Operation (CreateNamed (params, contract))
             let init_named (params : contract_params) (input : value) (name : string) : value =
                 Operation (InitNamed (params, input, name))
+            let transfer (address : Address.t) (contract : Mic.contract) (tez : Tez.t) (param : value) : value =
+                Operation (Transfer (address, contract, tez, param))
         end
     end
 

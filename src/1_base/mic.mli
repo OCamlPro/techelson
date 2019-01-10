@@ -101,6 +101,7 @@ type leaf =
 | CheckSignature
 | Rename
 | ApplyOps
+| PrintStack
 
 (** Leaf formatter. *)
 val fmt_leaf : formatter -> leaf -> unit

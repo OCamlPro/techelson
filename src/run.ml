@@ -48,14 +48,19 @@ let run () : unit =
             let cxt = Cxt.of_cxt context test in
             (* Cxt.init cxt test; *)
             let rec loop () =
-                log_1 "context: @[<v>%a@]@.@.test step...@." Cxt.fmt cxt;
+                log_1 "test step...@.";
                 let is_done = Cxt.test_step cxt in
                 log_1 "context: @[<v>%a@]@.@." Cxt.fmt cxt;
                 let is_done =
                     if is_done then true else (
                         log_1 "applying operation(s)@.";
                         let is_done = Cxt.init_next cxt in
-                        log_1 "context: @[<v>%a@]@.@." Cxt.fmt cxt;
+                        log_1 "context: @[<v>%a@]@." Cxt.fmt cxt;
+
+                        Cxt.test cxt |> Interp.stack |> printf "test stack @[<v>%a@]@.@." Interp.Stack.fmt;
+                        Cxt.test cxt |> Interp.next_ins |> if_let_some (
+                            log_1 "@[<v 4>> %a@]@." Mic.fmt
+                        );
                         is_done
                     )
                 in
@@ -63,24 +68,29 @@ let run () : unit =
                 if is_done && Cxt.is_done cxt then ()
                 else if Cxt.is_in_progress cxt |> not then loop ()
                 else (
-                    
-                    Cxt.interp cxt |> Interp.stack |> printf "@.@[<v>%a@]@.@." Interp.Stack.fmt;
-                    Cxt.interp cxt |> Interp.next_ins |> if_let_some (
-                        log_1 "@[<v 4>> %a@]@." Mic.fmt
-                    );
-                    if conf.Conf.step then (
-                        input_line stdin |> ignore
-                    );
-                    let is_done = Cxt.step cxt in
-                    if not is_done then loop ()
-                    else (
-                        log_1 "@.@.terminating run@.";
-                        Cxt.terminate_run cxt;
-                        log_1 "staging next operation@.";
-                        let is_done = Cxt.init_next cxt in
-                        log_1 "context: @[<v>%a@]@." Cxt.fmt cxt;
-                        if not is_done then loop () else ()
-                    )
+
+                    let rec loop () =
+                        Cxt.interp cxt |> Interp.stack |> printf "@.@[<v>%a@]@.@." Interp.Stack.fmt;
+                        Cxt.interp cxt |> Interp.next_ins |> if_let_some (
+                            log_1 "@[<v 4>> %a@]@." Mic.fmt
+                        );
+                        if conf.Conf.step then (
+                            input_line stdin |> ignore
+                        );
+                        let is_done = Cxt.step cxt in
+                        if not is_done then loop ()
+                        else (
+                            log_1 "@.@.terminating run@.";
+                            Cxt.terminate_run cxt;
+                            log_1 "staging next operation@.";
+                            let is_done = Cxt.init_next cxt in
+                            log_1 "context: @[<v>%a@]@." Cxt.fmt cxt;
+                            if not is_done then loop () else ()
+                        )
+                    in
+
+                    loop ()
+
                 )
             in
             loop |> Exc.chain_err (

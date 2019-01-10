@@ -10,6 +10,8 @@ module Naive : Sigs.SigStackRaw = struct
         binding : Annot.Var.t option ;
     }
 
+    let clone ({value ; typ ; binding} : frame) : frame = { value ; typ ; binding }
+
     let mk_frame (value : Theory.value) (typ : Dtyp.t) (binding : Annot.Var.t option) : frame =
         { value ; typ ; binding }
     
@@ -42,8 +44,8 @@ module Naive : Sigs.SigStackRaw = struct
         fprintf fmt "@,|==================================================================================================|";
         fprintf fmt "@]"
 
-    let empty : t = { dipped = [] ; stack = [] }
-    let is_empty (t : t) : bool = t = empty
+    let empty () : t = { dipped = [] ; stack = [] }
+    let is_empty ({ dipped ; stack } : t) : bool = dipped = [] && stack = []
     let push ?binding:(binding=None) (dtyp : Dtyp.t) (value : Theory.value) (self : t) : unit =
         let frame = mk_frame value dtyp binding in
         self.stack <- frame :: self.stack
@@ -62,7 +64,7 @@ module Naive : Sigs.SigStackRaw = struct
 
     let dup (self : t) : unit =
         match self.stack with
-        | hd :: _ -> self.stack <- hd :: self.stack
+        | hd :: _ -> self.stack <- (clone hd) :: self.stack
         | [] ->
             Exc.throw "cannot `dup` an empty stack"
 

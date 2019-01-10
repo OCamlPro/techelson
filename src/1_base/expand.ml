@@ -76,8 +76,12 @@ let macro_dup (annot : Annot.vars) (n : int) : Mic.t list =
         Hence we're generating `n + 1` nested `DIP`s.
     *)
     let rec loop (acc : Mic.t) (count : int) : Mic.t =
-        if count > 0 then loop (Mic.Dip acc |> Mic.mk) (count - 1)
-        else acc
+        if count > 0 then (
+            let dip = Mic.Dip acc |> Mic.mk in
+            let swap = Mic.Swap |> Mic.mk_leaf in
+            let seq = Mic.Seq [dip ; swap] |> Mic.mk in
+            loop seq (count - 1)
+        ) else acc
     in
     [ loop (Mic.Dup |> Mic.mk_leaf ~vars:annot) n ]
 

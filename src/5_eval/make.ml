@@ -119,12 +119,24 @@ module Stack (S : Sigs.SigStackRaw)
         let run () =
             match pop self with
             | Theory.Address a, dtyp -> a, dtyp
-            | v , dtyp ->
+            | v, dtyp ->
                 asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v
                 |> Exc.throw
         in
         run |> Exc.chain_err (
             fun () -> "while popping an address from the stack"
+        )
+
+    let pop_contract (self : t) : Theory.Address.t option * Mic.contract =
+        let run () =
+            match pop self with
+            | Theory.Contract (a, c), _ -> a, c
+            | v, dtyp ->
+                asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v
+                |> Exc.throw
+        in
+        run |> Exc.chain_err (
+            fun () -> "while popping a contract from the stack"
         )
 
     let pop_either (self : t) : (Theory.value, Theory.value) Theory.Either.t * Dtyp.t =
@@ -305,6 +317,8 @@ module Interpreter (
     module Address = Theory.Address
     module Contracts = C
 
+    exception Failure of Theory.value
+
     module Src = struct
         type t =
         | Test of Testcase.t
@@ -404,6 +418,10 @@ module Interpreter (
             self.last <- Some mic;
             (
                 match mic.ins with
+
+                | Mic.Leaf Mic.Failwith ->
+                    let value = Stack.pop self.stack |> fst in
+                    raise (Failure value)
 
                 (* # Basic stack manipulation. *)
 
@@ -646,20 +664,20 @@ module Interpreter (
 
                 (* ## Contracts. *)
 
-                | Mic.Leaf Mic.ApplyOps -> raise ApplyOpsExc
-
                 | Mic.Contract dtyp -> (
                     let binding = Lst.hd mic.vars in
                     let address = Stack.pop_address self.stack |> fst in
+                    log_0 "CONTRACT %a@." Address.fmt address;
                     let value =
                         match Contracts.Live.get address self.env with
                         | None -> Theory.Of.option None
                         | Some contract -> (
+                            log_0 "found the contract %a / %a@." Dtyp.fmt dtyp Dtyp.fmt contract.contract.entry_param;
                             let contract = Contract.to_mic contract.contract in
                             if dtyp <> contract.param then (
                                 Theory.Of.option None
                             ) else (
-                                Some (Theory.Of.contract contract)
+                                Some (Theory.Of.contract address contract)
                                 |> Theory.Of.option
                             )
                         )
@@ -699,11 +717,37 @@ module Interpreter (
                         Stack.push ~binding dtyp operation self.stack
                 )
 
+                | Mic.Leaf Mic.TransferTokens ->
+                    let binding = Lst.hd mic.vars in
+                    let param, param_dtyp = Stack.pop self.stack in
+                    let tez = Stack.pop_tez self.stack |> fst in
+                    let address, contract = Stack.pop_contract self.stack in
+                    if contract.param <> param_dtyp then (
+                        asprintf "expected parameter of type %a, found %a : %a"
+                            Dtyp.fmt param_dtyp Dtyp.fmt contract.param Theory.fmt param
+                        |> Exc.throw
+                    );
+                    let address =
+                        match address with
+                        | Some a -> a
+                        | None -> Exc.throw "cannot transfer to undeployed contract"
+                    in
+                    let operation = Theory.Of.Operation.transfer address contract tez param in
+                    let dtyp = Dtyp.Operation |> Dtyp.mk_leaf in
+                    Stack.push ~binding dtyp operation self.stack
+
                 (* # Macros. *)
 
                 | Mic.Macro (subs, _) ->
                     push_block (Nop (mic, self.next)) self;
                     self.next <- subs
+
+                (* # Extensions. *)
+
+                | Mic.Leaf Mic.ApplyOps -> raise ApplyOpsExc
+
+                | Mic.Leaf Mic.PrintStack ->
+                    log_0 "@[%a@]@." Stack.fmt self.stack
 
                 (* # Unimplemented stuff. *)
 
@@ -713,10 +757,13 @@ module Interpreter (
         )
         in
         run |> Exc.chain_errs (
-            fun () -> [
-                "while making a step in the evaluator" ;
-                asprintf "while running code for %a" Src.fmt self.src
-            ]
+            fun () ->
+                let tail =
+                    match self.last with
+                    | Some ins -> [asprintf "on instruction @[%a@]" Mic.fmt ins]
+                    | None -> []
+                in
+                (asprintf "while running code for %a" Src.fmt self.src) :: tail
         )
     
     let rec run (self : t) : unit =
@@ -732,7 +779,7 @@ module Interpreter (
     =
         let self =
             {
-                stack = Stack.empty ;
+                stack = Stack.empty () ;
                 blocks = [] ;
                 next = inss ;
                 last = None ;

@@ -150,6 +150,7 @@ type leaf =
 | CheckSignature
 | Rename
 | ApplyOps
+| PrintStack
 
 let fmt_leaf (fmt : formatter) (leaf : leaf) : unit = match leaf with
 | Failwith -> fprintf fmt "FAILWITH"
@@ -208,6 +209,7 @@ let fmt_leaf (fmt : formatter) (leaf : leaf) : unit = match leaf with
 | CheckSignature -> fprintf fmt "CHECK_SIGNATURE"
 | Rename -> fprintf fmt "RENAME"
 | ApplyOps -> fprintf fmt "APPLY_OPERATIONS"
+| PrintStack -> fprintf fmt  "PRINT_STACK"
 
 let leaf_of_string (token : string) : leaf option = match token with
 | "FAILWITH" -> Some Failwith
@@ -266,6 +268,7 @@ let leaf_of_string (token : string) : leaf option = match token with
 | "CHECK_SIGNATURE" -> Some CheckSignature
 | "RENAME" -> Some Rename
 | "APPLY_OPERATIONS" -> Some ApplyOps
+| "PRINT_STACK" -> Some PrintStack
 | _ -> None
 
 let annot_arity_of_leaf (leaf : leaf) : (int * int * int) = match leaf with
@@ -273,7 +276,8 @@ let annot_arity_of_leaf (leaf : leaf) : (int * int * int) = match leaf with
 | Failwith
 | Swap
 | Drop
-| ApplyOps -> (0, 0, 0)
+| ApplyOps
+| PrintStack -> (0, 0, 0)
 
 (* One variable annotation, one field annotation. *)
 | Car

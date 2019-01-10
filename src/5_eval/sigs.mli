@@ -6,7 +6,7 @@ module type SigStackRaw = sig
     type t
     val fmt : formatter -> t -> unit
 
-    val empty : t
+    val empty : unit -> t
     val is_empty : t -> bool
 
     val push : ?binding : Annot.Var.t option -> Dtyp.t -> Theory.value -> t -> unit
@@ -29,6 +29,7 @@ module type SigStack = sig
     val pop_key_hash : t -> Theory.KeyH.t * Dtyp.t
     val pop_tez : t -> Theory.Tez.t * Dtyp.t
     val pop_address : t -> Theory.Address.t * Dtyp.t
+    val pop_contract : t -> Theory.Address.t option * Mic.contract
 
     val pop_either : t -> (Theory.value, Theory.value) Theory.Either.t * Dtyp.t
     val pop_option : t -> Theory.value Theory.Option.t * Dtyp.t
@@ -70,6 +71,7 @@ module type SigContractEnv = sig
         val get : Theory.Address.t -> t -> live option
         val fmt : formatter -> t -> unit
         val len : t -> int
+        val transfer : Theory.Tez.t -> live -> unit
     end
 end
 
@@ -88,6 +90,8 @@ module type SigInterpreter = sig
     module Stack : SigStack with module Theory = Theory
     module Address : Theo.Sigs.SigAddress with type t = Theory.Address.t
     module Contracts : SigContractEnv with module Theory = Theory
+
+    exception Failure of Theory.value
 
     module Src : SigSrc
 

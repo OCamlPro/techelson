@@ -311,7 +311,7 @@ module type SigTheory = sig
     | Option of value Option.t
     | Lst of value Lst.t
     | Pair of value * value
-    | Contract of Mic.contract
+    | Contract of Address.t option * Mic.contract
     | Operation of operation
     | Address of Address.t
 
@@ -329,6 +329,7 @@ module type SigTheory = sig
     | Create of contract_params * Mic.contract
     | CreateNamed of contract_params * Contract.t
     | InitNamed of contract_params * value * string
+    | Transfer of Address.t * Mic.contract * Tez.t * value
 
     val mk_contract_params :
         spendable : bool ->
@@ -368,12 +369,13 @@ module type SigTheory = sig
         val list : value Lst.t -> value
         val option : value Option.t -> value
         val pair : value -> value -> value
-        val contract : Mic.contract -> value
+        val contract : Address.t -> Mic.contract -> value
 
         module Operation : sig
             val create : contract_params -> Mic.contract -> value
             val create_named : contract_params -> Contract.t -> value
             val init_named : contract_params -> value -> string -> value
+            val transfer : Address.t -> Mic.contract -> Tez.t -> value -> value
         end
     end
 

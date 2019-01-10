@@ -1,6 +1,9 @@
 {
     # Final list of operations.
     NIL operation ;
+    DUP ;
+
+    PRINT_STACK ;
 
     # Storage parameter for `Test1` contract deployment.
     NOW ;
@@ -35,12 +38,15 @@
     HASH_KEY ;
 
     # Spawn contract.
-    CREATE_CONTRACT @test_1_contract "Test1" ;
-    SWAP ;
-    DIP CONS ;
-    
+    CREATE_CONTRACT @test1_contract "Test1" ;
+    DIP SWAP ;
+    CONS ;
+
+    # Duplicate Test1's address.
+    DUUP ;
     DUP ;
-    # This yield none.
+
+    # This yields none.
     CONTRACT (pair string
         (pair timestamp
               (pair (pair mutez mutez)
@@ -67,8 +73,31 @@
             NIL operation
         } ;
     } ;
-    SWAP ;
-    DROP ;
+    PRINT_STACK ;
+    DIP SWAP ;
     CONS ;
+
+    # Apply operations on top of the stack.
+    APPLY_OPERATIONS ;
+
+    # Swap so that Test1's address is on top.
+    SWAP ;
+
+    # Create call.
+    CONTRACT timestamp ;
+    IF_SOME {
+        PRINT_STACK ;
+        PUSH mutez 13 ;
+        NOW ;
+        TRANSFER_TOKENS ;
+        DIP SWAP ;
+        PRINT_STACK ;
+        CONS
+    } {
+        PUSH string "failed to resolve Test1" ;
+        FAILWITH
+    } ;
+
+    # Call.
     APPLY_OPERATIONS
 }

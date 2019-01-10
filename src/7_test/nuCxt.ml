@@ -109,7 +109,7 @@ module Cxt (I : Eval.Sigs.SigInterpreter) : SigCxt = struct
             match self.ops with
             | next :: ops -> (
                 self.ops <- ops;
-                (
+                let is_done =
                     match next with
                     | Theory.CreateNamed (params, contract) -> (
                         (fun () -> Run.Contracts.Live.create params contract self.env)
@@ -118,7 +118,8 @@ module Cxt (I : Eval.Sigs.SigInterpreter) : SigCxt = struct
                                 asprintf
                                     "while spawning contract %s at address %a"
                                     contract.name Theory.Address.fmt params.address
-                        )
+                        );
+                        false
                     )
                     | Theory.Create (params, contract) -> (
                         let contract = Contract.of_mic contract in
@@ -128,11 +129,35 @@ module Cxt (I : Eval.Sigs.SigInterpreter) : SigCxt = struct
                                 asprintf
                                     "while spawning contract %s at address %a"
                                     contract.name Theory.Address.fmt params.address
-                        )
+                        );
+                        false
                     )
-                    | Theory.InitNamed _ -> Exc.throw "contract spawning is not implemented" |> ignore
-                );
-                loop ()
+                    | Theory.InitNamed _ -> (
+                        Exc.throw "contract spawning is not implemented" |> ignore;
+                        false
+                    )
+
+                    | Theory.Transfer (address, contract, tez, param) -> (
+                        let _ =
+                            match Run.Contracts.Live.get address self.env with
+                            | None ->
+                                asprintf "address %a has no contract attached" Theory.Address.fmt address
+                                |> Exc.throw
+                            | Some live ->
+                                Run.Contracts.Live.transfer tez live;
+                                let src = Contract.of_mic contract |> Run.Src.of_contract in
+                                let interp =
+                                    Run.init src self.env [
+                                        (param, contract.param, Some (Annot.Var.of_string "parameter")) ;
+                                        (live.storage, contract.storage, Some (Annot.Var.of_string "storage"))
+                                    ] [ live.contract.entry ]
+                                in
+                                self.interp <- Some interp
+                        in
+                        true
+                    )
+                in
+                if is_done then false else loop ()
             )
             | [] -> true
         in

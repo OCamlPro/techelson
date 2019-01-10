@@ -76,6 +76,9 @@ module Contracts (T : Theo.Sigs.SigTheory) : Sigs.SigContractEnv with module The
         let get (address : Theory.Address.t) (self : t) : live option =
             try Some (Hashtbl.find self.live (Theory.Address.uid address)) with
             | Not_found -> None
+
+        let transfer (tez : Theory.Tez.t) (live : live) : unit =
+            live.balance <- Theory.Tez.add live.balance tez
     end
 end
 
