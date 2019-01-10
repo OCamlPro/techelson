@@ -28,11 +28,12 @@ module type SigStack = sig
     val pop_str : t -> Theory.Str.t * Dtyp.t
     val pop_key_hash : t -> Theory.KeyH.t * Dtyp.t
     val pop_tez : t -> Theory.Tez.t * Dtyp.t
+    val pop_address : t -> Theory.Address.t * Dtyp.t
 
     val pop_either : t -> (Theory.value, Theory.value) Theory.Either.t * Dtyp.t
     val pop_option : t -> Theory.value Theory.Option.t * Dtyp.t
     val pop_list : t -> Theory.value Theory.Lst.t * Dtyp.t
-    val pop_operation_list : t -> Theory.operation list
+    val pop_operation_list : t -> Theory.operation list * Dtyp.t
 
     val pop_contract_params : Theory.Address.t -> t -> Theory.contract_params * Dtyp.t
 
@@ -66,10 +67,19 @@ module type SigContractEnv = sig
 
     module Live : sig
         val create : Theory.contract_params -> Contract.t -> t -> unit
-        val get : Theory.Address.t -> t -> live
+        val get : Theory.Address.t -> t -> live option
         val fmt : formatter -> t -> unit
         val len : t -> int
     end
+end
+
+module type SigSrc = sig
+    type t =
+    | Test of Testcase.t
+    | Contract of Contract.t
+    val fmt : formatter -> t -> unit
+    val of_test : Testcase.t -> t
+    val of_contract : Contract.t -> t
 end
 
 
@@ -79,14 +89,7 @@ module type SigInterpreter = sig
     module Address : Theo.Sigs.SigAddress with type t = Theory.Address.t
     module Contracts : SigContractEnv with module Theory = Theory
 
-    module Src : sig
-        type t =
-        | Test of Testcase.t
-        | Contract of Contract.t
-        val fmt : formatter -> t -> unit
-        val of_test : Testcase.t -> t
-        val of_contract : Contract.t -> t
-    end
+    module Src : SigSrc
 
     type t
 
@@ -95,6 +98,7 @@ module type SigInterpreter = sig
 
     val init : Src.t -> Contracts.t -> (Theory.value * Dtyp.t * Annot.Var.t option) list -> Mic.t list -> t
     val step : t -> bool
+    val run : t -> unit
     val last_ins : t -> Mic.t option
     val next_ins : t -> Mic.t option
     val stack : t -> Stack.t
@@ -102,8 +106,24 @@ module type SigInterpreter = sig
     val src : t -> Src.t
 end
 
+module type SigTest = sig
+    module Run : SigInterpreter
+    module Contracts = Run.Contracts
+    module Theory = Contracts.Theory
+
+    module Src = Run.Src
+
+    type t
+
+    val mk : Src.t -> Testcase.t -> Contracts.t -> t
+    val step : t -> Theory.operation list option
+    val is_done : t -> bool
+    val interp : t -> Run.t
+end
+
 module type SigCxt = sig
     module Run : SigInterpreter
+    module Test : SigTest with module Run = Run
     module Theory = Run.Theory
     type t
 end

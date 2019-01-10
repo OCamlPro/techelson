@@ -2,23 +2,6 @@
     # Final list of operations.
     NIL operation ;
 
-    # Test spawning a unit contract explicitely.
-    UNIT @unit_storage ;
-    PUSH mutez 17 ;
-    PUSH bool True ;
-    PUSH bool False ;
-    NONE key_hash ;
-    PUSH key "unit_key" ;
-    HASH_KEY ;
-    CREATE_CONTRACT @test_unit_contract {
-        storage unit;
-        parameter unit;
-        code { };
-    } ;
-    SWAP ;
-    DROP ;
-    CONS ;
-
     # Storage parameter for `Test1` contract deployment.
     NOW ;
     PUSH @v_5 mutez 0 ;
@@ -55,5 +38,37 @@
     CREATE_CONTRACT @test_1_contract "Test1" ;
     SWAP ;
     DIP CONS ;
-    DROP
+    
+    DUP ;
+    # This yield none.
+    CONTRACT (pair string
+        (pair timestamp
+              (pair (pair mutez mutez)
+                    (pair (contract :UnitContract unit)
+                          (pair (contract :UnitContract unit)
+                                (pair (contract :UnitContract unit)
+                                      (pair (pair timestamp mutez) (pair mutez timestamp)))))))) ;
+    # Checking we got none.
+    IF_NONE {} { FAIL } ;
+
+    # Spawning a contract that will run `Test1`.
+    PUSH mutez 0 ;
+    PUSH bool True ;
+    PUSH bool False ;
+    NONE key_hash ;
+    PUSH key "unit_key" ;
+    HASH_KEY ;
+    CREATE_CONTRACT @test1_runner {
+        storage address;
+        parameter unit;
+        code {
+            DROP ;
+            DROP ;
+            NIL operation
+        } ;
+    } ;
+    SWAP ;
+    DROP ;
+    CONS ;
+    APPLY_OPERATIONS
 }

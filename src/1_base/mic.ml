@@ -133,7 +133,6 @@ type leaf =
 | TransferTokens
 | SetDelegate
 | Balance
-| Contract
 | Source
 | Sender
 | Self
@@ -150,6 +149,7 @@ type leaf =
 | Sha512
 | CheckSignature
 | Rename
+| ApplyOps
 
 let fmt_leaf (fmt : formatter) (leaf : leaf) : unit = match leaf with
 | Failwith -> fprintf fmt "FAILWITH"
@@ -191,7 +191,6 @@ let fmt_leaf (fmt : formatter) (leaf : leaf) : unit = match leaf with
 | TransferTokens -> fprintf fmt "TRANSFER_TOKENS"
 | SetDelegate -> fprintf fmt "SET_DELEGATE"
 | Balance -> fprintf fmt "BALANCE"
-| Contract -> fprintf fmt "CONTRACT"
 | Source -> fprintf fmt "SOURCE"
 | Sender -> fprintf fmt "SENDER"
 | Self -> fprintf fmt "SELF"
@@ -208,6 +207,7 @@ let fmt_leaf (fmt : formatter) (leaf : leaf) : unit = match leaf with
 | Sha512 -> fprintf fmt "SHA512"
 | CheckSignature -> fprintf fmt "CHECK_SIGNATURE"
 | Rename -> fprintf fmt "RENAME"
+| ApplyOps -> fprintf fmt "APPLY_OPERATIONS"
 
 let leaf_of_string (token : string) : leaf option = match token with
 | "FAILWITH" -> Some Failwith
@@ -249,7 +249,6 @@ let leaf_of_string (token : string) : leaf option = match token with
 | "TRANSFER_TOKENS" -> Some TransferTokens
 | "SET_DELEGATE" -> Some SetDelegate
 | "BALANCE" -> Some Balance
-| "CONTRACT" -> Some Contract
 | "SOURCE" -> Some Source
 | "SENDER" -> Some Sender
 | "SELF" -> Some Self
@@ -266,13 +265,15 @@ let leaf_of_string (token : string) : leaf option = match token with
 | "SHA512" -> Some Sha512
 | "CHECK_SIGNATURE" -> Some CheckSignature
 | "RENAME" -> Some Rename
+| "APPLY_OPERATIONS" -> Some ApplyOps
 | _ -> None
 
 let annot_arity_of_leaf (leaf : leaf) : (int * int * int) = match leaf with
 (* Supports nothing. *)
 | Failwith
 | Swap
-| Drop -> (0, 0, 0)
+| Drop
+| ApplyOps -> (0, 0, 0)
 
 (* One variable annotation, one field annotation. *)
 | Car
@@ -314,7 +315,6 @@ let annot_arity_of_leaf (leaf : leaf) : (int * int * int) = match leaf with
 | TransferTokens
 | SetDelegate
 | Balance
-| Contract
 | Source
 | Sender
 | Self
@@ -333,124 +333,6 @@ let annot_arity_of_leaf (leaf : leaf) : (int * int * int) = match leaf with
 | CheckSignature
 | Rename -> (0, 1, 0)
 
-let var_arity_of_leaf (leaf : leaf) : int = match leaf with
-| Failwith
-| Swap
-| Drop -> 0
-
-| Exec
-| Dup
-| Unit
-| Eq
-| Neq
-| Lt
-| Le
-| Gt
-| Ge
-| Or
-| And
-| Xor
-| Not
-| Neg
-| Abs
-| Add
-| Sub
-| Mul
-| EDiv
-| Lsl
-| Lsr
-| Compare
-| Concat
-| Size
-| Pair
-| Car
-| Cdr
-| Get
-| Mem
-| Update
-| Som
-| Cons
-| TransferTokens
-| SetDelegate
-| Balance
-| Contract
-| Source
-| Sender
-| Self
-| Amount
-| ImplicitAccount
-| StepsToQuota
-| Now
-| Pack
-| Unpack
-| Slice
-| HashKey
-| Blake2B
-| Sha256
-| Sha512
-| CreateAccount
-| CheckSignature
-| Rename -> 1
-
-let field_arity_of_leaf (leaf : leaf) : int = match leaf with
-| Pair
-| Som
-| Car
-| Cdr -> 1
-
-| Failwith
-| Swap
-| Drop
-| Exec
-| Dup
-| Unit
-| Eq
-| Neq
-| Lt
-| Le
-| Gt
-| Ge
-| Or
-| And
-| Xor
-| Not
-| Neg
-| Abs
-| Add
-| Sub
-| Mul
-| EDiv
-| Lsl
-| Lsr
-| Compare
-| Concat
-| Size
-| Get
-| Mem
-| Update
-| Cons
-| TransferTokens
-| SetDelegate
-| Balance
-| Contract
-| Source
-| Sender
-| Self
-| Amount
-| ImplicitAccount
-| StepsToQuota
-| Now
-| Pack
-| Unpack
-| Slice
-| HashKey
-| Blake2B
-| Sha256
-| Sha512
-| CheckSignature
-| CreateAccount
-| Rename -> 0
-
 type 'sub ins =
 | Leaf of leaf
 | Cast of Dtyp.t
@@ -460,6 +342,7 @@ type 'sub ins =
 | Left of Dtyp.t
 | Right of Dtyp.t
 | Nil of Dtyp.t
+| Contract of Dtyp.t
 | Seq of 'sub list
 | If of 'sub * 'sub
 | Loop of 'sub
@@ -483,7 +366,7 @@ and const =
 | Str of string
 | Bytes of string
 
-| Contract of contract
+| Cont of contract
 
 | Lft of const
 | Rgt of const
@@ -594,7 +477,7 @@ and fmt_const (fmtt : formatter) (c : const) : unit =
     | Int n -> fprintf fmtt "%s" n
     | Str s -> fprintf fmtt "\"%s\"" s
     | Bytes s -> fprintf fmtt "0x%s" s
-    | Contract c -> fmt_contract fmtt c
+    | Cont c -> fmt_contract fmtt c
     | Lft c -> fprintf fmtt "(Left %a)" fmt_const c
     | Rgt c -> fprintf fmtt "(Right %a)" fmt_const c
     | No -> fprintf fmtt "None"
@@ -655,6 +538,10 @@ and fmt (fmtt : formatter) (t : t) : unit =
                 | Nil dtyp ->
                     fprintf fmtt "NIL%a %a" fmt_annots () Dtyp.fmt dtyp;
                     tail
+                | Contract dtyp ->
+                    fprintf fmtt "CONTRACT %a" Dtyp.fmt dtyp;
+                    tail
+
                 | Leaf leaf ->
                     fmt_leaf fmtt leaf;
                     fmt_annots fmtt ();

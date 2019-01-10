@@ -84,7 +84,6 @@ type leaf =
 | TransferTokens
 | SetDelegate
 | Balance
-| Contract
 | Source
 | Sender
 | Self
@@ -101,6 +100,7 @@ type leaf =
 | Sha512
 | CheckSignature
 | Rename
+| ApplyOps
 
 (** Leaf formatter. *)
 val fmt_leaf : formatter -> leaf -> unit
@@ -116,12 +116,6 @@ val leaf_of_string : string -> leaf option
 *)
 val annot_arity_of_leaf : leaf -> int * int * int
 
-(** Returns the maximum number of variable annotations supported by a leaf. *)
-val var_arity_of_leaf : leaf -> int
-
-(** Returns the maximum number of field annotations supported by a leaf. *)
-val field_arity_of_leaf : leaf -> int
-
 (** Instructions. *)
 type 'sub ins =
 | Leaf of leaf
@@ -132,6 +126,7 @@ type 'sub ins =
 | Left of Dtyp.t
 | Right of Dtyp.t
 | Nil of Dtyp.t
+| Contract of Dtyp.t
 | Seq of 'sub list
 | If of 'sub * 'sub
 | Loop of 'sub
@@ -155,7 +150,7 @@ and const =
 | Str of string
 | Bytes of string
 
-| Contract of contract
+| Cont of contract
 
 | Lft of const
 | Rgt of const

@@ -35,6 +35,9 @@ val mk : storage:Dtyp.t -> entry_param:Dtyp.t -> string -> Source.t option -> Mi
 (** Conversion from michelson values. *)
 val of_mic : Mic.contract -> t
 
+(** Conversion to michelson values. *)
+val to_mic : t -> Mic.contract
+
 (** Contract formatter. *)
 val fmt : full : bool -> formatter -> t -> unit
 

@@ -9,13 +9,15 @@ module type SigCxt = sig
     type t
 
     (** Empty context constructor. *)
-    val empty : t
+    val mk : Testcase.t -> t
 
     val fmt : formatter -> t -> unit
 
     val is_done : t -> bool
 
-    val of_cxt : Cxt.t -> t
+    val test_step : t -> bool
+
+    val of_cxt : Cxt.t -> Testcase.t -> t
 
     val env : t -> Run.Contracts.t
 
@@ -25,7 +27,9 @@ module type SigCxt = sig
     val step : t -> bool
 
     val interp : t -> Run.t
+    val test : t -> Run.t
 
+    val is_in_progress : t -> bool
     val terminate_run : t -> unit
 
     module Contracts : sig
@@ -34,7 +38,7 @@ module type SigCxt = sig
 
         module Live : sig
             val create : Theory.contract_params -> Contract.t -> t -> unit
-            val get : Theory.Address.t -> t -> Run.Contracts.live
+            val get : Theory.Address.t -> t -> Run.Contracts.live option
         end
     end
 end
@@ -42,24 +46,47 @@ end
 
 module Cxt (I : Eval.Sigs.SigInterpreter) : SigCxt = struct
     module Run = I
+    module Test = Eval.Make.TestInterp (Run)
     module Theory = Run.Theory
 
     type t = {
         env : Run.Contracts.t ;
+        test_run : Test.t ;
         mutable interp : Run.t option ;
         mutable ops : Theory.operation list ;
     }
 
-    let empty = {
-        env = Run.Contracts.empty ;
-        interp = None ;
-        ops = [] ;
-    }
+    let mk (tc : Testcase.t) =
+        let src = Run.Src.of_test tc in
+        let test_run = Test.mk src tc Run.Contracts.empty in
+        {
+            env = Run.Contracts.empty ;
+            test_run ;
+            interp = None ;
+            ops = [] ;
+        }
 
     let is_done (self : t) : bool =
-        self.interp = None && self.ops = []
+        (Test.is_done self.test_run) && self.interp = None && self.ops = []
+
+    let test_step (self : t) : bool =
+        if self.interp <> None then (
+            Exc.throw "trying to stage operations from test case but a run is in progress"
+        );
+        if self.ops <> [] then (
+            Exc.throw
+                "trying to stage operations from test case but there are operations to process"
+        );
+        match Test.step self.test_run with
+        | Some ops ->
+            self.ops <- ops;
+            false
+        | None -> true
 
     let env (self : t) = self.env
+
+    let is_in_progress (self : t) : bool =
+        self.interp <> None
 
     let init (self : t) (tc : Testcase.t) : unit =
         (
@@ -73,9 +100,6 @@ module Cxt (I : Eval.Sigs.SigInterpreter) : SigCxt = struct
         let src = Run.Src.of_test tc in
         let interp = Run.init src self.env [] [ tc.code ] in
         self.interp <- Some interp
-
-    (* let init_contract (self : t) (c : Contract.t) : unit =
-        Exc.throw "contract runs are not implemented" *)
 
     let init_next (self : t) : bool =
         if self.interp <> None then (
@@ -125,6 +149,9 @@ module Cxt (I : Eval.Sigs.SigInterpreter) : SigCxt = struct
         | Some interp -> interp
         | None -> Exc.throw "trying to recover test runtime on uninitialized context"
 
+    let test (self : t) : Run.t =
+        Test.interp self.test_run
+
     let terminate_run (self : t) =
         let interp =
             match self.interp with
@@ -138,7 +165,7 @@ module Cxt (I : Eval.Sigs.SigInterpreter) : SigCxt = struct
         match Run.src interp with
         | Run.Src.Test _ ->
             let operations =
-                (fun () -> Run.stack interp |> Run.Stack.pop_operation_list)
+                (fun () -> Run.stack interp |> Run.Stack.pop_operation_list |> fst)
                 |> Exc.chain_err (
                     fun () -> Run.src interp |> asprintf "on test run %a" Run.Src.fmt
                 )
@@ -159,8 +186,8 @@ module Cxt (I : Eval.Sigs.SigInterpreter) : SigCxt = struct
         end
     end
 
-    let of_cxt (cxt : Cxt.t) : t =
-        let self = empty in
+    let of_cxt (cxt : Cxt.t) (tc : Testcase.t) : t =
+        let self = mk tc in
         Cxt.get_contracts cxt |> List.iter (
             fun c -> Contracts.add c self
         );

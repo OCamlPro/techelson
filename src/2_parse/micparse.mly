@@ -185,7 +185,7 @@ instruction_arg :
     | OCURL
     ; c = contract
     ; CCURL {
-        Base.Mic.Contract c |> Base.Common.Either.rgt
+        Base.Mic.Cont c |> Base.Common.Either.rgt
     }
 ;
 
@@ -303,7 +303,7 @@ const :
     | OCURL
     ; c = contract
     ; CCURL {
-        Base.Mic.Contract c
+        Base.Mic.Cont c
     }
     | OPAR
     ; token = CONSTRTKN

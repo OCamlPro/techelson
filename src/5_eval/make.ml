@@ -1,6 +1,44 @@
 open Base
 open Base.Common
 
+exception ApplyOpsExc
+
+module TestInterp (I : Sigs.SigInterpreter)
+    : Sigs.SigTest with
+        module Run = I
+= struct
+    module Run = I
+    module Contracts = Run.Contracts
+    module Theory = Contracts.Theory
+
+    module Src = Run.Src
+
+    type t = {
+        interp : Run.t ;
+        tc : Testcase.t ;
+        src : Src.t ;
+        contracts : Contracts.t ;
+    }
+
+    let is_done (self : t) : bool = Run.is_done self.interp
+    let interp (self : t) : Run.t = self.interp
+    let mk (src : Src.t) (tc : Testcase.t) (contracts : Contracts.t) : t =
+        let interp = I.init src contracts [] [ tc.code ] in
+        { interp ; tc ; src ; contracts }
+
+    let step (self : t) : Theory.operation list option =
+        if Run.is_done self.interp then None else (
+            try (
+                Run.run self.interp;
+                None
+            ) with
+            | Exc.Exc (_, Some ApplyOpsExc)
+            | ApplyOpsExc -> Some (
+                Run.stack self.interp |> Run.Stack.pop_operation_list |> fst
+            )
+        )
+end
+
 module Stack (S : Sigs.SigStackRaw)
     : Sigs.SigStack with type t = S.t and module Theory = S.Theory
 = struct
@@ -77,6 +115,18 @@ module Stack (S : Sigs.SigStackRaw)
             fun () -> "while popping a mutez from the stack"
         )
 
+    let pop_address (self : t) : Theory.Address.t * Dtyp.t =
+        let run () =
+            match pop self with
+            | Theory.Address a, dtyp -> a, dtyp
+            | v , dtyp ->
+                asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v
+                |> Exc.throw
+        in
+        run |> Exc.chain_err (
+            fun () -> "while popping an address from the stack"
+        )
+
     let pop_either (self : t) : (Theory.value, Theory.value) Theory.Either.t * Dtyp.t =
         let run () =
             match pop self with
@@ -113,18 +163,21 @@ module Stack (S : Sigs.SigStackRaw)
             fun () -> "while popping a list from the stack"
         )
 
-    let pop_operation_list (self : t) : Theory.operation list =
-        let run () : Theory.operation list =
-            let lst = pop_list self |> fst in
-            lst |> Theory.Lst.fold (
-                fun lst value ->
-                    match value with
-                    | Theory.Operation op -> op :: lst
-                    | _ ->
-                        asprintf "expected an operation but found value %a" Theory.fmt value
-                        |> Exc.throw
-            ) []
-            |> List.rev
+    let pop_operation_list (self : t) : Theory.operation list * Dtyp.t =
+        let run () : Theory.operation list * Dtyp.t =
+            let lst, dtyp = pop_list self in
+            let lst =
+                lst |> Theory.Lst.fold (
+                    fun lst value ->
+                        match value with
+                        | Theory.Operation op -> op :: lst
+                        | _ ->
+                            asprintf "expected an operation but found value %a" Theory.fmt value
+                            |> Exc.throw
+                ) []
+                |> List.rev
+            in
+            lst, dtyp
         in
         run |> Exc.chain_err (
             fun () -> "while popping a list of operations from the stack"
@@ -285,7 +338,7 @@ module Interpreter (
     | Nop of Mic.t * Mic.t list
 
     type t = {
-        stack : Stack.t ;
+        mutable stack : Stack.t ;
         mutable blocks : block_end list ;
         mutable next : Mic.t list ;
         mutable last : Mic.t option ;
@@ -304,7 +357,7 @@ module Interpreter (
 
     module Ops = Ops.Make(Stack)
 
-    let is_done ({ stack = _ ; blocks ; next ; last = _ ; src = _ ; env = _ } : t) : bool =
+    let is_done ({ blocks ; next ; _ } : t) : bool =
         blocks = [] && next = []
 
     let src ({src ; _} : t) : Src.t = src
@@ -347,7 +400,7 @@ module Interpreter (
 
         (* Let's do this. *)
         | Some mic -> (
-            log_0 "running @[%a@]@.@." Mic.fmt mic;
+            (* log_0 "running @[%a@]@.@." Mic.fmt mic; *)
             self.last <- Some mic;
             (
                 match mic.ins with
@@ -591,6 +644,31 @@ module Interpreter (
                     let dtyp = Dtyp.KeyH |> Dtyp.mk_leaf in
                     Stack.push ~binding dtyp value self.stack
 
+                (* ## Contracts. *)
+
+                | Mic.Leaf Mic.ApplyOps -> raise ApplyOpsExc
+
+                | Mic.Contract dtyp -> (
+                    let binding = Lst.hd mic.vars in
+                    let address = Stack.pop_address self.stack |> fst in
+                    let value =
+                        match Contracts.Live.get address self.env with
+                        | None -> Theory.Of.option None
+                        | Some contract -> (
+                            let contract = Contract.to_mic contract.contract in
+                            if dtyp <> contract.param then (
+                                Theory.Of.option None
+                            ) else (
+                                Some (Theory.Of.contract contract)
+                                |> Theory.Of.option
+                            )
+                        )
+                    in
+                    let dtyp = Dtyp.Contract dtyp |> Dtyp.mk in
+                    let dtyp = Dtyp.Option dtyp |> Dtyp.mk in
+                    Stack.push ~binding dtyp value self.stack
+                )
+
                 | Mic.CreateContract param -> (
                     let binding = Lst.hd mic.vars in
                     let address = Address.fresh binding in
@@ -640,6 +718,10 @@ module Interpreter (
                 asprintf "while running code for %a" Src.fmt self.src
             ]
         )
+    
+    let rec run (self : t) : unit =
+        let is_done = step self in
+        if is_done then () else run self
 
     let init
         (src : Src.t)
@@ -663,10 +745,4 @@ module Interpreter (
                 Stack.push ~binding dtyp value self.stack
         );
         self
-end
-
-module Cxt (I : Sigs.SigInterpreter) : Sigs.SigCxt = struct
-    module Run = I
-    module Theory = Run.Theory
-    type t = unit
 end

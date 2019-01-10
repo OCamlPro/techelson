@@ -1,7 +1,7 @@
 (** Base exception and helper functions. *)
 
 (** Base exception, used everywhere. *)
-exception Exc of string list
+exception Exc of string list * exn option
 
 (** Raises an exception from a single trace frame. *)
 val throw : string -> 'a

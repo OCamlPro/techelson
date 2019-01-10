@@ -1,23 +1,23 @@
 open Format
 
-exception Exc of string list
+exception Exc of string list * exn option
 
-let throw (s : string) : 'a = Exc [s] |> raise
-let throws (ss : string list) : 'a = Exc ss |> raise
+let throw (s : string) : 'a = Exc ([s], None) |> raise
+let throws (ss : string list) : 'a = Exc (ss, None) |> raise
 
 let erase_err (blah : unit -> string) (stuff : unit -> 'a) : 'a =
     try stuff () with 
     | _ -> blah () |> throw
 
-let chain_err (blah : unit -> string) (stuff : unit -> 'a) : 'a =
-    try stuff () with
-    | Exc trace -> Exc (blah () :: trace) |> raise
-    | e -> Exc [blah () ; (Printexc.to_string e)] |> raise
-
 let chain_errs (blah : unit -> string list) (stuff : unit -> 'a) : 'a =
     try stuff () with
-    | Exc trace -> Exc (blah () @ trace) |> raise
-    | e -> Exc (blah () @ [Printexc.to_string e]) |> raise
+    | Exc (trace, opt) -> Exc (blah () @ trace, opt) |> raise
+    | e -> Exc (blah (), Some e) |> raise
+
+let chain_err (blah : unit -> string) (stuff : unit -> 'a) : 'a =
+    try stuff () with
+    | Exc (trace, opt) -> Exc (blah () :: trace, opt) |> raise
+    | e -> Exc ([blah ()], Some e) |> raise
 
 let catch_print (indent : int) (stuff : unit -> 'a) : 'a option =
     let pref () =
@@ -30,11 +30,20 @@ let catch_print (indent : int) (stuff : unit -> 'a) : 'a option =
         indent - 1 |> loop
     in
     try Some (stuff ()) with
-    | Exc trace -> (
+    | Exc (trace, opt) -> (
         pref ();
         printf "@[<v 4>Error";
         trace |> List.iter (
-            fun line -> pref () ; printf "@,@[%s@]" line
+            fun line ->
+                pref ();
+                printf "@,@[%s@]" line
+        );
+        (
+            match opt with
+            | None -> ()
+            | Some e ->
+                pref ();
+                printf "@,@[%s@]" (Printexc.to_string e)
         );
         printf "@]@.";
         None

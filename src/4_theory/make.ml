@@ -581,7 +581,7 @@ module Colls (
                 | Str s -> C (Cmp.S (Cmp.Str.of_str s)) |> go_up stack
                 | Bytes by -> C (Cmp.By (Cmp.Bytes.of_str by)) |> go_up stack
 
-                | Contract c -> Contract c
+                | Cont c -> Contract c
 
                 | No -> Option None |> go_up stack
 

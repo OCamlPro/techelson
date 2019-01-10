@@ -1,6 +1,8 @@
 open Base
 open Common
 
+exception ApplyOpsExc = Make.ApplyOpsExc
+
 module Contracts (T : Theo.Sigs.SigTheory) : Sigs.SigContractEnv with module Theory = T = struct
     module Theory = T
 
@@ -71,11 +73,9 @@ module Contracts (T : Theo.Sigs.SigTheory) : Sigs.SigContractEnv with module The
                 Hashtbl.add self.live uid deployed
             )
 
-        let get (address : Theory.Address.t) (self : t) : live =
-            (fun () -> Hashtbl.find self.live (Theory.Address.uid address))
-            |> Exc.erase_err (
-                fun () -> asprintf "there is no contract at address %a" Theory.Address.fmt address
-            )
+        let get (address : Theory.Address.t) (self : t) : live option =
+            try Some (Hashtbl.find self.live (Theory.Address.uid address)) with
+            | Not_found -> None
     end
 end
 

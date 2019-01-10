@@ -79,6 +79,10 @@ let rec parse
             param_arity_check 1 0;
             annot_arity_check 0 1 1;
             Mic.Nil (List.hd dtyps)
+        | "CONTRACT" ->
+            param_arity_check 1 0;
+            annot_arity_check 0 1 0;
+            Mic.Contract (List.hd dtyps)
 
         | "IF" ->
             param_arity_check 0 2;
@@ -150,7 +154,7 @@ let rec parse
             annot_arity_check 0 2 0;
             let const, _ = next_const_arg args in
             match const with
-            | Contract c -> CreateContract (Either.Lft (Some c))
+            | Cont c -> CreateContract (Either.Lft (Some c))
             | Str s -> CreateContract (Either.Rgt s)
             | cst -> [
                 "while parsing `CREATE_CONTRACT`" ;

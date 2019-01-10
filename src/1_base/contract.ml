@@ -38,6 +38,9 @@ let mk
 let of_mic ({ storage ; param ; entry } : Mic.contract) : t =
     mk ~storage ~entry_param:param "<anonymous>" None entry None
 
+let to_mic ({ storage ; entry_param ; entry ; _ }) : Mic.contract =
+    { storage ; param = entry_param ; entry }
+
 let fmt ~(full : bool) (fmt : formatter) {
     name ; source ; storage ; entry_param ; entry ; init
 } : unit =
