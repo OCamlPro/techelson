@@ -36,6 +36,28 @@ module Contracts (T : Theo.Sigs.SigTheory) : Sigs.SigContractEnv with module The
         )
 
     module Live = struct
+        let update
+            (balance : Theory.Tez.t)
+            ((storage, dtyp) : Theory.value * Dtyp.t)
+            (address : Theory.Address.t)
+            (self : t)
+            : unit
+        =
+            let uid = Theory.Address.uid address in
+            let live =
+                try Hashtbl.find self.live uid with
+                | Not_found ->
+                    asprintf "cannot update contract at unknown address %a" Theory.Address.fmt address
+                    |> Exc.throw
+            in
+            (fun () -> Dtyp.check dtyp live.contract.storage)
+            |> Exc.chain_err (
+                fun () -> asprintf "while updating storage at %a" Theory.Address.fmt address
+            );
+            live.balance <- balance;
+            live.storage <- storage;
+            ()
+
         let fmt (fmt: formatter) (self : t) : unit =
             fprintf fmt "@[<v>";
             Hashtbl.fold (

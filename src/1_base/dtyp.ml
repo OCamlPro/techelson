@@ -229,6 +229,11 @@ module Inspect = struct
         | List sub -> sub
         | _ -> asprintf "expected list type, found %a" fmt dtyp |> Exc.throw
 
+    let pair (dtyp : t) : t * t =
+        match dtyp.typ with
+        | Pair (lft, rgt) -> lft.inner, rgt.inner
+        | _ -> asprintf "expected pair type, found %a" fmt dtyp |> Exc.throw
+
 end
 
 let unit : t = mk_leaf Unit

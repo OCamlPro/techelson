@@ -34,7 +34,9 @@ module type SigStack = sig
     val pop_either : t -> (Theory.value, Theory.value) Theory.Either.t * Dtyp.t
     val pop_option : t -> Theory.value Theory.Option.t * Dtyp.t
     val pop_list : t -> Theory.value Theory.Lst.t * Dtyp.t
+    val pop_pair : t -> (Theory.value * Dtyp.t) * (Theory.value * Dtyp.t)
     val pop_operation_list : t -> Theory.operation list * Dtyp.t
+    val pop_contract_res : t -> Theory.operation list * Theory.value * Dtyp.t
 
     val pop_contract_params : Theory.Address.t -> t -> Theory.contract_params * Dtyp.t
 
@@ -72,16 +74,18 @@ module type SigContractEnv = sig
         val fmt : formatter -> t -> unit
         val len : t -> int
         val transfer : Theory.Tez.t -> live -> unit
+        val update : Theory.Tez.t -> Theory.value * Dtyp.t -> Theory.Address.t -> t -> unit
     end
 end
 
 module type SigSrc = sig
+    module Theory : Theo.Sigs.SigTheory
     type t =
     | Test of Testcase.t
-    | Contract of Contract.t
+    | Contract of Theory.Address.t
     val fmt : formatter -> t -> unit
     val of_test : Testcase.t -> t
-    val of_contract : Contract.t -> t
+    val of_address : Theory.Address.t -> t
 end
 
 
@@ -93,14 +97,21 @@ module type SigInterpreter = sig
 
     exception Failure of Theory.value
 
-    module Src : SigSrc
+    module Src : SigSrc with module Theory = Theory
 
     type t
 
     (* val empty : t
     val reset : src -> Contracts.t -> (Theory.value * Dtyp.t * Annot.Var.t option) list -> Mic.t list -> t -> unit *)
 
-    val init : Src.t -> Contracts.t -> (Theory.value * Dtyp.t * Annot.Var.t option) list -> Mic.t list -> t
+    val init :
+        Src.t ->
+        balance : Theory.Tez.t ->
+        amount : Theory.Tez.t ->
+        Contracts.t ->
+        (Theory.value * Dtyp.t * Annot.Var.t option) list ->
+        Mic.t list ->
+        t
     val step : t -> bool
     val run : t -> unit
     val last_ins : t -> Mic.t option
@@ -108,6 +119,7 @@ module type SigInterpreter = sig
     val stack : t -> Stack.t
     val is_done : t -> bool
     val src : t -> Src.t
+    val balance : t -> Theory.Tez.t
 end
 
 module type SigTest = sig
@@ -123,6 +135,7 @@ module type SigTest = sig
     val step : t -> Theory.operation list option
     val is_done : t -> bool
     val interp : t -> Run.t
+    val balance : t -> Theory.Tez.t
 end
 
 module type SigCxt = sig

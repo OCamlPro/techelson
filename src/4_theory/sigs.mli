@@ -36,7 +36,7 @@ module type SigTez = sig
     type nat
 
     val of_str : string -> t
-    val of_native : int -> t
+    val of_native : Int64.t -> t
     val to_native : t -> int
 
     val add : t -> t -> t
@@ -354,6 +354,7 @@ module type SigTheory = sig
         val timestamp : TStamp.t -> value
         val key : Key.t -> value
         val key_h : KeyH.t -> value
+        val tez : Tez.t -> value
 
         val address : Address.t -> value
 
@@ -385,4 +386,6 @@ module type SigTheory = sig
     end
 
     val cons : value -> value -> value
+    val car : value -> value
+    val cdr : value -> value
 end

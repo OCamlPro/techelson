@@ -1,7 +1,6 @@
 open Base
 open Base.Common
 
-
 (* Set configuration from CLAP and print it. *)
 let _ =
     Clap.set_conf ();

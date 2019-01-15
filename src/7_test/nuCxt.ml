@@ -21,7 +21,7 @@ module type SigCxt = sig
 
     val env : t -> Run.Contracts.t
 
-    val init : t -> Testcase.t -> unit
+    (* val init : t -> Testcase.t -> unit *)
     val init_next : t -> bool
 
     val step : t -> bool
@@ -88,7 +88,7 @@ module Cxt (I : Eval.Sigs.SigInterpreter) : SigCxt = struct
     let is_in_progress (self : t) : bool =
         self.interp <> None
 
-    let init (self : t) (tc : Testcase.t) : unit =
+    (* let init (self : t) (tc : Testcase.t) : unit =
         (
             match self.interp with
             | None -> ()
@@ -99,7 +99,7 @@ module Cxt (I : Eval.Sigs.SigInterpreter) : SigCxt = struct
         );
         let src = Run.Src.of_test tc in
         let interp = Run.init src self.env [] [ tc.code ] in
-        self.interp <- Some interp
+        self.interp <- Some interp *)
 
     let init_next (self : t) : bool =
         if self.interp <> None then (
@@ -145,11 +145,18 @@ module Cxt (I : Eval.Sigs.SigInterpreter) : SigCxt = struct
                                 |> Exc.throw
                             | Some live ->
                                 Run.Contracts.Live.transfer tez live;
-                                let src = Contract.of_mic contract |> Run.Src.of_contract in
+                                let src = Run.Src.of_address address in
+                                let param_dtyp =
+                                    contract.param |> Dtyp.mk_named (Some (Annot.Field.of_string "param"))
+                                in
+                                let storage_dtyp =
+                                    contract.storage |> Dtyp.mk_named (Some (Annot.Field.of_string "storage"))
+                                in
+                                let dtyp = Dtyp.Pair (param_dtyp, storage_dtyp) |> Dtyp.mk in
+                                let value = Theory.Of.pair param live.storage in
                                 let interp =
-                                    Run.init src self.env [
-                                        (param, contract.param, Some (Annot.Var.of_string "parameter")) ;
-                                        (live.storage, contract.storage, Some (Annot.Var.of_string "storage"))
+                                    Run.init src ~balance:live.balance ~amount:tez self.env [
+                                        (value, dtyp, Some (Annot.Var.of_string "input"))
                                     ] [ live.contract.entry ]
                                 in
                                 self.interp <- Some interp
@@ -196,8 +203,11 @@ module Cxt (I : Eval.Sigs.SigInterpreter) : SigCxt = struct
                 )
             in
             self.ops <- operations @ self.ops
-        | Run.Src.Contract _ ->
-            Exc.throw "contract run termination is not supported yet"
+        | Run.Src.Contract address ->
+            let ops, storage, storage_dtyp = Run.stack interp |> Run.Stack.pop_contract_res in
+            let balance = Run.balance interp in
+            Run.Contracts.Live.update balance (storage, storage_dtyp) address self.env;
+            self.ops <- ops @ self.ops
 
     module Contracts = struct
 

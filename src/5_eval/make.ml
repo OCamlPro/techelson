@@ -23,7 +23,8 @@ module TestInterp (I : Sigs.SigInterpreter)
     let is_done (self : t) : bool = Run.is_done self.interp
     let interp (self : t) : Run.t = self.interp
     let mk (src : Src.t) (tc : Testcase.t) (contracts : Contracts.t) : t =
-        let interp = I.init src contracts [] [ tc.code ] in
+        let many_tez = Theory.Tez.of_native Int64.max_int in
+        let interp = I.init src ~balance:many_tez ~amount:many_tez contracts [] [ tc.code ] in
         { interp ; tc ; src ; contracts }
 
     let step (self : t) : Theory.operation list option =
@@ -37,6 +38,8 @@ module TestInterp (I : Sigs.SigInterpreter)
                 Run.stack self.interp |> Run.Stack.pop_operation_list |> fst
             )
         )
+    
+    let balance (self : t) : Theory.Tez.t = Run.balance self.interp
 end
 
 module Stack (S : Sigs.SigStackRaw)
@@ -175,25 +178,51 @@ module Stack (S : Sigs.SigStackRaw)
             fun () -> "while popping a list from the stack"
         )
 
+    let pop_pair (self : t) : (Theory.value * Dtyp.t) * (Theory.value * Dtyp.t) =
+        match pop self with
+        | Theory.Pair (lft, rgt), dtyp ->
+            let lft_dtyp, rgt_dtyp = Dtyp.Inspect.pair dtyp in
+            (lft, lft_dtyp), (rgt, rgt_dtyp)
+        | v, dtyp ->
+            asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v |> Exc.throw
+
+    let to_operation_list (values : Theory.value Theory.Lst.t) : Theory.operation list =
+        Theory.Lst.fold (
+            fun lst value ->
+                match value with
+                | Theory.Operation op -> op :: lst
+                | _ ->
+                    asprintf "expected an operation but found value %a" Theory.fmt value
+                    |> Exc.throw
+        ) [] values
+        |> List.rev
+
     let pop_operation_list (self : t) : Theory.operation list * Dtyp.t =
         let run () : Theory.operation list * Dtyp.t =
             let lst, dtyp = pop_list self in
-            let lst =
-                lst |> Theory.Lst.fold (
-                    fun lst value ->
-                        match value with
-                        | Theory.Operation op -> op :: lst
-                        | _ ->
-                            asprintf "expected an operation but found value %a" Theory.fmt value
-                            |> Exc.throw
-                ) []
-                |> List.rev
-            in
-            lst, dtyp
+            (to_operation_list lst), dtyp
         in
         run |> Exc.chain_err (
             fun () -> "while popping a list of operations from the stack"
         )
+    
+    let pop_contract_res (self : t) : Theory.operation list * Theory.value * Dtyp.t =
+        let run () : Theory.operation list * Theory.value * Dtyp.t =
+            let (ops, ops_dtyp), (storage, storage_dtyp) = pop_pair self in
+            let ops =
+                match ops with
+                | Theory.Lst lst -> to_operation_list lst
+                | _ ->
+                    asprintf "expected an operation list, found a value of type %a : %a"
+                        Dtyp.fmt ops_dtyp Theory.fmt ops
+                    |> Exc.throw
+            in
+            ops, storage, storage_dtyp
+        in
+        run |> Exc.chain_err (
+            fun () -> "while popping a contract result: operation list * storage value"
+        )
+
 
     let pop_contract_params (address : Theory.Address.t) (self : t) : Theory.contract_params * Dtyp.t =
         let run () =
@@ -311,7 +340,10 @@ module Interpreter (
     S : Sigs.SigStackRaw
 ) (
     C : Sigs.SigContractEnv with module Theory = S.Theory
-) : Sigs.SigInterpreter = struct
+) : Sigs.SigInterpreter with
+    module Theory = S.Theory and
+    module Src.Theory = S.Theory
+= struct
     module Theory = S.Theory
     module Stack = Stack (S)
     module Address = Theory.Address
@@ -320,20 +352,21 @@ module Interpreter (
     exception Failure of Theory.value
 
     module Src = struct
+        module Theory = Theory
         type t =
         | Test of Testcase.t
-        | Contract of Contract.t
+        | Contract of Theory.Address.t
 
 
         let fmt (fmt : formatter) (src : t) : unit =
             match src with
             | Test tc -> fprintf fmt "(test %s)" tc.name
-            | Contract c -> fprintf fmt "(contract %s)" c.name
+            | Contract address -> fprintf fmt "(contract @%a)" Theory.Address.fmt address
 
         let of_test (test : Testcase.t) : t =
             Test test
-        let of_contract (contract : Contract.t) : t =
-            Contract contract
+        let of_address (address : Theory.Address.t) : t =
+            Contract address
     end
 
     (* Represents the end of a runtime block of instruction. *)
@@ -357,8 +390,12 @@ module Interpreter (
         mutable next : Mic.t list ;
         mutable last : Mic.t option ;
         mutable src : Src.t ;
+        mutable balance : Theory.Tez.t ;
+        amount : Theory.Tez.t ;
         env : Contracts.t ;
     }
+
+    let balance (self : t) : Theory.Tez.t = self.balance
 
     let push_block (block : block_end) (self : t) : unit =
         self.blocks <- block :: self.blocks
@@ -623,6 +660,22 @@ module Interpreter (
 
                     Stack.push ~binding dtyp value self.stack
 
+                (* # Pair operations. *)
+                | Mic.Leaf Car ->
+                    let binding = Lst.hd mic.vars in
+                    let value, dtyp = Stack.pop self.stack in
+                    let value = Theory.car value in
+                    let dtyp, _ = Dtyp.Inspect.pair dtyp in
+
+                    Stack.push ~binding dtyp value self.stack
+                | Mic.Leaf Cdr ->
+                    let binding = Lst.hd mic.vars in
+                    let value, dtyp = Stack.pop self.stack in
+                    let value = Theory.cdr value in
+                    let _, dtyp = Dtyp.Inspect.pair dtyp in
+
+                    Stack.push ~binding dtyp value self.stack
+
                 (* # List operations. *)
 
                 | Mic.Leaf Cons ->
@@ -660,9 +713,17 @@ module Interpreter (
                         )
                     in
                     let dtyp = Dtyp.KeyH |> Dtyp.mk_leaf in
+
                     Stack.push ~binding dtyp value self.stack
 
                 (* ## Contracts. *)
+
+                | Mic.Leaf Mic.Amount ->
+                    let binding = Lst.hd mic.vars in
+                    let value = self.amount |> Theory.Of.tez in
+                    let dtyp = Dtyp.Mutez |> Dtyp.mk_leaf in
+
+                    Stack.push ~binding dtyp value self.stack
 
                 | Mic.Contract dtyp -> (
                     let binding = Lst.hd mic.vars in
@@ -772,6 +833,8 @@ module Interpreter (
 
     let init
         (src : Src.t)
+        ~(balance : Theory.Tez.t)
+        ~(amount : Theory.Tez.t)
         (env : Contracts.t)
         (values : (Theory.value * Dtyp.t * Annot.Var.t option) list)
         (inss : Mic.t list)
@@ -783,6 +846,8 @@ module Interpreter (
                 blocks = [] ;
                 next = inss ;
                 last = None ;
+                balance ;
+                amount ;
                 src ;
                 env ;
             }

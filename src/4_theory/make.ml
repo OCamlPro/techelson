@@ -39,7 +39,7 @@ module Colls (
                 |> Exc.erase_err (
                     fun () -> sprintf "cannot convert string `%s` to tezos" s
                 )
-            let of_native (n : int) : t = Int64.of_int n
+            let of_native (n : Int64.t) : t = n
             let to_native (t : t) : int = Int64.to_int t
 
             let add (t_1 : t) (t_2 : t) : t =
@@ -556,6 +556,7 @@ module Colls (
         let timestamp (ts : TStamp.t) : value = C (Cmp.Ts ts)
         let key (k : Key.t) : value = Key k
         let key_h (kh : KeyH.t) : value = C (Cmp.KeyH kh)
+        let tez (tz : Tez.t) : value = C (Cmp.Tz tz)
 
         let address (a : Address.t) : value = Address a
 
@@ -631,4 +632,13 @@ module Colls (
     let cons (head : value) (tail : value) : value =
         let tail = Inspect.list tail in
         Lst (head :: tail)
+
+    let car (v : value) : value =
+        match v with
+        | Pair (lft, _) -> lft
+        | _ -> asprintf "expected pair, found `%a`" fmt v |> Exc.throw
+    let cdr (v : value) : value =
+        match v with
+        | Pair (_, rgt) -> rgt
+        | _ -> asprintf "expected pair, found `%a`" fmt v |> Exc.throw
 end

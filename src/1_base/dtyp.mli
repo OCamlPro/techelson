@@ -94,6 +94,9 @@ module Inspect : sig
 
     (** Retrieves the type parameter of a list type. *)
     val list : t -> t
+
+    (** Retrieves the two type parameters of a pair. *)
+    val pair : t -> t * t
 end
 
 (** Checks that two types are compatible. *)
