@@ -569,6 +569,7 @@ module Colls (
             | _ -> asprintf "cannot cast a primitive string to `%a`" Dtyp.fmt dtyp |> Exc.throw
 
         let unit : value = U
+        let bool (b : bool) : value = C (Cmp.B b)
         let cmp (cmp : Cmp.t) : value = C cmp
         let set (set : Set.t) : value = Set set
         let map (map : value Map.t) : value = Map map
@@ -637,8 +638,76 @@ module Colls (
         match v with
         | Pair (lft, _) -> lft
         | _ -> asprintf "expected pair, found `%a`" fmt v |> Exc.throw
+
     let cdr (v : value) : value =
         match v with
         | Pair (_, rgt) -> rgt
         | _ -> asprintf "expected pair, found `%a`" fmt v |> Exc.throw
+
+    let cmp (v_1 : value) (v_2 : value) : value * Dtyp.t =
+        match v_1, v_2 with
+        | C c_1, C c_2 -> C (Cmp.I (Cmp.cmp c_1 c_2 |> Int.of_native)), Dtyp.Int |> Dtyp.mk_leaf
+        | _ -> asprintf "cannot compare values %a and %a" fmt v_1 fmt v_2 |> Exc.throw
+
+    let eq_raw (v_1 : value) (v_2 : value) : bool =
+        let rec go_down (stack : (value * value) list) (v_1 : value) (v_2 : value) : bool =
+            match v_1, v_2 with
+            | U, U -> true
+            | C c_1, C c_2 -> (
+                let cmp = Cmp.cmp c_1 c_2 in
+                if cmp <> 0 then false else go_up stack
+            )
+            | Pair (v_1_1, v_1_2), Pair (v_2_1, v_2_2) -> (
+                go_down ( (v_1_2, v_2_2) :: stack ) v_1_1 v_2_1
+            )
+            | Option (Some v_1), Option (Some v_2) -> go_down stack v_1 v_2
+            | Option None, Option None -> go_up stack
+            | Option _, Option _ -> false
+
+            | Either (Either.Lft v_1), Either (Either.Lft v_2) -> go_down stack v_1 v_2
+            | Either (Either.Rgt v_1), Either (Either.Rgt v_2) -> go_down stack v_1 v_2
+            | Either _, Either _ -> false
+
+            | Key k_1, Key k_2 -> if k_1 <> k_2 then false else go_up stack
+
+            | _ -> asprintf "cannot compare values %a and %a" fmt v_1 fmt v_2 |> Exc.throw
+        and go_up (stack : (value * value) list) : bool =
+            match stack with
+            | [] -> true
+            | (v_1, v_2) :: stack -> go_down stack v_1 v_2
+        in
+        go_down [] v_1 v_2
+    
+    let eq (v_1 : value) (v_2 : value) : value = eq_raw v_1 v_2 |> Of.bool
+    let neq (v_1 : value) (v_2 : value) : value = eq_raw v_1 v_2 |> not |> Of.bool
+
+    let is_zero_raw (v : value) : bool =
+        match v with
+        | C (Cmp.I i) -> i = Int.zero
+        | C (Cmp.N n) -> n = Nat.zero
+        | C (Cmp.Tz tz) -> tz = Tez.zero
+        | _ -> asprintf "cannot compare %a to zero" fmt v |> Exc.throw
+
+    let is_zero (v : value) : value =
+        is_zero_raw v |> Of.bool
+    let is_not_zero (v : value) : value =
+        is_zero_raw v |> not |> Of.bool
+    
+    let sub (v_1 : value) (v_2 : value) : value * Dtyp.t =
+        match v_1, v_2 with
+        | C (Cmp.I i_1), C (Cmp.I i_2) ->
+            C (Cmp.I (Int.sub i_1 i_2)), Dtyp.Int |> Dtyp.mk_leaf
+        | C (Cmp.I i_1), C (Cmp.N n_2) ->
+            C (Cmp.I (Nat.to_int n_2 |> Int.sub i_1)), Dtyp.Int |> Dtyp.mk_leaf
+        | C (Cmp.N n_1), C (Cmp.I i_2) ->
+            C (Cmp.I (Int.sub (Nat.to_int n_1) i_2)), Dtyp.Int |> Dtyp.mk_leaf
+        | C (Cmp.N n_1), C (Cmp.N n_2) ->
+            C (Cmp.I (Nat.sub n_1 n_2)), Dtyp.Int |> Dtyp.mk_leaf
+        | C (Cmp.Ts ts_1), C (Cmp.Ts ts_2) ->
+            C (Cmp.I (TStamp.sub ts_1 ts_2)), Dtyp.Int |> Dtyp.mk_leaf
+        | C (Cmp.Ts ts_1), C (Cmp.I i_2) ->
+            C (Cmp.Ts (TStamp.sub_int ts_1 i_2)), Dtyp.Timestamp |> Dtyp.mk_leaf
+        | C (Cmp.Tz tz_1), C (Cmp.Tz tz_2) ->
+            C (Cmp.Tz (Tez.sub tz_1 tz_2)), Dtyp.Mutez |> Dtyp.mk_leaf
+        | _ -> asprintf "cannot subtract %a to %a" fmt v_2 fmt v_1 |> Exc.throw
 end

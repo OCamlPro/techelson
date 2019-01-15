@@ -133,6 +133,8 @@ type leaf =
 | TransferTokens
 | SetDelegate
 | Balance
+| BalanceOf
+| StorageOf
 | Source
 | Sender
 | Self
@@ -192,6 +194,8 @@ let fmt_leaf (fmt : formatter) (leaf : leaf) : unit = match leaf with
 | TransferTokens -> fprintf fmt "TRANSFER_TOKENS"
 | SetDelegate -> fprintf fmt "SET_DELEGATE"
 | Balance -> fprintf fmt "BALANCE"
+| BalanceOf -> fprintf fmt "BALANCE_OF"
+| StorageOf -> fprintf fmt "STORAGE_OF"
 | Source -> fprintf fmt "SOURCE"
 | Sender -> fprintf fmt "SENDER"
 | Self -> fprintf fmt "SELF"
@@ -251,6 +255,8 @@ let leaf_of_string (token : string) : leaf option = match token with
 | "TRANSFER_TOKENS" -> Some TransferTokens
 | "SET_DELEGATE" -> Some SetDelegate
 | "BALANCE" -> Some Balance
+| "BALANCE_OF" -> Some BalanceOf
+| "STORAGE_OF" -> Some StorageOf
 | "SOURCE" -> Some Source
 | "SENDER" -> Some Sender
 | "SELF" -> Some Self
@@ -319,6 +325,8 @@ let annot_arity_of_leaf (leaf : leaf) : (int * int * int) = match leaf with
 | TransferTokens
 | SetDelegate
 | Balance
+| BalanceOf
+| StorageOf
 | Source
 | Sender
 | Self

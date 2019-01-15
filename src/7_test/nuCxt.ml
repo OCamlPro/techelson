@@ -81,7 +81,8 @@ module Cxt (I : Eval.Sigs.SigInterpreter) : SigCxt = struct
         | Some ops ->
             self.ops <- ops;
             false
-        | None -> true
+        | None ->
+            true
 
     let env (self : t) = self.env
 

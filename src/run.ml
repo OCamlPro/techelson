@@ -69,7 +69,7 @@ let run () : unit =
                 else if Cxt.is_in_progress cxt |> not then loop ()
                 else (
 
-                    let rec loop () =
+                    let rec inner_loop () =
                         Cxt.interp cxt |> Interp.stack |> printf "@.@[<v>%a@]@.@." Interp.Stack.fmt;
                         Cxt.interp cxt |> Interp.next_ins |> if_let_some (
                             log_1 "@[<v 4>> %a@]@." Mic.fmt
@@ -78,20 +78,22 @@ let run () : unit =
                             input_line stdin |> ignore
                         );
                         let is_done = Cxt.step cxt in
-                        if not is_done then loop ()
+                        if not is_done then inner_loop ()
                         else (
                             log_1 "@.@.terminating run@.";
                             Cxt.terminate_run cxt;
                             log_1 "staging next operation@.";
                             let is_done = Cxt.init_next cxt in
                             log_1 "context: @[<v>%a@]@." Cxt.fmt cxt;
-                            if not is_done then loop () else ()
+                            if not is_done then inner_loop () else ()
                         )
                     in
 
+                    inner_loop ();
+
                     loop ()
 
-                )
+                ) ;
             in
             loop |> Exc.chain_err (
                 fun () ->

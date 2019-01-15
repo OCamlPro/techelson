@@ -82,22 +82,52 @@
 
     # Swap so that Test1's address is on top.
     SWAP ;
+    DUP ; # Remember Test1's address for later.
 
-    # Create call.
-    CONTRACT timestamp ;
-    IF_SOME {
-        PRINT_STACK ;
-        PUSH mutez 13 ;
-        NOW ;
-        TRANSFER_TOKENS ;
-        DIP SWAP ;
-        PRINT_STACK ;
-        CONS
-    } {
-        PUSH string "failed to resolve Test1" ;
-        FAILWITH
+    DIP {
+
+        # Create call.
+        CONTRACT timestamp ;
+        IF_SOME {
+            PRINT_STACK ;
+            PUSH mutez 13 ;
+            NOW ;
+            TRANSFER_TOKENS ;
+            DIP SWAP ;
+            PRINT_STACK ;
+            CONS
+        } {
+            PUSH string "failed to resolve Test1" ;
+            FAILWITH
+        } ;
+
+        # Call.
+        APPLY_OPERATIONS
+
     } ;
 
-    # Call.
-    APPLY_OPERATIONS
+    # Make sure the balance of Test1 is correct.
+    DUP ;
+    BALANCE_OF ;
+    PRINT_STACK ;
+    PUSH mutez 55 ;
+    PRINT_STACK ;
+    SUB ;
+    PRINT_STACK ;
+    IFNEQ {
+        PRINT_STACK ;
+        PUSH string "Test1 does not have a balance of 55tz" ;
+        FAILWITH
+    } {} ;
+    STORAGE_OF ;
+    PRINT_STACK ;
+    CAR ;
+    PRINT_STACK ;
+    PUSH string "blah" ;
+    COMPARE ;
+    PRINT_STACK ;
+    IFNEQ {
+        PUSH string "Test1 does not have the first element of its storage equal to \"blah\"" ;
+        FAILWITH
+    } {}
 }

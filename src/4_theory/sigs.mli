@@ -361,6 +361,7 @@ module type SigTheory = sig
         val primitive_str : Dtyp.t -> string -> value
 
         val unit : value
+        val bool : bool -> value
         val const : Mic.const -> value
         val cmp : Cmp.t -> value
         val set : Set.t -> value
@@ -388,4 +389,14 @@ module type SigTheory = sig
     val cons : value -> value -> value
     val car : value -> value
     val cdr : value -> value
+
+    val cmp : value -> value -> value * Dtyp.t
+
+    val eq : value -> value -> value
+    val neq : value -> value -> value
+
+    val is_zero : value -> value
+    val is_not_zero : value -> value
+
+    val sub : value -> value -> value * Dtyp.t
 end

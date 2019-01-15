@@ -660,6 +660,41 @@ module Interpreter (
 
                     Stack.push ~binding dtyp value self.stack
 
+                (* # Arithmetic. *)
+
+                | Mic.Leaf Sub ->
+                    let binding = Lst.hd mic.vars in
+                    let v_1, _ = Stack.pop self.stack in
+                    let v_2, _ = Stack.pop self.stack in
+                    let value, dtyp = Theory.sub v_1 v_2 in
+
+                    Stack.push ~binding dtyp value self.stack
+
+                (* # Comparison. *)
+
+                | Mic.Leaf Compare ->
+                    let binding = Lst.hd mic.vars in
+                    let v_1, _ = Stack.pop self.stack in
+                    let v_2, _ = Stack.pop self.stack in
+                    let value, dtyp = Theory.cmp v_1 v_2 in
+                    Stack.push ~binding dtyp value self.stack
+
+                | Mic.Leaf Eq ->
+                    let binding = Lst.hd mic.vars in
+                    let value, _ = Stack.pop self.stack in
+                    let value = Theory.is_zero value in
+                    let dtyp = Dtyp.Bool |> Dtyp.mk_leaf in
+
+                    Stack.push ~binding dtyp value self.stack
+
+                | Mic.Leaf Neq ->
+                    let binding = Lst.hd mic.vars in
+                    let value, _ = Stack.pop self.stack in
+                    let value = Theory.is_not_zero value in
+                    let dtyp = Dtyp.Bool |> Dtyp.mk_leaf in
+
+                    Stack.push ~binding dtyp value self.stack
+
                 (* # Pair operations. *)
                 | Mic.Leaf Car ->
                     let binding = Lst.hd mic.vars in
@@ -718,6 +753,41 @@ module Interpreter (
 
                 (* ## Contracts. *)
 
+                | Mic.Leaf Mic.Balance ->
+                    let binding = Lst.hd mic.vars in
+                    let value = Theory.Of.tez self.balance in
+                    let dtyp = Dtyp.Mutez |> Dtyp.mk_leaf in
+
+                    Stack.push ~binding dtyp value self.stack
+
+                | Mic.Leaf Mic.BalanceOf ->
+                    let binding = Lst.hd mic.vars in
+                    let address = Stack.pop_address self.stack |> fst in
+                    let value =
+                        match Contracts.Live.get address self.env with
+                        | None ->
+                            asprintf "there is no contract at address %a" Theory.Address.fmt address
+                            |> Exc.throw
+                        | Some contract -> contract.balance |> Theory.Of.tez
+                    in
+                    let dtyp = Dtyp.Mutez |> Dtyp.mk_leaf in
+
+                    Stack.push ~binding dtyp value self.stack
+
+                | Mic.Leaf Mic.StorageOf ->
+                    let binding = Lst.hd mic.vars in
+                    let address = Stack.pop_address self.stack |> fst in
+                    let value, dtyp =
+                        match Contracts.Live.get address self.env with
+                        | None ->
+                            asprintf "there is no contract at address %a" Theory.Address.fmt address
+                            |> Exc.throw
+                        | Some contract -> contract.storage, contract.contract.storage
+                    in
+
+                    Stack.push ~binding dtyp value self.stack
+
+
                 | Mic.Leaf Mic.Amount ->
                     let binding = Lst.hd mic.vars in
                     let value = self.amount |> Theory.Of.tez in
@@ -728,12 +798,12 @@ module Interpreter (
                 | Mic.Contract dtyp -> (
                     let binding = Lst.hd mic.vars in
                     let address = Stack.pop_address self.stack |> fst in
-                    log_0 "CONTRACT %a@." Address.fmt address;
+                    (* log_0 "CONTRACT %a@." Address.fmt address; *)
                     let value =
                         match Contracts.Live.get address self.env with
                         | None -> Theory.Of.option None
                         | Some contract -> (
-                            log_0 "found the contract %a / %a@." Dtyp.fmt dtyp Dtyp.fmt contract.contract.entry_param;
+                            (* log_0 "found the contract %a / %a@." Dtyp.fmt dtyp Dtyp.fmt contract.contract.entry_param; *)
                             let contract = Contract.to_mic contract.contract in
                             if dtyp <> contract.param then (
                                 Theory.Of.option None

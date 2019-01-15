@@ -84,6 +84,8 @@ type leaf =
 | TransferTokens
 | SetDelegate
 | Balance
+| BalanceOf
+| StorageOf
 | Source
 | Sender
 | Self
