@@ -46,6 +46,7 @@ let run () : unit =
     Test.Cxt.get_tests context |> List.iter (
         fun (test : Testcase.t) ->
             let cxt = Cxt.of_cxt context test in
+            log_1 "context: @[<v>%a@]@.@." Cxt.fmt cxt;
             (* Cxt.init cxt test; *)
             let rec loop () =
                 log_1 "test step...@.";
@@ -58,9 +59,6 @@ let run () : unit =
                         log_1 "context: @[<v>%a@]@." Cxt.fmt cxt;
 
                         Cxt.test cxt |> Interp.stack |> printf "test stack @[<v>%a@]@.@." Interp.Stack.fmt;
-                        Cxt.test cxt |> Interp.next_ins |> if_let_some (
-                            log_1 "@[<v 4>> %a@]@." Mic.fmt
-                        );
                         is_done
                     )
                 in

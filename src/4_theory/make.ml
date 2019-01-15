@@ -490,11 +490,12 @@ module Colls (
             | Lst lst ->
                 fprintf fmt "[";
                 let _, elms =
-                    lst |> List.fold_left (
-                        fun (is_first, acc) value ->
+                    List.fold_right (
+                        fun value (cnt, acc) ->
+                            let is_first = cnt = List.length lst in
                             let pref = if is_first then " " else ", " in
-                            false, (pref, value) :: acc
-                    ) (true, [])
+                            cnt + 1, (pref, value) :: acc
+                    ) lst (1, [])
                 in
                 go_up ((elms, " ]") :: stack)
 

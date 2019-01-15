@@ -9,7 +9,7 @@ module type SigCxt = sig
     type t
 
     (** Empty context constructor. *)
-    val mk : Testcase.t -> t
+    val mk : Contract.t list -> Testcase.t -> t
 
     val fmt : formatter -> t -> unit
 
@@ -56,11 +56,15 @@ module Cxt (I : Eval.Sigs.SigInterpreter) : SigCxt = struct
         mutable ops : Theory.operation list ;
     }
 
-    let mk (tc : Testcase.t) =
+    let mk (contracts : Contract.t list) (tc : Testcase.t) =
         let src = Run.Src.of_test tc in
-        let test_run = Test.mk src tc Run.Contracts.empty in
+        let env = Run.Contracts.empty () in
+        contracts |> List.iter (
+            fun c -> Run.Contracts.add c env
+        );
+        let test_run = Test.mk src tc env in
         {
-            env = Run.Contracts.empty ;
+            env ;
             test_run ;
             interp = None ;
             ops = [] ;
@@ -223,11 +227,7 @@ module Cxt (I : Eval.Sigs.SigInterpreter) : SigCxt = struct
     end
 
     let of_cxt (cxt : Cxt.t) (tc : Testcase.t) : t =
-        let self = mk tc in
-        Cxt.get_contracts cxt |> List.iter (
-            fun c -> Contracts.add c self
-        );
-        self
+        mk (Cxt.get_contracts cxt) tc
 
     let fmt (fmt : formatter) (self : t) : unit =
         fprintf fmt "@[<v>";

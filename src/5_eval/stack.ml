@@ -10,7 +10,7 @@ module Naive : Sigs.SigStackRaw = struct
         binding : Annot.Var.t option ;
     }
 
-    let clone ({value ; typ ; binding} : frame) : frame = { value ; typ ; binding }
+    let clone (binding : Annot.Var.t option) ({value ; typ ; _} : frame) : frame = { value ; typ ; binding }
 
     let mk_frame (value : Theory.value) (typ : Dtyp.t) (binding : Annot.Var.t option) : frame =
         { value ; typ ; binding }
@@ -62,9 +62,9 @@ module Naive : Sigs.SigStackRaw = struct
         | hd_1 :: hd_2 :: tail -> self.stack <- hd_2 :: hd_1 :: tail
         | _ -> Exc.throw "cannot `swap` a stack with less than two frames"
 
-    let dup (self : t) : unit =
+    let dup ?binding:(binding=None) (self : t) : unit =
         match self.stack with
-        | hd :: _ -> self.stack <- (clone hd) :: self.stack
+        | hd :: _ -> self.stack <- (clone binding hd) :: self.stack
         | [] ->
             Exc.throw "cannot `dup` an empty stack"
 

@@ -15,7 +15,7 @@ module type SigStackRaw = sig
 
     val swap : t -> unit
     val dip : t -> unit
-    val dup : t -> unit
+    val dup : ?binding : Annot.Var.t option -> t -> unit
     val undip : t -> unit
 end
 
@@ -47,7 +47,7 @@ module type SigStack = sig
     val right : ?alias : Dtyp.alias -> Dtyp.t -> t -> unit
 
     val cons : t -> unit
-    val nil : ?alias : Dtyp.alias -> Dtyp.t -> t -> unit
+    val nil : ?binding : Annot.Var.t option -> ?alias : Dtyp.alias -> Dtyp.t -> t -> unit
 
     val fmt : formatter -> t -> unit
 end
@@ -64,7 +64,7 @@ module type SigContractEnv = sig
         params : Theory.contract_params ;
     }
 
-    val empty : t
+    val empty : unit -> t
     val add : Contract.t -> t -> unit
     val get : string -> t -> Contract.t
 

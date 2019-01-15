@@ -19,7 +19,7 @@ module Contracts (T : Theo.Sigs.SigTheory) : Sigs.SigContractEnv with module The
         mutable live : (int, live) Hashtbl.t ;
     }
 
-    let empty = { defs = Hashtbl.create 47 ; live = Hashtbl.create 47 }
+    let empty () : t = { defs = Hashtbl.create 47 ; live = Hashtbl.create 47 }
 
     let add (contract : Contract.t) (self : t) : unit =
         if Hashtbl.mem self.defs contract.name then (

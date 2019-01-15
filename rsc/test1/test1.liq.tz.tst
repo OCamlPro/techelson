@@ -1,7 +1,7 @@
 {
     # Final list of operations.
-    NIL operation ;
-    DUP ;
+    NIL @ops operation ;
+    DUP @ops_too ;
 
     PRINT_STACK ;
 
@@ -39,6 +39,7 @@
 
     # Spawn contract.
     CREATE_CONTRACT @test1_contract "Test1" ;
+    PRINT_STACK ;
     DIP SWAP ;
     CONS ;
 
@@ -76,6 +77,7 @@
     PRINT_STACK ;
     DIP SWAP ;
     CONS ;
+    PRINT_STACK ;
 
     # Apply operations on top of the stack.
     APPLY_OPERATIONS ;
@@ -115,15 +117,13 @@
     SUB ;
     PRINT_STACK ;
     IFNEQ {
-        PRINT_STACK ;
         PUSH string "Test1 does not have a balance of 55tz" ;
         FAILWITH
     } {} ;
     STORAGE_OF ;
-    PRINT_STACK ;
     CAR ;
-    PRINT_STACK ;
     PUSH string "blah" ;
+    PRINT_STACK ;
     COMPARE ;
     PRINT_STACK ;
     IFNEQ {

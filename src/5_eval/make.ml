@@ -331,9 +331,9 @@ module Stack (S : Sigs.SigStackRaw)
         run |> Exc.chain_err (
             fun () -> "while running `CONS`"
         )
-    let nil ?alias:(alias=None) (dtyp : Dtyp.t) (self : t) : unit =
+    let nil ?binding:(binding=None) ?alias:(alias=None) (dtyp : Dtyp.t) (self : t) : unit =
         let dtyp = Dtyp.List dtyp |> Dtyp.mk ~alias in
-        push dtyp (Theory.Of.list Theory.Lst.nil) self
+        push ~binding dtyp (Theory.Of.list Theory.Lst.nil) self
 end
 
 module Interpreter (
@@ -493,7 +493,8 @@ module Interpreter (
                     ()
 
                 | Mic.Leaf Dup ->
-                    Stack.dup self.stack
+                    let binding = Lst.hd mic.vars in
+                    Stack.dup ~binding self.stack
 
                 | Mic.Leaf Swap ->
                     Stack.swap self.stack
@@ -717,8 +718,9 @@ module Interpreter (
                     Stack.cons self.stack
 
                 | Mic.Nil dtyp ->
+                    let binding = Lst.hd mic.vars in
                     let alias = Lst.hd mic.typs in
-                    Stack.nil ~alias dtyp self.stack
+                    Stack.nil ~binding ~alias dtyp self.stack
 
                 | Mic.Leaf Size ->
                     let lst, _ = Stack.pop_list self.stack in

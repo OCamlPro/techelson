@@ -72,5 +72,7 @@ let fmt ~(full : bool) (fmt : formatter) ({ contracts ; tests } : t) : unit =
             Contract.fmt ~full fmt contract;
             fprintf fmt "@,"
     );
-    tests |> List.iter (Testcase.fmt ~full fmt);
+    tests |> List.iter (
+        fun tc -> Testcase.fmt ~full fmt tc ; fprintf fmt "@,"
+    );
     fprintf fmt "@]"
