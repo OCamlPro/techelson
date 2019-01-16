@@ -1,5 +1,12 @@
+(** This module combines a theory with a notion of stack to create interpreters.
+*)
+
 open Base
 open Common
+
+module Sigs = Sigs
+module Make = Make
+module Stack = Stack
 
 exception ApplyOpsExc = Make.ApplyOpsExc
 
@@ -73,7 +80,7 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
             |> ignore;
             fprintf fmt "@]"
 
-        let len (self : t) : int = Hashtbl.length self.live
+        let count (self : t) : int = Hashtbl.length self.live
 
         let create
             (params : Theory.contract_params)

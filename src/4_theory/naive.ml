@@ -72,20 +72,10 @@ end = struct
         fprintf fmt "\"%s\"" t
 end
 
-module Bytes : sig
-    include Sigs.Str with type t = string
-    val size : t -> Nat.t
-    val slice : Nat.t -> Nat.t -> t -> t
-    val compare : t -> t -> Int.t
-end = struct
+module Bytes : Sigs.Str with type t = string = struct
     type t = string
     let of_native (s : string) : t = s
     let to_string (t : t) : string = t
-
-    let size (t : t) : Nat.t = String.length t |> sprintf "%i" |> Nat.of_string
-    let slice (start : Nat.t) (len : Nat.t) (t : t) : t =
-        String.sub t (Nat.to_native start) (Nat.to_native len)
-    let compare (t_1 : t) (t_2 : t) : Int.t = compare t_1 t_2 |> Int.of_native
 
     let concat (t_1 : t) (t_2 : t) : t = t_1 ^ t_2
 
@@ -219,4 +209,4 @@ module Prims : Sigs.Primitive = struct
 end
 
 
-module Theory : Sigs.Theory = Make.Colls (Prims)
+module Theory : Sigs.Theory = Make.Theory (Prims)

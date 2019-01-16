@@ -2,7 +2,7 @@ open Base
 open Base.Common
 
 module Naive : Sigs.StackRaw = struct
-    module Theory = Theo.Naive.Theory
+    module Theory = Theo.Naive
 
     type frame = {
         mutable value : Theory.value ;

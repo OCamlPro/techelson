@@ -3,13 +3,10 @@ open Base.Common
 
 exception ApplyOpsExc
 
-module TestInterp (I : Sigs.Interpreter)
-    : Sigs.Test with
-        module Run = I
-= struct
+module RunTest (I : Sigs.Interpreter) : Sigs.TestInterpreter with module Run = I = struct
     module Run = I
     module Contracts = Run.Contracts
-    module Theory = Contracts.Theory
+    module Theory = Run.Theory
 
     module Src = Run.Src
 
@@ -58,7 +55,7 @@ module Stack (S : Sigs.StackRaw)
             fun () -> "while popping a bool from the stack"
         )
 
-    let pop_int (self : t) : Theory.Cmp.Int.t * Dtyp.t =
+    let pop_int (self : t) : Theory.Int.t * Dtyp.t =
         let run () =
             match pop self with
             | Theory.C (Theory.Cmp.I i), dtyp -> i, dtyp
@@ -70,7 +67,7 @@ module Stack (S : Sigs.StackRaw)
             fun () -> "while popping an int from the stack"
         )
 
-    let pop_nat (self : t) : Theory.Cmp.Nat.t * Dtyp.t =
+    let pop_nat (self : t) : Theory.Nat.t * Dtyp.t =
         let run () =
             match pop self with
             | Theory.C (Theory.Cmp.N n), dtyp -> n, dtyp
@@ -82,7 +79,7 @@ module Stack (S : Sigs.StackRaw)
             fun () -> "while popping a nat from the stack"
         )
 
-    let pop_str (self : t) : Theory.Cmp.Str.t * Dtyp.t =
+    let pop_str (self : t) : Theory.Str.t * Dtyp.t =
         let run () =
             match pop self with
             | Theory.C (Theory.Cmp.S s), dtyp -> s, dtyp
@@ -341,8 +338,7 @@ module Interpreter (
 ) (
     C : Sigs.ContractEnv with module Theory = S.Theory
 ) : Sigs.Interpreter with
-    module Theory = S.Theory and
-    module Src.Theory = S.Theory
+    module Theory = S.Theory
 = struct
     module Theory = S.Theory
     module Stack = Stack (S)
@@ -625,7 +621,7 @@ module Interpreter (
                     (* Remember whatever next instructions there is. *)
                     push_block (Nop (mic, self.next)) self;
                     (* Which branch are we in? *)
-                    match Theory.Lst.head lst with
+                    match Theory.Lst.snoc lst with
                     | Some (sub_value, lst) ->
                         (* Push tail. *)
                         Stack.push dtyp (Theory.Of.list lst) self.stack;

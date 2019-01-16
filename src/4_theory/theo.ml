@@ -27,6 +27,17 @@
     implementing the `Sigs.SigPrimitive` signature. This might seem a bit tedious, but once this is
     done the functor in `Make` will build everything. In particular, it will put the functions
     inside conversion modules where they belong, creating the illusion of forward referencing.
+
+    Some datatypes are not actually given as inputs, such as `bool`. This is because they can be
+    represented natively in caml without changing the michelson semantics.
+
+    # The Naive Theory
+
+    Module `Naive.Theory` is a theory that relies solely on caml stdlib's types. Generally
+    speaking, it respects michelson's semantics as long as there is no overflow. Note that this
+    theory exposes most (if not all) of the value types for convenience and debug. When
+    implementing an actual theory, it is recommended to enforce encapsulation and to keep these
+    types private.
     
     # Type Constraints
 
@@ -37,6 +48,4 @@
 
 module Sigs = Sigs
 
-module Make = Make
-
-module Naive = Naive
+module Naive = Naive.Theory

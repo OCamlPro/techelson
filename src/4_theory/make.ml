@@ -3,9 +3,20 @@
 open Base
 open Base.Common
 
-module Colls (
+(** Builds theories.
+
+    The input module describes primitive value's representation and operations. This functor then
+    creates all the other values (list, set, ...), the type for values which aggregates everything,
+    the comparable values *etc*.
+
+    Note that the functor creates its own representation for mutez which just wraps `Int64.t`.
+*)
+module Theory (
     P : Sigs.Primitive
-) : Sigs.Theory = struct
+) : Sigs.Theory with module Prim = P = struct
+    module Prim = P
+
+
     module Cmp = struct
         include P
 
@@ -156,6 +167,29 @@ module Colls (
 
             | _ -> bail ()
 
+        module Unwrap = struct
+            let bool (c : t) : bool =
+                match c with
+                | B b -> b
+                | _ -> asprintf "unwrapping %a as bool" fmt c |> Exc.throw
+            let int (c : t) : Int.t =
+                match c with
+                | I i -> i
+                | _ -> asprintf "unwrapping %a as int" fmt c |> Exc.throw
+            let nat (c : t) : Nat.t =
+                match c with
+                | N n -> n
+                | _ -> asprintf "unwrapping %a as nat" fmt c |> Exc.throw
+            let str (c : t) : Str.t =
+                match c with
+                | S s -> s
+                | _ -> asprintf "unwrapping %a as string" fmt c |> Exc.throw
+            let bytes (c : t) : Bytes.t =
+                match c with
+                | By by -> by
+                | _ -> asprintf "unwrapping %a as bytes" fmt c |> Exc.throw
+        end
+
     end
 
     module Address = P.Address
@@ -205,29 +239,6 @@ module Colls (
         let sha512 : t -> Cmp.KeyH.t = Cmp.KeyHConv.sha512
     end
     module KeyH = Cmp.KeyH
-
-    module Unwrap = struct
-        let bool (c : Cmp.t) : bool =
-            match c with
-            | B b -> b
-            | _ -> asprintf "unwrapping %a as bool" Cmp.fmt c |> Exc.throw
-        let int (c : Cmp.t) : Cmp.Int.t =
-            match c with
-            | I i -> i
-            | _ -> asprintf "unwrapping %a as int" Cmp.fmt c |> Exc.throw
-        let nat (c : Cmp.t) : Cmp.Nat.t =
-            match c with
-            | N n -> n
-            | _ -> asprintf "unwrapping %a as nat" Cmp.fmt c |> Exc.throw
-        let str (c : Cmp.t) : Cmp.Str.t =
-            match c with
-            | S s -> s
-            | _ -> asprintf "unwrapping %a as string" Cmp.fmt c |> Exc.throw
-        let bytes (c : Cmp.t) : Cmp.Bytes.t =
-            match c with
-            | By by -> by
-            | _ -> asprintf "unwrapping %a as bytes" Cmp.fmt c |> Exc.throw
-    end
 
     module Set = struct
         module Inner = Set.Make(
@@ -349,7 +360,7 @@ module Colls (
             );
             fprintf fmt "]@]"
         
-        let head (lst : 'a t) : ('a * 'a t) option =
+        let snoc (lst : 'a t) : ('a * 'a t) option =
             match lst with
             | [] -> None
             | hd :: tl -> Some (hd, tl)

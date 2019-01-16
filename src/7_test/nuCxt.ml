@@ -46,12 +46,12 @@ end
 
 module Cxt (I : Eval.Sigs.Interpreter) : SigCxt = struct
     module Run = I
-    module Test = Eval.Make.TestInterp (Run)
+    module RunTest = Eval.Make.RunTest (Run)
     module Theory = Run.Theory
 
     type t = {
         env : Run.Contracts.t ;
-        test_run : Test.t ;
+        test_run : RunTest.t ;
         mutable interp : Run.t option ;
         mutable ops : Theory.operation list ;
     }
@@ -62,7 +62,7 @@ module Cxt (I : Eval.Sigs.Interpreter) : SigCxt = struct
         contracts |> List.iter (
             fun c -> Run.Contracts.add c env
         );
-        let test_run = Test.mk src tc env in
+        let test_run = RunTest.mk src tc env in
         {
             env ;
             test_run ;
@@ -71,7 +71,7 @@ module Cxt (I : Eval.Sigs.Interpreter) : SigCxt = struct
         }
 
     let is_done (self : t) : bool =
-        (Test.is_done self.test_run) && self.interp = None && self.ops = []
+        (RunTest.is_done self.test_run) && self.interp = None && self.ops = []
 
     let test_step (self : t) : bool =
         if self.interp <> None then (
@@ -81,7 +81,7 @@ module Cxt (I : Eval.Sigs.Interpreter) : SigCxt = struct
             Exc.throw
                 "trying to stage operations from test case but there are operations to process"
         );
-        match Test.step self.test_run with
+        match RunTest.step self.test_run with
         | Some ops ->
             self.ops <- ops;
             false
@@ -187,7 +187,7 @@ module Cxt (I : Eval.Sigs.Interpreter) : SigCxt = struct
         | None -> Exc.throw "trying to recover test runtime on uninitialized context"
 
     let test (self : t) : Run.t =
-        Test.interp self.test_run
+        RunTest.interp self.test_run
 
     let terminate_run (self : t) =
         let interp =
@@ -232,7 +232,7 @@ module Cxt (I : Eval.Sigs.Interpreter) : SigCxt = struct
     let fmt (fmt : formatter) (self : t) : unit =
         fprintf fmt "@[<v>";
         fprintf fmt "live contracts: @[";
-        if Run.Contracts.Live.len self.env = 0 then (
+        if Run.Contracts.Live.count self.env = 0 then (
             fprintf fmt "none"
         ) else (
             fprintf fmt "%a" Run.Contracts.Live.fmt self.env
