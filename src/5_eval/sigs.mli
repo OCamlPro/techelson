@@ -1,8 +1,8 @@
 open Base
 open Common
 
-module type SigStackRaw = sig
-    module Theory : Theo.Sigs.SigTheory
+module type StackRaw = sig
+    module Theory : Theo.Sigs.Theory
     type t
     val fmt : formatter -> t -> unit
 
@@ -19,8 +19,8 @@ module type SigStackRaw = sig
     val undip : t -> unit
 end
 
-module type SigStack = sig
-    include SigStackRaw
+module type Stack = sig
+    include StackRaw
 
     val pop_bool : t -> bool * Dtyp.t
     val pop_int : t -> Theory.Int.t * Dtyp.t
@@ -52,8 +52,8 @@ module type SigStack = sig
     val fmt : formatter -> t -> unit
 end
 
-module type SigContractEnv = sig
-    module Theory : Theo.Sigs.SigTheory
+module type ContractEnv = sig
+    module Theory : Theo.Sigs.Theory
 
     type t
     type live = private {
@@ -79,7 +79,7 @@ module type SigContractEnv = sig
 end
 
 module type SigSrc = sig
-    module Theory : Theo.Sigs.SigTheory
+    module Theory : Theo.Sigs.Theory
     type t =
     | Test of Testcase.t
     | Contract of Theory.Address.t
@@ -89,11 +89,11 @@ module type SigSrc = sig
 end
 
 
-module type SigInterpreter = sig
-    module Theory : Theo.Sigs.SigTheory
-    module Stack : SigStack with module Theory = Theory
-    module Address : Theo.Sigs.SigAddress with type t = Theory.Address.t
-    module Contracts : SigContractEnv with module Theory = Theory
+module type Interpreter = sig
+    module Theory : Theo.Sigs.Theory
+    module Stack : Stack with module Theory = Theory
+    module Address : Theo.Sigs.Address with type t = Theory.Address.t
+    module Contracts : ContractEnv with module Theory = Theory
 
     exception Failure of Theory.value
 
@@ -122,8 +122,8 @@ module type SigInterpreter = sig
     val balance : t -> Theory.Tez.t
 end
 
-module type SigTest = sig
-    module Run : SigInterpreter
+module type Test = sig
+    module Run : Interpreter
     module Contracts = Run.Contracts
     module Theory = Contracts.Theory
 
@@ -138,15 +138,15 @@ module type SigTest = sig
     val balance : t -> Theory.Tez.t
 end
 
-module type SigCxt = sig
-    module Run : SigInterpreter
-    module Test : SigTest with module Run = Run
+module type Cxt = sig
+    module Run : Interpreter
+    module Test : Test with module Run = Run
     module Theory = Run.Theory
     type t
 end
 
-module type SigStackOps = sig
-    module Stack : SigStack
+module type StackOps = sig
+    module Stack : Stack
 
     val push : ?binding : Annot.Var.t option -> Dtyp.t -> Stack.Theory.value -> Stack.t -> unit
 end

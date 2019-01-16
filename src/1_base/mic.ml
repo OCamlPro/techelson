@@ -105,6 +105,19 @@ module Macro = struct
             fprintf fmt "MAP_C%aR %a" (Fmt.fmt_list Fmt.sep_non fmt_unpair_op) ops fmt_ins ins
 end
 
+type hash_fun =
+| B58Check
+| Blake2B
+| Sha256
+| Sha512
+
+let fmt_hash_fun (fmt : formatter) (h : hash_fun) : unit =
+    match h with
+    | B58Check -> fprintf fmt "HASH_KEY"
+    | Blake2B -> fprintf fmt "BLAKE2B"
+    | Sha256 -> fprintf fmt "SHA256"
+    | Sha512 -> fprintf fmt "SHA512"
+
 type leaf =
 | Failwith
 | Exec
@@ -145,10 +158,7 @@ type leaf =
 | Pack
 | Unpack
 | Slice
-| HashKey
-| Blake2B
-| Sha256
-| Sha512
+| Hash of hash_fun
 | CheckSignature
 | Rename
 | ApplyOps
@@ -206,10 +216,7 @@ let fmt_leaf (fmt : formatter) (leaf : leaf) : unit = match leaf with
 | Pack -> fprintf fmt "PACK"
 | Unpack -> fprintf fmt "UNPACK"
 | Slice -> fprintf fmt "SLICE"
-| HashKey -> fprintf fmt "HASH_KEY"
-| Blake2B -> fprintf fmt "BLAKE2B"
-| Sha256 -> fprintf fmt "SHA256"
-| Sha512 -> fprintf fmt "SHA512"
+| Hash h -> fmt_hash_fun fmt h
 | CheckSignature -> fprintf fmt "CHECK_SIGNATURE"
 | Rename -> fprintf fmt "RENAME"
 | ApplyOps -> fprintf fmt "APPLY_OPERATIONS"
@@ -267,10 +274,10 @@ let leaf_of_string (token : string) : leaf option = match token with
 | "PACK" -> Some Pack
 | "UNPACK" -> Some Unpack
 | "SLICE" -> Some Slice
-| "HASH_KEY" -> Some HashKey
-| "BLAKE2B" -> Some Blake2B
-| "SHA256" -> Some Sha256
-| "SHA512" -> Some Sha512
+| "HASH_KEY" -> Some (Hash B58Check)
+| "BLAKE2B" -> Some (Hash Blake2B)
+| "SHA256" -> Some (Hash Sha256)
+| "SHA512" -> Some (Hash Sha512)
 | "CHECK_SIGNATURE" -> Some CheckSignature
 | "RENAME" -> Some Rename
 | "APPLY_OPERATIONS" -> Some ApplyOps
@@ -337,10 +344,7 @@ let annot_arity_of_leaf (leaf : leaf) : (int * int * int) = match leaf with
 | Pack
 | Unpack
 | Slice
-| HashKey
-| Blake2B
-| Sha256
-| Sha512
+| Hash _
 | CreateAccount
 | CheckSignature
 | Rename -> (0, 1, 0)

@@ -4,37 +4,33 @@ open Base
 open Base.Common
 
 module Colls (
-    C : Sigs.SigCmp
-) (
-    A : Sigs.SigAddress
-) : Sigs.SigTheory = struct
-    module Address = A
-
+    P : Sigs.Primitive
+) : Sigs.Theory = struct
     module Cmp = struct
-        include C
+        include P
 
         module Tez = struct
             type t = Int64.t
-            type nat = C.Nat.t
+            type nat = Nat.t
 
-            let to_str (t : t) : string =
+            let to_string (t : t) : string =
                 Int64.to_string t
 
             let fmt (fmt : formatter) (t : t) : unit =
                 Int64.to_string t |> fprintf fmt "%stz"
 
             let to_nat (t : t) : nat =
-                (fun () -> Int64.to_string t |> C.Nat.of_str)
+                (fun () -> Int64.to_string t |> Nat.of_string)
                 |> Exc.erase_err (
                     fun () -> asprintf "cannot convert %a to nat" fmt t
                 )
             let of_nat (n : nat) : t =
-                (fun () -> C.Nat.to_str n |> Int64.of_string)
+                (fun () -> Nat.to_string n |> Int64.of_string)
                 |> Exc.chain_err (
-                    fun () -> asprintf "cannot convert %a to mutez" C.Nat.fmt n
+                    fun () -> asprintf "cannot convert %a to mutez" Nat.fmt n
                 )
 
-            let of_str (s : string) : t =
+            let of_string (s : string) : t =
                 (fun () -> Int64.of_string s)
                 |> Exc.erase_err (
                     fun () -> sprintf "cannot convert string `%s` to tezos" s
@@ -54,12 +50,12 @@ module Colls (
             let mul_nat (t : t) (n : nat) : t =
                 (fun () -> of_nat n |> Int64.mul t)
                 |> Exc.erase_err (
-                    fun () -> asprintf "while evaluating `%a * %a`" fmt t C.Nat.fmt n
+                    fun () -> asprintf "while evaluating `%a * %a`" fmt t Nat.fmt n
                 )
             let div_nat (t : t) (n : nat) : t =
                 (fun () -> of_nat n |> Int64.mul t)
                 |> Exc.erase_err (
-                    fun () -> asprintf "while evaluating `%a / %a`" fmt t C.Nat.fmt n
+                    fun () -> asprintf "while evaluating `%a / %a`" fmt t Nat.fmt n
                 )
             let div (t_1 : t) (t_2 : t) : t =
                 if t_2 = Int64.zero then (
@@ -162,12 +158,15 @@ module Colls (
 
     end
 
+    module Address = P.Address
+
     module Tez = Cmp.Tez
 
     module Int = struct
         include Cmp.Int
         let to_nat : t -> Cmp.Nat.t option = Cmp.NatConv.int_to_nat
         let of_nat : Cmp.Nat.t -> t = Cmp.NatConv.nat_to_int
+        let abs : t -> Cmp.Nat.t = Cmp.NatConv.int_abs
     end
 
     module Nat = struct
@@ -247,7 +246,7 @@ module Colls (
         let fold_as (pre : elm -> 'a) (f : 'acc -> 'a -> 'acc) (acc : 'acc) (set : t) : 'acc =
             fold (fun acc a -> f acc (pre a)) acc set
         let size (t : t) : Cmp.Nat.t =
-            Inner.cardinal t |> sprintf "%i" |> Cmp.Nat.of_str
+            Inner.cardinal t |> sprintf "%i" |> Cmp.Nat.of_string
         let fmt (fmt : formatter) (set : t) : unit =
             fprintf fmt "@[@[<hv 2>{";
             fold (
@@ -282,7 +281,7 @@ module Colls (
                 fun k v -> f (f_k k) (f_v v)
             ) t
         let size (t : 'a t) : Cmp.Nat.t =
-            Inner.cardinal t |> sprintf "%i" |> Cmp.Nat.of_str
+            Inner.cardinal t |> sprintf "%i" |> Cmp.Nat.of_string
         let fmt (fmt_a : formatter -> 'a -> unit) (fmt : formatter) (map : 'a t) : unit =
             fprintf fmt "@[@[<hv 2>{";
             fold (
@@ -332,7 +331,7 @@ module Colls (
         type 'a t = 'a list
 
         let size (l : 'a t) : Cmp.Nat.t =
-            List.length l |> sprintf "%i" |> Cmp.Nat.of_str
+            List.length l |> sprintf "%i" |> Cmp.Nat.of_string
         let fold = List.fold_left
         let map = List.map
         let is_nil lst = lst = []
@@ -540,7 +539,7 @@ module Colls (
         in
         match dtyp.typ, v with
         | Dtyp.Leaf Dtyp.Key, C (Cmp.S s) ->
-            Key (Str.to_str s |> Key.of_str)
+            Key (Str.to_string s |> Key.of_native)
         | Dtyp.Contract param, Contract (_, c) ->
             if c.Mic.param = param then v else bail_msg () |> Exc.throw
         | _ -> (
@@ -563,10 +562,10 @@ module Colls (
 
         let primitive_str (dtyp : Dtyp.t) (s : string) : value =
             match dtyp.typ with
-            | Dtyp.Leaf Dtyp.Key -> Key (Key.of_str s)
-            | Dtyp.Leaf Dtyp.Bytes -> C (Cmp.By (Bytes.of_str s))
-            | Dtyp.Leaf Dtyp.Timestamp -> C (Cmp.Ts (TStamp.of_str s))
-            | Dtyp.Leaf Dtyp.Str -> C (Cmp.S (Str.of_str s))
+            | Dtyp.Leaf Dtyp.Key -> Key (Key.of_native s)
+            | Dtyp.Leaf Dtyp.Bytes -> C (Cmp.By (Bytes.of_native s))
+            | Dtyp.Leaf Dtyp.Timestamp -> C (Cmp.Ts (TStamp.of_native s))
+            | Dtyp.Leaf Dtyp.Str -> C (Cmp.S (Str.of_native s))
             | _ -> asprintf "cannot cast a primitive string to `%a`" Dtyp.fmt dtyp |> Exc.throw
 
         let unit : value = U
@@ -588,9 +587,9 @@ module Colls (
                 | Unit -> U
 
                 | Bool b -> C (Cmp.B b) |> go_up stack
-                | Int i -> C (Cmp.I (Cmp.Int.of_str i)) |> go_up stack
-                | Str s -> C (Cmp.S (Cmp.Str.of_str s)) |> go_up stack
-                | Bytes by -> C (Cmp.By (Cmp.Bytes.of_str by)) |> go_up stack
+                | Int i -> C (Cmp.I (Cmp.Int.of_string i)) |> go_up stack
+                | Str s -> C (Cmp.S (Cmp.Str.of_native s)) |> go_up stack
+                | Bytes by -> C (Cmp.By (Cmp.Bytes.of_native by)) |> go_up stack
 
                 | Cont c -> Contract (None, c)
 
@@ -682,18 +681,38 @@ module Colls (
     let eq (v_1 : value) (v_2 : value) : value = eq_raw v_1 v_2 |> Of.bool
     let neq (v_1 : value) (v_2 : value) : value = eq_raw v_1 v_2 |> not |> Of.bool
 
-    let is_zero_raw (v : value) : bool =
+    let zero_cmp_raw (v : value) : int =
         match v with
-        | C (Cmp.I i) -> i = Int.zero
-        | C (Cmp.N n) -> n = Nat.zero
-        | C (Cmp.Tz tz) -> tz = Tez.zero
+        | C (Cmp.I i) -> Int.compare i Int.zero
+        | C (Cmp.N n) -> Nat.compare n Nat.zero
+        | C (Cmp.Tz tz) -> Tez.compare tz Tez.zero
         | _ -> asprintf "cannot compare %a to zero" fmt v |> Exc.throw
 
     let is_zero (v : value) : value =
-        is_zero_raw v |> Of.bool
+        zero_cmp_raw v =  0 |> Of.bool
     let is_not_zero (v : value) : value =
-        is_zero_raw v |> not |> Of.bool
-    
+        zero_cmp_raw v <> 0 |> Of.bool
+    let lt_zero (v : value) : value =
+        zero_cmp_raw v <  0 |> Of.bool
+    let le_zero (v : value) : value =
+        zero_cmp_raw v <= 0 |> Of.bool
+    let ge_zero (v : value) : value =
+        zero_cmp_raw v >= 0 |> Of.bool
+    let gt_zero (v : value) : value =
+        zero_cmp_raw v >  0 |> Of.bool
+
+    let abs (v : value) : value * Dtyp.t =
+        match v with
+        | C (Cmp.I i) -> C (Cmp.N (Int.abs i)), Dtyp.mk_leaf Dtyp.Int
+        | _ -> asprintf "cannot compute absolute value for %a" fmt v |> Exc.throw
+
+    let neg (v : value) : value * Dtyp.t =
+        match v with
+        | C (Cmp.I i) -> C (Cmp.I (Int.sub Int.zero i)), Dtyp.mk_leaf Dtyp.Int
+        | C (Cmp.N n) -> C (Cmp.I (Int.of_nat n |> Int.sub Int.zero)), Dtyp.mk_leaf Dtyp.Int
+
+        | _ -> asprintf "cannot compute negation of %a" fmt v |> Exc.throw
+
     let sub (v_1 : value) (v_2 : value) : value * Dtyp.t =
         match v_1, v_2 with
         | C (Cmp.I i_1), C (Cmp.I i_2) ->
@@ -711,4 +730,56 @@ module Colls (
         | C (Cmp.Tz tz_1), C (Cmp.Tz tz_2) ->
             C (Cmp.Tz (Tez.sub tz_1 tz_2)), Dtyp.Mutez |> Dtyp.mk_leaf
         | _ -> asprintf "cannot subtract %a to %a" fmt v_2 fmt v_1 |> Exc.throw
+
+    let add (v_1 : value) (v_2 : value) : value * Dtyp.t =
+        match v_1, v_2 with
+        | C (Cmp.I i_1), C (Cmp.I i_2) ->
+            C (Cmp.I (Int.add i_1 i_2)), Dtyp.Int |> Dtyp.mk_leaf
+        | C (Cmp.I i), C (Cmp.N n)
+        | C (Cmp.N n), C (Cmp.I i) ->
+            C (Cmp.I (Nat.to_int n |> Int.add i)), Dtyp.Int |> Dtyp.mk_leaf
+        | C (Cmp.N n_1), C (Cmp.N n_2) ->
+            C (Cmp.N (Nat.add n_1 n_2)), Dtyp.Nat |> Dtyp.mk_leaf
+
+        | C (Cmp.Ts ts), C (Cmp.I i)
+        | C (Cmp.I i), C (Cmp.Ts ts) ->
+            C (Cmp.Ts (TStamp.add ts i)), Dtyp.Timestamp |> Dtyp.mk_leaf
+
+        | C (Cmp.Tz tz_1), C (Cmp.Tz tz_2) ->
+            C (Cmp.Tz (Tez.add tz_1 tz_2)), Dtyp.Mutez |> Dtyp.mk_leaf
+        | _ -> asprintf "cannot add %a to %a" fmt v_1 fmt v_2 |> Exc.throw
+
+    let mul (v_1 : value) (v_2 : value) : value * Dtyp.t =
+        match v_1, v_2 with
+        | C (Cmp.I i_1), C (Cmp.I i_2) ->
+            C (Cmp.I (Int.mul i_1 i_2)), Dtyp.Int |> Dtyp.mk_leaf
+        | C (Cmp.I i), C (Cmp.N n)
+        | C (Cmp.N n), C (Cmp.I i) ->
+            C (Cmp.I (Nat.to_int n |> Int.mul i)), Dtyp.Int |> Dtyp.mk_leaf
+        | C (Cmp.N n_1), C (Cmp.N n_2) ->
+            C (Cmp.N (Nat.mul n_1 n_2)), Dtyp.Nat |> Dtyp.mk_leaf
+
+        | C (Cmp.Tz tz), C (Cmp.N n)
+        | C (Cmp.N n), C (Cmp.Tz tz) ->
+            C (Cmp.Tz (Tez.mul_nat tz n)), Dtyp.Mutez |> Dtyp.mk_leaf
+
+        | _ -> asprintf "cannot multiply %a and %a" fmt v_1 fmt v_2 |> Exc.throw
+
+    let disj (v_1 : value) (v_2 : value) : value * Dtyp.t =
+        match v_1, v_2 with
+        | C (Cmp.B b_1), C (Cmp.B b_2) -> C (Cmp.B (b_1 || b_2)), Dtyp.Bool |> Dtyp.mk_leaf
+
+        | _ -> asprintf "cannot compute disjunction of %a and %a" fmt v_1 fmt v_2 |> Exc.throw
+
+    let conj (v_1 : value) (v_2 : value) : value * Dtyp.t =
+        match v_1, v_2 with
+        | C (Cmp.B b_1), C (Cmp.B b_2) -> C (Cmp.B (b_1 && b_2)), Dtyp.Bool |> Dtyp.mk_leaf
+
+        | _ -> asprintf "cannot compute conjunction of %a and %a" fmt v_1 fmt v_2 |> Exc.throw
+
+    let not (v : value) : value * Dtyp.t =
+        match v with
+        | C (Cmp.B b) -> C (Cmp.B (not b)), Dtyp.Bool |> Dtyp.mk_leaf
+
+        | _ -> asprintf "cannot compute negation of %a" fmt v |> Exc.throw
 end

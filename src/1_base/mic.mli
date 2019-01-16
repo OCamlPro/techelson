@@ -55,6 +55,13 @@ module Macro : sig
     val fmt : (formatter -> 'ins -> unit) option -> formatter -> 'ins t -> unit
 end
 
+(** Enum of the hash functions. *)
+type hash_fun =
+| B58Check
+| Blake2B
+| Sha256
+| Sha512
+
 (** Nullary instructions. *)
 type leaf =
 | Failwith
@@ -96,10 +103,7 @@ type leaf =
 | Pack
 | Unpack
 | Slice
-| HashKey
-| Blake2B
-| Sha256
-| Sha512
+| Hash of hash_fun
 | CheckSignature
 | Rename
 | ApplyOps

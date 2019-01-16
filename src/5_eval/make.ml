@@ -3,8 +3,8 @@ open Base.Common
 
 exception ApplyOpsExc
 
-module TestInterp (I : Sigs.SigInterpreter)
-    : Sigs.SigTest with
+module TestInterp (I : Sigs.Interpreter)
+    : Sigs.Test with
         module Run = I
 = struct
     module Run = I
@@ -42,8 +42,8 @@ module TestInterp (I : Sigs.SigInterpreter)
     let balance (self : t) : Theory.Tez.t = Run.balance self.interp
 end
 
-module Stack (S : Sigs.SigStackRaw)
-    : Sigs.SigStack with type t = S.t and module Theory = S.Theory
+module Stack (S : Sigs.StackRaw)
+    : Sigs.Stack with type t = S.t and module Theory = S.Theory
 = struct
     include S
     let pop_bool (self : t) : bool * Dtyp.t =
@@ -337,10 +337,10 @@ module Stack (S : Sigs.SigStackRaw)
 end
 
 module Interpreter (
-    S : Sigs.SigStackRaw
+    S : Sigs.StackRaw
 ) (
-    C : Sigs.SigContractEnv with module Theory = S.Theory
-) : Sigs.SigInterpreter with
+    C : Sigs.ContractEnv with module Theory = S.Theory
+) : Sigs.Interpreter with
     module Theory = S.Theory and
     module Src.Theory = S.Theory
 = struct
@@ -405,8 +405,6 @@ module Interpreter (
         | head :: blocks ->
             self.blocks <- blocks;
             Some head
-
-    module Ops = Ops.Make(Stack)
 
     let is_done ({ blocks ; next ; _ } : t) : bool =
         blocks = [] && next = []
@@ -661,13 +659,68 @@ module Interpreter (
 
                     Stack.push ~binding dtyp value self.stack
 
+                (* # Booleans. *)
+
+                | Mic.Leaf And ->
+                    let binding = Lst.hd mic.vars in
+                    let v_1, _ = Stack.pop self.stack in
+                    let v_2, _ = Stack.pop self.stack in
+                    let value, dtyp = Theory.conj v_1 v_2 in
+
+                    Stack.push ~binding dtyp value self.stack
+
+                | Mic.Leaf Or ->
+                    let binding = Lst.hd mic.vars in
+                    let v_1, _ = Stack.pop self.stack in
+                    let v_2, _ = Stack.pop self.stack in
+                    let value, dtyp = Theory.disj v_1 v_2 in
+
+                    Stack.push ~binding dtyp value self.stack
+
+                | Mic.Leaf Not ->
+                    let binding = Lst.hd mic.vars in
+                    let value, _ = Stack.pop self.stack in
+                    let value, dtyp = Theory.not value in
+
+                    Stack.push ~binding dtyp value self.stack
+
                 (* # Arithmetic. *)
+
+                | Mic.Leaf Neg ->
+                    let binding = Lst.hd mic.vars in
+                    let value, _ = Stack.pop self.stack in
+                    let value, dtyp = Theory.neg value in
+
+                    Stack.push ~binding dtyp value self.stack
+
+                | Mic.Leaf Add ->
+                    let binding = Lst.hd mic.vars in
+                    let v_1, _ = Stack.pop self.stack in
+                    let v_2, _ = Stack.pop self.stack in
+                    let value, dtyp = Theory.add v_1 v_2 in
+
+                    Stack.push ~binding dtyp value self.stack
 
                 | Mic.Leaf Sub ->
                     let binding = Lst.hd mic.vars in
                     let v_1, _ = Stack.pop self.stack in
                     let v_2, _ = Stack.pop self.stack in
                     let value, dtyp = Theory.sub v_1 v_2 in
+
+                    Stack.push ~binding dtyp value self.stack
+
+                | Mic.Leaf Mul ->
+                    let binding = Lst.hd mic.vars in
+                    let v_1, _ = Stack.pop self.stack in
+                    let v_2, _ = Stack.pop self.stack in
+                    let value, dtyp = Theory.mul v_1 v_2 in
+
+                    Stack.push ~binding dtyp value self.stack
+                
+                | Mic.Leaf Abs ->
+                    let binding = Lst.hd mic.vars in
+                    let value, _ = Stack.pop self.stack in
+                    let value, dtyp = Theory.abs value in
 
                     Stack.push ~binding dtyp value self.stack
 
@@ -692,6 +745,38 @@ module Interpreter (
                     let binding = Lst.hd mic.vars in
                     let value, _ = Stack.pop self.stack in
                     let value = Theory.is_not_zero value in
+                    let dtyp = Dtyp.Bool |> Dtyp.mk_leaf in
+
+                    Stack.push ~binding dtyp value self.stack
+
+                | Mic.Leaf Le ->
+                    let binding = Lst.hd mic.vars in
+                    let value, _ = Stack.pop self.stack in
+                    let value = Theory.le_zero value in
+                    let dtyp = Dtyp.Bool |> Dtyp.mk_leaf in
+
+                    Stack.push ~binding dtyp value self.stack
+
+                | Mic.Leaf Lt ->
+                    let binding = Lst.hd mic.vars in
+                    let value, _ = Stack.pop self.stack in
+                    let value = Theory.lt_zero value in
+                    let dtyp = Dtyp.Bool |> Dtyp.mk_leaf in
+
+                    Stack.push ~binding dtyp value self.stack
+
+                | Mic.Leaf Gt ->
+                    let binding = Lst.hd mic.vars in
+                    let value, _ = Stack.pop self.stack in
+                    let value = Theory.gt_zero value in
+                    let dtyp = Dtyp.Bool |> Dtyp.mk_leaf in
+
+                    Stack.push ~binding dtyp value self.stack
+
+                | Mic.Leaf Ge ->
+                    let binding = Lst.hd mic.vars in
+                    let value, _ = Stack.pop self.stack in
+                    let value = Theory.ge_zero value in
                     let dtyp = Dtyp.Bool |> Dtyp.mk_leaf in
 
                     Stack.push ~binding dtyp value self.stack
@@ -738,13 +823,19 @@ module Interpreter (
 
                 (* ## Crypto. *)
 
-                | Mic.Leaf HashKey ->
+                | Mic.Leaf (Hash h) ->
                     let binding = Lst.hd mic.vars in
                     let key, _ = Stack.pop self.stack in
                     let value =
                         (fun () ->
                             let key = Theory.Inspect.key key in
-                            Theory.Key.b58check key |> Theory.Of.key_h
+                            (
+                                match h with
+                                | Mic.B58Check -> Theory.Key.b58check
+                                | Mic.Blake2B -> Theory.Key.blake2b
+                                | Mic.Sha256 -> Theory.Key.sha256
+                                | Mic.Sha512 -> Theory.Key.sha512
+                            ) key |> Theory.Of.key_h
                         ) |> Exc.chain_err (
                             fun () -> "while retrieving a key to hash (b58check)"
                         )

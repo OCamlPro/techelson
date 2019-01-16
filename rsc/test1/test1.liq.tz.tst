@@ -27,7 +27,6 @@
     PAIR ;
     PUSH @v_1 string "blah" ;
     PAIR ;
-    # PAPAPPAIPAPAPAPPAIPAIR @param ;
 
     # Additional parameters for contract deployment operation.
     PUSH mutez 42 ;
@@ -113,14 +112,13 @@
     BALANCE_OF ;
     PRINT_STACK ;
     PUSH mutez 55 ;
-    PRINT_STACK ;
     SUB ;
-    PRINT_STACK ;
     IFNEQ {
         PUSH string "Test1 does not have a balance of 55tz" ;
         FAILWITH
     } {} ;
     STORAGE_OF ;
+    PRINT_STACK ;
     CAR ;
     PUSH string "blah" ;
     PRINT_STACK ;

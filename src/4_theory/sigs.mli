@@ -1,4 +1,8 @@
-(** Input/output signatures for the functors that create evaluators. *)
+(** Input/output signatures for the functors that create evaluators.
+
+    All primitive datatypes should be formatable. 
+
+*)
 
 open Base
 open Base.Common
@@ -9,13 +13,13 @@ end
 module type SigTFmt = sig
     include SigT
     val fmt : formatter -> t -> unit
-    val to_str : t -> string
+    val to_string : t -> string
 end
 
-module type SigArith = sig
+module type Arith = sig
     include SigTFmt
 
-    val of_str : string -> t
+    val of_string : string -> t
     val of_native : int -> t
     val to_native : t -> int
 
@@ -26,16 +30,16 @@ module type SigArith = sig
     val zero : t
 end
 
-module type SigInt = sig
-    include SigArith
+module type Int = sig
+    include Arith
     val sub : t -> t -> t
 end
 
-module type SigTez = sig
+module type Tez = sig
     include SigTFmt
     type nat
 
-    val of_str : string -> t
+    val of_string : string -> t
     val of_native : Int64.t -> t
     val to_native : t -> int
 
@@ -51,23 +55,24 @@ module type SigTez = sig
     val of_nat : nat -> t
 end
 
-module type SigNatConv = sig
+module type NatConv = sig
     type int
     type nat
     val int_to_nat : int -> nat option
     val nat_to_int : nat -> int
     val nat_sub : nat -> nat -> int
+    val int_abs : int -> nat
 end
 
-module type SigStr = sig
+module type Str = sig
     include SigTFmt
 
-    val of_str : string -> t
+    val of_native : string -> t
     val concat : t -> t -> t
     val fmt : formatter -> t -> unit
 end
 
-module type SigStrConv = sig
+module type StrConv = sig
     type str
     type nat
     type int
@@ -76,15 +81,15 @@ module type SigStrConv = sig
     val compare : str -> str -> int
 end
 
-module type SigTStamp = sig
+module type TStamp = sig
     include SigTFmt
 
-    val of_str : string -> t
+    val of_native : string -> t
     val now : unit -> t
     val compare : t -> t -> int
 end
 
-module type SigTStampConv = sig
+module type TStampConv = sig
     type t_stamp
     type int
 
@@ -93,18 +98,18 @@ module type SigTStampConv = sig
     val sub : t_stamp -> t_stamp -> int
 end
 
-module type SigKey = sig
+module type Key = sig
     include SigTFmt
-    val of_str : string -> t
+    val of_native : string -> t
 end
 
-module type SigKeyH = sig
+module type KeyH = sig
     include SigTFmt
 
     val compare : t -> t -> int
 end
 
-module type SigKeyHConv = sig
+module type KeyHConv = sig
     type key_h
     type key
 
@@ -114,7 +119,7 @@ module type SigKeyHConv = sig
     val sha512 : key -> key_h
 end
 
-module type SigAddress = sig
+module type Address = sig
     type t
 
     val fresh : Annot.Var.t option -> t
@@ -123,42 +128,42 @@ module type SigAddress = sig
     val uid : t -> int
 end
 
-module type SigCmp = sig
-    module Int : SigInt
+module type Primitive = sig
+    module Int : Int
 
     module Nat : sig
-        include SigArith
+        include Arith
     end
-    module NatConv : SigNatConv with type int = Int.t and type nat = Nat.t
+    module NatConv : NatConv with type int = Int.t and type nat = Nat.t
 
     module Str : sig
-        include SigStr
+        include Str
     end
-    module StrConv : SigStrConv with type str = Str.t and type int = Int.t and type nat = Nat.t
+    module StrConv : StrConv with type str = Str.t and type int = Int.t and type nat = Nat.t
 
     module Bytes : sig
-        include SigStr
+        include Str
         val size : t -> Nat.t
         val slice : Nat.t -> Nat.t -> t -> t
         val compare : t -> t -> Int.t
     end
-    module BytesConv : SigStrConv with type str = Bytes.t and type int = Int.t and type nat = Nat.t
+    module BytesConv : StrConv with type str = Bytes.t and type int = Int.t and type nat = Nat.t
 
-    module TStamp : SigTStamp
-    module TStampConv : SigTStampConv with type t_stamp = TStamp.t and type int = Int.t
+    module TStamp : TStamp
+    module TStampConv : TStampConv with type t_stamp = TStamp.t and type int = Int.t
 
-    module Key : SigKey
-    module KeyH : SigKeyH
-    module KeyHConv : SigKeyHConv with type key = Key.t and type key_h = KeyH.t
+    module Key : Key
+    module KeyH : KeyH
+    module KeyHConv : KeyHConv with type key = Key.t and type key_h = KeyH.t
+
+    module Address : Address
 end
 
-module type SigTheory = sig
-    module Address : SigAddress
-
+module type Theory = sig
     module Cmp : sig
-        include SigCmp
+        include Primitive
 
-        module Tez : SigTez with type nat = Nat.t
+        module Tez : Tez with type nat = Nat.t
 
         type t =
         | B of bool
@@ -177,51 +182,54 @@ module type SigTheory = sig
         val cast : Dtyp.t -> t -> t
     end
 
+    module Address : Address
+
     module Int : sig
-        include SigArith with type t = Cmp.Int.t
+        include Arith with type t = Cmp.Int.t
         val sub : t -> t -> t
         val to_nat : t -> Cmp.Nat.t option
         val of_nat : Cmp.Nat.t -> t
+        val abs : t -> Cmp.Nat.t
     end
 
     module Nat : sig
-        include SigArith with type t = Cmp.Nat.t
+        include Arith with type t = Cmp.Nat.t
         val sub : t -> t -> Int.t
         val of_int : Int.t -> t option
         val to_int : t -> Int.t
     end
 
-    module Tez : SigTez with type t = Cmp.Tez.t and type nat = Nat.t
+    module Tez : Tez with type t = Cmp.Tez.t and type nat = Nat.t
 
     module Str : sig
-        include SigStr with type t = Cmp.Str.t
+        include Str with type t = Cmp.Str.t
         val size : t -> Nat.t
         val slice : Nat.t -> Nat.t -> t -> t
         val compare : t -> t -> Int.t
     end
 
     module Bytes : sig
-        include SigStr with type t = Cmp.Bytes.t
+        include Str with type t = Cmp.Bytes.t
         val size : t -> Nat.t
         val slice : Nat.t -> Nat.t -> t -> t
         val compare : t -> t -> Int.t
     end
 
     module TStamp : sig
-        include SigTStamp with type t = Cmp.TStamp.t
+        include TStamp with type t = Cmp.TStamp.t
         val add : t -> Int.t -> t
         val sub_int : t -> Int.t -> t
         val sub : t -> t -> Int.t
     end
 
     module Key : sig
-        include SigKey with type t = Cmp.Key.t
+        include Key with type t = Cmp.Key.t
         val b58check : t -> Cmp.KeyH.t
         val blake2b : t -> Cmp.KeyH.t
         val sha256 : t -> Cmp.KeyH.t
         val sha512 : t -> Cmp.KeyH.t
     end
-    module KeyH : SigKeyH with type t = Cmp.KeyH.t
+    module KeyH : KeyH with type t = Cmp.KeyH.t
 
     module Unwrap : sig
         val bool : Cmp.t -> bool
@@ -397,6 +405,19 @@ module type SigTheory = sig
 
     val is_zero : value -> value
     val is_not_zero : value -> value
+    val lt_zero : value -> value
+    val le_zero : value -> value
+    val ge_zero : value -> value
+    val gt_zero : value -> value
+
+    val abs : value -> value * Dtyp.t
 
     val sub : value -> value -> value * Dtyp.t
+    val add : value -> value -> value * Dtyp.t
+    val mul : value -> value -> value * Dtyp.t
+
+    val disj : value -> value -> value * Dtyp.t
+    val conj : value -> value -> value * Dtyp.t
+    val not : value -> value * Dtyp.t
+    val neg : value -> value * Dtyp.t
 end

@@ -3,7 +3,7 @@ open Common
 
 exception ApplyOpsExc = Make.ApplyOpsExc
 
-module Contracts (T : Theo.Sigs.SigTheory) : Sigs.SigContractEnv with module Theory = T = struct
+module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = T = struct
     module Theory = T
 
     type live = {

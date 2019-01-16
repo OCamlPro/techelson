@@ -1,16 +1,16 @@
 open Base
 open Base.Common
 
-module Int : Sigs.SigInt with type t = int = struct
+module Int : Sigs.Int with type t = int = struct
     type t = int
 
-    let of_str (s : string) : t =
+    let of_string (s : string) : t =
         try int_of_string s with
         | e -> [
             sprintf "failed to convert string `%s` to int" s ;
             sprintf "%s" (Printexc.to_string e)
         ] |> Exc.throws
-    let to_str (t : t) : string =
+    let to_string (t : t) : string =
         sprintf "%i" t
 
     let compare (t_1 : t) (t_2 : t) : int = compare t_1 t_2
@@ -28,13 +28,13 @@ module Int : Sigs.SigInt with type t = int = struct
     let to_native (t : t) : int = t
 end
 
-module Nat : Sigs.SigArith with type t = int = struct
+module Nat : Sigs.Arith with type t = int = struct
     type t = int
 
     let of_native (n : int) : t = n
     let to_native (t : t) : int = t
 
-    let of_str s =
+    let of_string s =
         let bail_msg () = sprintf "failed to convert string `%s` to nat" s in
         let i =
             try int_of_string s with
@@ -44,7 +44,7 @@ module Nat : Sigs.SigArith with type t = int = struct
             ] |> Exc.throws
         in
         of_native i
-    let to_str (t : t) : string =
+    let to_string (t : t) : string =
         sprintf "%i" t
 
     let compare (t_1 : t) (t_2 : t) : int = compare t_1 t_2
@@ -59,11 +59,12 @@ module Nat : Sigs.SigArith with type t = int = struct
 end
 
 module Str : sig
-    include Sigs.SigStr with type t = string
+    include Sigs.Str with type t = string
 end = struct
     type t = string
-    let of_str (s : string) : t = s
-    let to_str (t : t) : string = t
+
+    let of_native (s : string) : t = s
+    let to_string (t : t) : string = t
 
     let concat (t_1 : t) (t_2 : t) : t = t_1 ^ t_2
 
@@ -72,16 +73,16 @@ end = struct
 end
 
 module Bytes : sig
-    include Sigs.SigStr with type t = string
+    include Sigs.Str with type t = string
     val size : t -> Nat.t
     val slice : Nat.t -> Nat.t -> t -> t
     val compare : t -> t -> Int.t
 end = struct
     type t = string
-    let of_str (s : string) : t = s
-    let to_str (t : t) : string = t
+    let of_native (s : string) : t = s
+    let to_string (t : t) : string = t
 
-    let size (t : t) : Nat.t = String.length t |> sprintf "%i" |> Nat.of_str
+    let size (t : t) : Nat.t = String.length t |> sprintf "%i" |> Nat.of_string
     let slice (start : Nat.t) (len : Nat.t) (t : t) : t =
         String.sub t (Nat.to_native start) (Nat.to_native len)
     let compare (t_1 : t) (t_2 : t) : Int.t = compare t_1 t_2 |> Int.of_native
@@ -92,12 +93,12 @@ end = struct
         fprintf fmt "\"%s\"" t
 end
 
-module TStamp : Sigs.SigTStamp with type t = int = struct
+module TStamp : Sigs.TStamp with type t = int = struct
     type t = int
 
-    let to_str (t : t) : string =
+    let to_string (t : t) : string =
         sprintf "%i" t
-    let of_str (s : string) : t =
+    let of_native (s : string) : t =
         (fun () -> int_of_string s)
         |> Exc.chain_err (
             fun () -> asprintf "illegal timestamp `%s`" s
@@ -111,28 +112,36 @@ module TStamp : Sigs.SigTStamp with type t = int = struct
         fprintf fmt "\"%i\"" t
 end
 
-module NatConv : Sigs.SigNatConv with type int = Int.t and type nat = Nat.t = struct
+module NatConv : Sigs.NatConv with type int = Int.t and type nat = Nat.t = struct
     type int = Int.t
     type nat = Nat.t
     let nat_to_int (t : Nat.t) : Int.t = t
     let int_to_nat (i : Int.t) : Nat.t option = if i >= 0 then Some i else None
     let nat_sub (t_1 : Nat.t) (t_2 : Nat.t) : Int.t = t_1 - t_2
+    let int_abs (i : Int.t) : Nat.t =
+        match int_to_nat i with
+        | None -> (
+            match int_to_nat (Int.sub Int.zero i) with
+            | None -> asprintf "could not retrieve absolute value of %a" Int.fmt i |> Exc.throw
+            | Some res -> res
+        )
+        | Some res -> res
 end
 
 module StrConv
-    : Sigs.SigStrConv with type str = Str.t and type int = Int.t and type nat = Nat.t
+    : Sigs.StrConv with type str = Str.t and type int = Int.t and type nat = Nat.t
 = struct
     type str = Str.t
     type int = Int.t
     type nat = Nat.t
-    let size (t : Str.t) : Nat.t = String.length t |> sprintf "%i" |> Nat.of_str
+    let size (t : Str.t) : Nat.t = String.length t |> sprintf "%i" |> Nat.of_string
     let slice (start : Nat.t) (len : Nat.t) (t : Str.t) : Str.t =
         String.sub t (Nat.to_native start) (Nat.to_native len)
     let compare (t_1 : Str.t) (t_2 : Str.t) : Int.t = compare t_1 t_2 |> Int.of_native
 end
 
 module TStampConv
-    : Sigs.SigTStampConv with type t_stamp = TStamp.t and type int = Int.t
+    : Sigs.TStampConv with type t_stamp = TStamp.t and type int = Int.t
 = struct
     type t_stamp = TStamp.t
     type int = Int.t
@@ -142,19 +151,19 @@ module TStampConv
     let sub (t_1 : t_stamp) (t_2 : t_stamp) : int = t_1 - t_2 |> Int.of_native
 end
 
-module Key : Sigs.SigKey with type t = string = struct
+module Key : Sigs.Key with type t = string = struct
     type t = string
     let fmt (fmt : formatter) (t : t) : unit = fprintf fmt "\"%s\"" t
-    let of_str (s : string) : t = s
-    let to_str (t : t) : string = t
+    let of_native (s : string) : t = s
+    let to_string (t : t) : string = t
 end
 
-module KeyH : Sigs.SigKeyH with type t = string = struct
+module KeyH : Sigs.KeyH with type t = string = struct
     include Key
     let compare (t_1 : t) (t_2 : t) : int = compare t_1 t_2
 end
 
-module KeyHConv : Sigs.SigKeyHConv with type key = Key.t and type key_h = KeyH.t = struct
+module KeyHConv : Sigs.KeyHConv with type key = Key.t and type key_h = KeyH.t = struct
     type key = Key.t
     type key_h = KeyH.t
 
@@ -168,29 +177,7 @@ module KeyHConv : Sigs.SigKeyHConv with type key = Key.t and type key_h = KeyH.t
         "sha512:" ^ key
 end
 
-module Cmp : Sigs.SigCmp = struct
-    module Int = Int
-
-    module Nat = Nat
-    module NatConv = NatConv
-
-    module Str = Str
-    module StrConv = StrConv
-
-    module Bytes = Bytes
-    module BytesConv = StrConv
-
-    module TStamp = TStamp
-    module TStampConv = TStampConv
-
-    module Key = Key
-    module KeyH = KeyH
-    module KeyHConv = KeyHConv
-end
-
-
-
-module Address : Sigs.SigAddress = struct
+module Address : Sigs.Address = struct
     type t = {
         uid : int ;
         tag : Annot.Var.t option ;
@@ -210,5 +197,26 @@ module Address : Sigs.SigAddress = struct
     let uid (self : t) : int = self.uid
 end
 
+module Prims : Sigs.Primitive = struct
+    module Int = Int
 
-module Theory : Sigs.SigTheory = Make.Colls (Cmp) (Address)
+    module Nat = Nat
+    module NatConv = NatConv
+
+    module Str = Str
+    module StrConv = StrConv
+
+    module Bytes = Bytes
+    module BytesConv = StrConv
+
+    module TStamp = TStamp
+    module TStampConv = TStampConv
+
+    module Key = Key
+    module KeyH = KeyH
+    module KeyHConv = KeyHConv
+    module Address = Address
+end
+
+
+module Theory : Sigs.Theory = Make.Colls (Prims)

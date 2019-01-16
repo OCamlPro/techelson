@@ -1,7 +1,7 @@
 open Base
 open Base.Common
 
-module Naive : Sigs.SigStackRaw = struct
+module Naive : Sigs.StackRaw = struct
     module Theory = Theo.Naive.Theory
 
     type frame = {

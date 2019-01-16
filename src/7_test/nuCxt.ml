@@ -2,7 +2,7 @@ open Base
 open Common
 
 module type SigCxt = sig
-    module Run : Eval.Sigs.SigInterpreter
+    module Run : Eval.Sigs.Interpreter
     module Theory = Run.Theory
 
     (** Type of contexts. *)
@@ -44,7 +44,7 @@ module type SigCxt = sig
 end
 
 
-module Cxt (I : Eval.Sigs.SigInterpreter) : SigCxt = struct
+module Cxt (I : Eval.Sigs.Interpreter) : SigCxt = struct
     module Run = I
     module Test = Eval.Make.TestInterp (Run)
     module Theory = Run.Theory
