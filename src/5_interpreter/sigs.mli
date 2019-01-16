@@ -13,7 +13,7 @@ open Base
 open Common
 
 (** A stack and its most basic operations. *)
-module type StackRaw = sig
+module type StackBase = sig
     (** Underlying theory. *)
     module Theory : Theo.Sigs.Theory
 
@@ -51,9 +51,9 @@ module type StackRaw = sig
     val undip : t -> unit
 end
 
-(** Augments `StackRaw` with helper functions to pop/push stuff. *)
+(** Augments `StackBase` with helper functions to pop/push stuff. *)
 module type Stack = sig
-    include StackRaw
+    include StackBase
 
     (** Pops a boolean value. *)
     val pop_bool : t -> bool * Dtyp.t
@@ -271,6 +271,9 @@ module type Interpreter = sig
         Mic.t list ->
         t
 
+    (** Contract environment of an interpreter. *)
+    val contract_env : t -> Contracts.t
+
     (** Performs an interpretation step, return true if there are no more instructions to run.
 
         A step is not the same as "running a single instruction". A step can be, for instance,
@@ -332,6 +335,9 @@ module type TestInterpreter = sig
 
     (** Type of test interpreters. *)
     type t
+
+    (** Contract environment of an interpreter. *)
+    val contract_env : t -> Contracts.t
 
     (** Constructor. *)
     val mk : Src.t -> Testcase.t -> Contracts.t -> t

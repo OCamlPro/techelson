@@ -1,11 +1,12 @@
 (library
     (name test)
     (public_name micheltest.test)
-    (synopsis "Loads test scenarii and runs tests.")
+    (modules_without_implementation sigs)
+    (synopsis "Environment able to run tests.")
     (libraries
         base
         parse
         theo
-        eval
+        interpreter
     )
 )

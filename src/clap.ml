@@ -55,6 +55,13 @@ module Cla = struct
                 conf.verb <- i;
                 tail
         )
+
+    let quiet : t =
+        mk ['q'] [] (
+            fun args conf ->
+                conf.verb <- conf.verb - 1;
+                args
+        )
     
     let step : t =
         mk ['s'] ["step"] (
@@ -90,7 +97,7 @@ module Cla = struct
                 tail
         )
 
-    let options : t list = [ verb ; step ; contract ]
+    let options : t list = [ verb ; quiet ; step ; contract ]
 
     let add_all
         (long_map : (string, Arg.t list -> Conf.t -> Arg.t list) Hashtbl.t)

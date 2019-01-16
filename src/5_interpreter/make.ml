@@ -1,45 +1,10 @@
 open Base
 open Base.Common
 
-exception ApplyOpsExc
+(** Adds convenience functions to a basic stack module.
 
-module RunTest (I : Sigs.Interpreter) : Sigs.TestInterpreter with module Run = I = struct
-    module Run = I
-    module Contracts = Run.Contracts
-    module Theory = Run.Theory
-
-    module Src = Run.Src
-
-    type t = {
-        interp : Run.t ;
-        tc : Testcase.t ;
-        src : Src.t ;
-        contracts : Contracts.t ;
-    }
-
-    let is_done (self : t) : bool = Run.is_done self.interp
-    let interp (self : t) : Run.t = self.interp
-    let mk (src : Src.t) (tc : Testcase.t) (contracts : Contracts.t) : t =
-        let many_tez = Theory.Tez.of_native Int64.max_int in
-        let interp = I.init src ~balance:many_tez ~amount:many_tez contracts [] [ tc.code ] in
-        { interp ; tc ; src ; contracts }
-
-    let step (self : t) : Theory.operation list option =
-        if Run.is_done self.interp then None else (
-            try (
-                Run.run self.interp;
-                None
-            ) with
-            | Exc.Exc (_, Some ApplyOpsExc)
-            | ApplyOpsExc -> Some (
-                Run.stack self.interp |> Run.Stack.pop_operation_list |> fst
-            )
-        )
-    
-    let balance (self : t) : Theory.Tez.t = Run.balance self.interp
-end
-
-module Stack (S : Sigs.StackRaw)
+    This functor is automatically used by the main `Interpreter` functor. *)
+module Stack (S : Sigs.StackBase)
     : Sigs.Stack with type t = S.t and module Theory = S.Theory
 = struct
     include S
@@ -333,8 +298,49 @@ module Stack (S : Sigs.StackRaw)
         push ~binding dtyp (Theory.Of.list Theory.Lst.nil) self
 end
 
+(** Creates a test interpreter from a normal interpreter. *)
+module TestInterpreter (I : Sigs.Interpreter) : Sigs.TestInterpreter with module Run = I = struct
+    module Run = I
+    module Contracts = Run.Contracts
+    module Theory = Run.Theory
+
+    module Src = Run.Src
+
+    type t = {
+        interp : Run.t ;
+        tc : Testcase.t ;
+        src : Src.t ;
+    }
+
+    let contract_env (self : t) : Contracts.t = self.interp |> Run.contract_env
+
+    let is_done (self : t) : bool = Run.is_done self.interp
+    let interp (self : t) : Run.t = self.interp
+    let mk (src : Src.t) (tc : Testcase.t) (contracts : Contracts.t) : t =
+        let many_tez = Theory.Tez.of_native Int64.max_int in
+        let interp = I.init src ~balance:many_tez ~amount:many_tez contracts [] [ tc.code ] in
+        { interp ; tc ; src }
+
+    let step (self : t) : Theory.operation list option =
+        if Run.is_done self.interp then None else (
+            try (
+                Run.run self.interp;
+                None
+            ) with
+            | Exc.Exc (_, Some Exc.ApplyOpsExc)
+            | Exc.ApplyOpsExc -> Some (
+                Run.stack self.interp |> Run.Stack.pop_operation_list |> fst
+            )
+        )
+    
+    let balance (self : t) : Theory.Tez.t = Run.balance self.interp
+end
+
+(** Creates an interpreter from a base stack module and a contract environment module.
+
+    This functor contains the code actually interpreting the instructions. *)
 module Interpreter (
-    S : Sigs.StackRaw
+    S : Sigs.StackBase
 ) (
     C : Sigs.ContractEnv with module Theory = S.Theory
 ) : Sigs.Interpreter with
@@ -342,7 +348,6 @@ module Interpreter (
 = struct
     module Theory = S.Theory
     module Stack = Stack (S)
-    module Address = Theory.Address
     module Contracts = C
 
     exception Failure of Theory.value
@@ -392,6 +397,8 @@ module Interpreter (
     }
 
     let balance (self : t) : Theory.Tez.t = self.balance
+
+    let contract_env (self : t) : Contracts.t = self.env
 
     let push_block (block : block_end) (self : t) : unit =
         self.blocks <- block :: self.blocks
@@ -909,7 +916,7 @@ module Interpreter (
 
                 | Mic.CreateContract param -> (
                     let binding = Lst.hd mic.vars in
-                    let address = Address.fresh binding in
+                    let address = Theory.Address.fresh binding in
                     let params, storage_val_dtyp = Stack.pop_contract_params address self.stack in
                     (* Push address. *)
                     let dtyp = Dtyp.Address |> Dtyp.mk_leaf in
@@ -964,7 +971,7 @@ module Interpreter (
 
                 (* # Extensions. *)
 
-                | Mic.Leaf Mic.ApplyOps -> raise ApplyOpsExc
+                | Mic.Leaf Mic.ApplyOps -> raise Exc.ApplyOpsExc
 
                 | Mic.Leaf Mic.PrintStack ->
                     log_0 "@[%a@]@." Stack.fmt self.stack

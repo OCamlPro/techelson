@@ -1,15 +1,9 @@
-(** This module combines a theory with a notion of stack to create interpreters.
-*)
+(** Stores a functor that creates a contract environment from a theory. *)
 
 open Base
 open Common
 
-module Sigs = Sigs
-module Make = Make
-module Stack = Stack
-
-exception ApplyOpsExc = Make.ApplyOpsExc
-
+(** Creates a contract environment from a theory. *)
 module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = T = struct
     module Theory = T
 
@@ -110,5 +104,3 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
             live.balance <- Theory.Tez.add live.balance tez
     end
 end
-
-module NaiveInterp = Make.Interpreter (Stack.Naive) ( Contracts(Stack.Naive.Theory) )

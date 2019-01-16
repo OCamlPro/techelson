@@ -2,20 +2,25 @@ open Format
 
 exception Exc of string list * exn option
 
+exception ApplyOpsExc
+
 let throw (s : string) : 'a = Exc ([s], None) |> raise
 let throws (ss : string list) : 'a = Exc (ss, None) |> raise
 
 let erase_err (blah : unit -> string) (stuff : unit -> 'a) : 'a =
-    try stuff () with 
+    try stuff () with
+    | ApplyOpsExc as e -> raise e
     | _ -> blah () |> throw
 
 let chain_errs (blah : unit -> string list) (stuff : unit -> 'a) : 'a =
     try stuff () with
+    | ApplyOpsExc as e -> raise e
     | Exc (trace, opt) -> Exc (blah () @ trace, opt) |> raise
     | e -> Exc (blah (), Some e) |> raise
 
 let chain_err (blah : unit -> string) (stuff : unit -> 'a) : 'a =
     try stuff () with
+    | ApplyOpsExc as e -> raise e
     | Exc (trace, opt) -> Exc (blah () :: trace, opt) |> raise
     | e -> Exc ([blah ()], Some e) |> raise
 
@@ -30,6 +35,7 @@ let catch_print (indent : int) (stuff : unit -> 'a) : 'a option =
         indent - 1 |> loop
     in
     try Some (stuff ()) with
+    | ApplyOpsExc as e -> raise e
     | Exc (trace, opt) -> (
         pref ();
         printf "@[<v 4>Error";
@@ -59,3 +65,4 @@ let catch_fail (stuff : unit -> 'a) : 'a =
     | Some a -> a
 
 let unreachable () : 'a = throw "entered unreachable code, please notify the developers"
+let unimplemented () : 'a = throw "triggered unimplemented feature"

@@ -3,6 +3,11 @@
 (** Base exception, used everywhere. *)
 exception Exc of string list * exn option
 
+(** Exception thrown when running a testcase and encountering a `APPLY_OPERATIONS` instruction.
+
+    This exception is left untouched by `chain_err`, `erase_err` *etc*. *)
+exception ApplyOpsExc
+
 (** Raises an exception from a single trace frame. *)
 val throw : string -> 'a
 
@@ -32,3 +37,6 @@ val catch_fail : (unit -> 'a) -> 'a
 
 (** Fails by saying unreachable code was reached. *)
 val unreachable : unit -> 'a
+
+(** Fails by saying an unimplemented feature was triggered. *)
+val unimplemented : unit -> 'a

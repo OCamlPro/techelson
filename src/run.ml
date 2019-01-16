@@ -23,9 +23,7 @@ let load_contracts (conf : Conf.t) : Contract.t list =
         fun () -> "while loading contracts from `--contract` arguments"
     ) inner
 
-open Test.Top
-
-module Interp = Cxt.Run
+module NewCxt = Test.Top.NewCxt
 
 let run () : unit =
     let conf = conf () in
@@ -45,58 +43,55 @@ let run () : unit =
 
     Test.Cxt.get_tests context |> List.iter (
         fun (test : Testcase.t) ->
-            let cxt = Cxt.of_cxt context test in
-            log_1 "context: @[<v>%a@]@.@." Cxt.fmt cxt;
-            (* Cxt.init cxt test; *)
-            let rec loop () =
-                log_1 "test step...@.";
-                let is_done = Cxt.test_step cxt in
-                log_1 "context: @[<v>%a@]@.@." Cxt.fmt cxt;
-                let is_done =
-                    if is_done then true else (
-                        log_1 "applying operation(s)@.";
-                        let is_done = Cxt.init_next cxt in
-                        log_1 "context: @[<v>%a@]@." Cxt.fmt cxt;
+            let cxt = NewCxt.init (Test.Cxt.get_contracts context) test in
 
-                        Cxt.test cxt |> Interp.stack |> printf "test stack @[<v>%a@]@.@." Interp.Stack.fmt;
-                        is_done
-                    )
-                in
+            let rec test_loop (cxt : NewCxt.run_test) : unit =
+                log_1 "@.@.|===| Test Step...@.@.%a@." NewCxt.Test.fmt cxt;
+                if conf.step then (
+                    input_line stdin |> ignore;
+                );
+                match NewCxt.Test.run cxt with
+                | Some ops -> ops_loop ops
+                | None -> log_1 "@.@.done running test `%s`@." test.name
 
-                if is_done && Cxt.is_done cxt then ()
-                else if Cxt.is_in_progress cxt |> not then loop ()
-                else (
+            and ops_loop (cxt : NewCxt.apply_ops) : unit =
+                log_1 "@.@.|===| Applying Operations...@.@.%a@." NewCxt.Ops.fmt cxt;
+                if conf.step then (
+                    input_line stdin |> ignore;
+                );
+                match NewCxt.Ops.apply cxt with
+                | Either.Lft test ->
+                    log_1 "No more operations to apply";
+                    test_loop test
+                | Either.Rgt transfer -> transfer_loop transfer
 
-                    let rec inner_loop () =
-                        Cxt.interp cxt |> Interp.stack |> printf "@.@[<v>%a@]@.@." Interp.Stack.fmt;
-                        Cxt.interp cxt |> Interp.next_ins |> if_let_some (
+            and transfer_loop (cxt : NewCxt.transfer) : unit =
+                if conf.step then (
+                    let rec loop () : unit =
+                        log_1 "@.@.|===| Contract Transfer Step...@.@.%a@.@."
+                            NewCxt.Transfer.fmt cxt;
+                        NewCxt.Transfer.interpreter cxt
+                        |> NewCxt.Run.stack
+                        |> printf "@.@[<v>%a@]@.@." NewCxt.Run.Stack.fmt;
+                        NewCxt.Transfer.interpreter cxt
+                        |> NewCxt.Run.next_ins
+                        |> if_let_some (
                             log_1 "@[<v 4>> %a@]@." Mic.fmt
                         );
-                        if conf.Conf.step then (
-                            input_line stdin |> ignore
-                        );
-                        let is_done = Cxt.step cxt in
-                        if not is_done then inner_loop ()
-                        else (
-                            log_1 "@.@.terminating run@.";
-                            Cxt.terminate_run cxt;
-                            log_1 "staging next operation@.";
-                            let is_done = Cxt.init_next cxt in
-                            log_1 "context: @[<v>%a@]@." Cxt.fmt cxt;
-                            if not is_done then inner_loop () else ()
-                        )
+                        
+                        match NewCxt.Transfer.transfer_step cxt with
+                        | None ->
+                            input_line stdin |> ignore;
+                            loop ()
+                        | Some ops -> ops_loop ops
                     in
-
-                    inner_loop ();
-
                     loop ()
-
-                ) ;
+                ) else (
+                    log_1 "@.@.|===| Contract Transfer...@.@.%a@." NewCxt.Transfer.fmt cxt;
+                    NewCxt.Transfer.transfer_run cxt
+                    |> ops_loop
+                )
             in
-            loop |> Exc.chain_err (
-                fun () ->
-                    asprintf
-                        "while running test case `%s` from %a" test.name Source.fmt test.source
-            );
-            log_1 "done with test `%s`@." test.name
+
+            test_loop cxt
     )

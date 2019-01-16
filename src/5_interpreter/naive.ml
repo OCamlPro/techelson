@@ -1,7 +1,8 @@
 open Base
-open Base.Common
+open Common
 
-module Naive : Sigs.StackRaw = struct
+(** A simple stack implementation using lists. *)
+module Stack : Sigs.StackBase = struct
     module Theory = Theo.Naive
 
     type frame = {
@@ -91,3 +92,6 @@ module Naive : Sigs.StackRaw = struct
             hd.value, hd.typ
         | [] -> Exc.throw "the stack is empty"
 end
+
+(** An interpreter that uses a naive stack and default contract environment. *)
+module Interpreter = Make.Interpreter (Stack) ( Contracts.Contracts(Stack.Theory) )

@@ -1,6 +1,6 @@
 (library
-    (name eval)
-    (public_name micheltest.eval)
+    (name interpreter)
+    (public_name micheltest.interpreter)
     (synopsis "Constructs evaluators.")
     (modules_without_implementation sigs)
     (libraries
