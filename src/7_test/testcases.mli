@@ -1,4 +1,4 @@
-(** A context is the result of loading contracts and test cases. *)
+(** A context containing user-provided named contracts and testcases. *)
 
 open Base
 open Common

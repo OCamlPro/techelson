@@ -5,7 +5,7 @@ open Common
 
 module TestCxt (
     R : Interpreter.Sigs.Interpreter
-) : Sigs.NuTestCxt with module Run = R = struct
+) : Sigs.TestCxt with module Run = R = struct
     module Run = R
     module RunTest = Interpreter.Make.TestInterpreter (Run)
     module Theory = Run.Theory

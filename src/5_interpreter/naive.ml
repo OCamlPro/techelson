@@ -1,7 +1,10 @@
 open Base
 open Common
 
-(** A simple stack implementation using lists. *)
+(** A simple stack implementation using lists.
+
+    While this implementation is called *naive*, this is currently the default stack structure.
+*)
 module Stack : Sigs.StackBase = struct
     module Theory = Theo.Naive
 

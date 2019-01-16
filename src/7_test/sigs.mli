@@ -43,7 +43,7 @@ open Common
 
     - `run_test` implies there are no pending operations
 *)
-module type NuTestCxt = sig
+module type TestCxt = sig
     (** Underlying interpreter module. *)
     module Run : Interpreter.Sigs.Interpreter
 
@@ -131,89 +131,5 @@ module type NuTestCxt = sig
             output, use the accessors.
         *)
         val fmt : formatter -> transfer -> unit
-    end
-end
-
-module type TestCxt = sig
-    (** Underlying interpreter module. *)
-    module Run : Interpreter.Sigs.Interpreter
-
-    (** Underlying theory. *)
-    module Theory = Run.Theory
-
-    (** Type of contexts. *)
-    type t
-
-    (** Empty context constructor. *)
-    val mk : Contract.t list -> Testcase.t -> t
-
-    (** Formats the test context. *)
-    val fmt : formatter -> t -> unit
-
-    (** True if the test is over. *)
-    val is_done : t -> bool
-
-    (** Performs a test step. Returns true if done.
-    
-        A test step consists in running the testcase until either *i)* it is over or *ii)* the test
-        interpreter runs into an extended instruction such as `APPLY_OPERATIONS`. The output of
-        this function is `true` iff the testcase is over.        
-    *)
-    val test_step : t -> bool
-
-    (** The contract environment. *)
-    val env : t -> Run.Contracts.t
-
-    (** The contract interpreter.
-
-        This interpreter is not always available. It is only available if the last call to
-        `init_contract_run` returned `false` and there was no call to `terminate_contract_run`
-        since.
-    *)
-    val interp : t -> Run.t
-
-    (** The test interpreter.
-
-        This interpreter is always available.
-    *)
-    val test : t -> Run.t
-
-    (** Applies operations.
-
-        This should be called after a test step. A test step stages operations (except when the
-        test is over). Operations that only impact the contract environment (typically, contract
-        creation) are applied by this function until a *transfer* operation is reached, if any.
-
-        If it is, this function returns `Some` of the interpreter for this operation. Otherwise, it
-        returns `None`. Note that `None` does not mean the testcase is done, it means there are no
-        more operations to apply for this test step.
-    *)
-    val apply_operations : t -> Run.t option
-
-    (** Prepares the next contract run, if any.
-
-        This should be called after a test step. A test step usually stages operations (except when
-        it is over).
-    *)
-    val init_contract_run : t -> bool
-
-    (** Performs a contract step. Returns true if the contract call is over.
-    
-        A contract step is a step in the sense of `Interpreter.Sigs.Interpreter`. In particular, it
-        does not necessarily corresponds to running an instruction.
-    *)
-    val contract_step : t -> bool
-
-    val is_in_progress : t -> bool
-    val terminate_contract_run : t -> unit
-
-    module Contracts : sig
-        val add : Contract.t -> t -> unit
-        val get : string -> t -> Contract.t
-
-        module Live : sig
-            val create : Theory.contract_params -> Contract.t -> t -> unit
-            val get : Theory.Address.t -> t -> Run.Contracts.live option
-        end
     end
 end
