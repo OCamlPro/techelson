@@ -43,4 +43,4 @@ val context :
     contract_files : Conf.contract list ->
     test_files : string list ->
     else_chan : (in_channel * Source.t) option ->
-    Cxt.t * error_count
+    Testcases.t * error_count

@@ -77,7 +77,7 @@ let context
     ~(contract_files : Conf.contract list)
     ~(test_files : string list)
     ~(else_chan : (in_channel * Source.t) option)
-    : Cxt.t * error_count
+    : Testcases.t * error_count
 =
     let contract_count = List.length contract_files in
     if contract_count > 0 then (
@@ -110,6 +110,6 @@ let context
         )
     in
 
-    let cxt = Cxt.of_raw contracts tests in
+    let cxt = Testcases.of_raw contracts tests in
 
     cxt, c_errors + t_errors
