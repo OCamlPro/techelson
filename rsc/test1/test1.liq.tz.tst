@@ -47,13 +47,7 @@
     DUP ;
 
     # This yields none.
-    CONTRACT (pair string
-        (pair timestamp
-              (pair (pair mutez mutez)
-                    (pair (contract :UnitContract unit)
-                          (pair (contract :UnitContract unit)
-                                (pair (contract :UnitContract unit)
-                                      (pair (pair timestamp mutez) (pair mutez timestamp)))))))) ;
+    CONTRACT timestamp ;
     # Checking we got none.
     IF_NONE {} { FAIL } ;
 
@@ -96,6 +90,8 @@
             TRANSFER_TOKENS ;
             DIP SWAP ;
             PRINT_STACK ;
+            DUP ;
+            DIP CONS ;
             CONS
         } {
             PUSH string "failed to resolve Test1" ;
@@ -108,6 +104,13 @@
     } ;
 
     # Make sure the balance of Test1 is correct.
+    CONTRACT timestamp ;
+    # Checking we got none.
+    PRINT_STACK ;
+    IF_SOME {} {
+        PUSH string "failed to retrieve `Test1`." ;
+        FAILWITH
+    } ;
     DUP ;
     BALANCE_OF ;
     PUSH mutez 55 ;
@@ -118,7 +121,17 @@
         PUSH string "Test1 does not have a balance of 55tz" ;
         FAILWITH
     } {} ;
-    STORAGE_OF ;
+    STORAGE_OF (pair string
+        (pair timestamp
+              (pair (pair mutez mutez)
+                    (pair (contract :UnitContract unit)
+                          (pair (contract :UnitContract unit)
+                                (pair (contract :UnitContract unit)
+                                      (pair (pair timestamp mutez) (pair mutez timestamp)))))))) ;
+    IF_NONE {
+        PUSH string "could not retrieve storage of Test1" ;
+        FAILWITH
+    } {} ;
     PRINT_STACK ;
     CAR ;
     PUSH string "blah" ;

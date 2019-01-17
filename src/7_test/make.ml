@@ -8,8 +8,8 @@ module TestCxt (
 ) : Sigs.TestCxt with module Run = R = struct
     module Run = R
     module RunTest = Interpreter.Make.TestInterpreter (Run)
+    module Env = Run.Env
     module Theory = Run.Theory
-    module Contracts = Run.Contracts
 
     type run_test = {
         test : RunTest.t ;
@@ -21,7 +21,7 @@ module TestCxt (
     type apply_ops = {
         test : RunTest.t ;
         (** Saved state of the testcase execution. *)
-        mutable ops : Theory.operation list ;
+        mutable ops : Env.operation list ;
         (** Operations awaiting treatment. *)
         mutable obsolete : bool ;
         (** This flag is set to true when changing states. *)
@@ -30,7 +30,7 @@ module TestCxt (
     type transfer = {
         test : RunTest.t ;
         (** Saved state of the testcase execution. *)
-        ops : Theory.operation list ;
+        ops : Env.operation list ;
         (** Saved list of operations awaiting treatment. *)
         transfer : Run.t ;
         (** Interpreter for the transfer. *)
@@ -38,16 +38,16 @@ module TestCxt (
         (** This flag is set to true when changing states. *)
     }
 
-    let fmt_contracts (fmt : formatter) (env : Contracts.t) : unit =
+    let fmt_contracts (fmt : formatter) (env : Env.t) : unit =
         fprintf fmt "live contracts: @[";
-        if Run.Contracts.Live.count env = 0 then (
+        if Run.Env.Live.count env = 0 then (
             fprintf fmt "none"
         ) else (
-            fprintf fmt "%a" Run.Contracts.Live.fmt env
+            fprintf fmt "%a" Run.Env.Live.fmt env
         );
         fprintf fmt "@]"
     
-    let fmt_operations (fmt : formatter) (ops : Theory.operation list) : unit =
+    let fmt_operations (fmt : formatter) (ops : Env.operation list) : unit =
         fprintf fmt "operations    : @[";
         if ops = [] then (
             fprintf fmt "none"
@@ -57,7 +57,7 @@ module TestCxt (
                     if not is_first then (
                         fprintf fmt "@ "
                     );
-                    fprintf fmt "%a" Theory.fmt_operation op;
+                    fprintf fmt "%a" Env.Op.fmt op;
                     false
             ) true |> ignore
         );
@@ -65,9 +65,9 @@ module TestCxt (
 
     let init (contracts : Contract.t list) (tc : Testcase.t) : run_test =
         let src = Run.Src.of_test tc in
-        let env = Run.Contracts.empty () in
+        let env = Run.Env.empty () in
         contracts |> List.iter (
-            fun c -> Run.Contracts.add c env
+            fun c -> Run.Env.add c env
         );
         let test = RunTest.mk src tc env in
         { test ; obsolete = false }
@@ -84,7 +84,7 @@ module TestCxt (
             | None -> None
 
         let interpreter (self : run_test) : RunTest.t = self.test
-        let contract_env (self : run_test) : Contracts.t = RunTest.contract_env self.test
+        let contract_env (self : run_test) : Env.t = RunTest.contract_env self.test
 
         let fmt (fmt : formatter) (self : run_test) : unit =
             contract_env self |> fmt_contracts fmt
@@ -100,10 +100,11 @@ module TestCxt (
                 match self.ops with
                 | next :: ops -> (
                     self.ops <- ops;
+                    let next = Env.Op.op contract_env next in
                     let res =
                         match next with
                         | Theory.CreateNamed (params, contract) -> (
-                            (fun () -> Run.Contracts.Live.create params contract contract_env)
+                            (fun () -> Run.Env.Live.create params contract contract_env)
                             |> Exc.chain_err (
                                 fun () ->
                                     asprintf
@@ -114,7 +115,7 @@ module TestCxt (
                         )
                         | Theory.Create (params, contract) -> (
                             let contract = Contract.of_mic contract in
-                            (fun () -> Run.Contracts.Live.create params contract contract_env)
+                            (fun () -> Run.Env.Live.create params contract contract_env)
                             |> Exc.chain_err (
                                 fun () ->
                                     asprintf
@@ -129,12 +130,12 @@ module TestCxt (
                         )
 
                         | Theory.Transfer (address, contract, tez, param) -> (
-                            match Run.Contracts.Live.get address contract_env with
+                            match Run.Env.Live.get address contract_env with
                             | None ->
                                 asprintf "address %a has no contract attached" Theory.Address.fmt address
                                 |> Exc.throw
                             | Some live ->
-                                Run.Contracts.Live.transfer tez live;
+                                Run.Env.Live.transfer tez live;
                                 let src = Run.Src.of_address address in
                                 let param_dtyp =
                                     contract.param |> Dtyp.mk_named (Some (Annot.Field.of_string "param"))
@@ -166,9 +167,9 @@ module TestCxt (
             | Some transfer ->
                 Either.Rgt { test = self.test ; ops = self.ops ; transfer ; obsolete = false }
 
-        let operations (self : apply_ops) : Theory.operation list = self.ops
+        let operations (self : apply_ops) : Env.operation list = self.ops
 
-        let contract_env (self : apply_ops) : Contracts.t = RunTest.contract_env self.test
+        let contract_env (self : apply_ops) : Env.t = RunTest.contract_env self.test
 
         let fmt (fmt : formatter) (self : apply_ops) : unit =
             fprintf fmt "@[<v>%a@,%a@]" fmt_contracts (contract_env self) fmt_operations (operations self)
@@ -196,9 +197,9 @@ module TestCxt (
 
         let interpreter (self : transfer) : Run.t = self.transfer
 
-        let operations (self : transfer) : Theory.operation list = self.ops
+        let operations (self : transfer) : Env.operation list = self.ops
 
-        let contract_env (self : transfer) : Contracts.t = RunTest.contract_env self.test
+        let contract_env (self : transfer) : Env.t = RunTest.contract_env self.test
 
         let fmt (fmt : formatter) (self : transfer) : unit =
             fprintf fmt "@[<v>%a@,%a@]" fmt_contracts (contract_env self) fmt_operations (operations self)

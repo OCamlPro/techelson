@@ -33,14 +33,26 @@ Argument `<contract_file>` is a michelson contract (`storage`, `parameter` and `
 A `<testcase>` is a (sequence of) michelson instruction(s) which produce(s) a list of `operation`s from an empty stack. `techelson` runs all testcases sequentially and reports the errors it runs into. Testcases have access to extended Michelson instructions:
 
 - `APPLY_OPERATIONS`:
-    - consumes a list of operations on the stack
+
+    `(list operation) : S` `->` `S`
+
+    - consumes a list of operations
     - suspends the execution of the testcase
     - applies all the operations in the list (these operations can create operations which will be applied too)
     - resumes the execution of the testcase
-- `STORAGE_OF`:
-    - consumes a contract on the stack
-    - pushes the current value of the storage of the contract
-- `BALANCE_OF`: same as `STORAGE_OF`, but pushes the balance of the contract instead
+
+- `STORAGE_OF 'storage`:
+
+    `contract 'a : S` `->` `(option 'storage) : S`
+
+    - consumes a contract
+    - pushes `Some` of the current value of the storage of the contract if its storage has type `'storage`, `None` otherwise
+
+- `BALANCE_OF`:
+
+    `contract 'a : S` `->` `mutez : S`
+
+    same as `STORAGE_OF`, but pushes the balance of the contract instead of its storage
 
 For example
 

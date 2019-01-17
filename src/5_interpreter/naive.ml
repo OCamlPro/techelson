@@ -7,6 +7,7 @@ open Common
 *)
 module Stack : Sigs.StackBase = struct
     module Theory = Theo.Naive
+    module Env = Contracts.Contracts (Theory)
 
     type frame = {
         mutable value : Theory.value ;
@@ -30,7 +31,10 @@ module Stack : Sigs.StackBase = struct
     type t = {
         mutable dipped : frame list ;
         mutable stack : frame list ;
+        env : Env.t
     }
+
+    let contract_env (self : t) : Env.t = self.env
 
     let fmt (fmt : formatter) (self : t) : unit =
         fprintf fmt "@[<v>|==================================================================================================|";
@@ -48,8 +52,8 @@ module Stack : Sigs.StackBase = struct
         fprintf fmt "@,|==================================================================================================|";
         fprintf fmt "@]"
 
-    let empty () : t = { dipped = [] ; stack = [] }
-    let is_empty ({ dipped ; stack } : t) : bool = dipped = [] && stack = []
+    let empty (env : Env.t) : t = { dipped = [] ; stack = [] ; env }
+    let is_empty ({ dipped ; stack ; _ } : t) : bool = dipped = [] && stack = []
     let push ?binding:(binding=None) (dtyp : Dtyp.t) (value : Theory.value) (self : t) : unit =
         let frame = mk_frame value dtyp binding in
         self.stack <- frame :: self.stack
@@ -97,4 +101,4 @@ module Stack : Sigs.StackBase = struct
 end
 
 (** An interpreter that uses a naive stack and default contract environment. *)
-module Interpreter = Make.Interpreter (Stack) ( Contracts.Contracts(Stack.Theory) )
+module Interpreter = Make.Interpreter (Stack)

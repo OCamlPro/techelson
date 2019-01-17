@@ -12,19 +12,123 @@
 open Base
 open Common
 
+(** Contract environment.
+
+    Contains a type and some functions to store
+
+    - a user-provided name-contract map (for deployment)
+    - a map from addresses to live (deployed) contracts
+*)
+module type ContractEnv = sig
+    (** The underlying theory. *)
+    module Theory : Theo.Sigs.Theory
+
+    (** Type of the contract environment. *)
+    type t
+
+    (** An operation.
+
+        We do not use `Theory.operation` directly because we need to be able to detect when the
+        exact same operation runs twice.
+    *)
+    type operation
+
+    (** Functions over operations. *)
+    module Op : sig
+        (** Operation formatter. *)
+        val fmt : formatter -> operation -> unit
+
+        (** Theory operation accessor.
+
+            This function uses the environment to check whether the operation can run. That is,
+            it will fail if the uid of the operation is expired.
+        *)
+        val op : t -> operation -> Theory.operation
+
+        (** Constructor. *)
+        val mk : int -> Theory.operation -> operation
+    end
+
+    (** Type of a live contract. *)
+    type live = private {
+        address : Theory.Address.t ;
+        (** Address of the live contract. *)
+        contract : Contract.t ;
+        (** Contract declaration. *)
+        mutable balance : Theory.Tez.t ;
+        (** Balance of the contract. *)
+        mutable storage : Theory.value ;
+        (** Value of the storage. *)
+        params : Theory.contract_params ;
+        (** Parameters the contract was created with. *)
+    }
+
+    (** Generates a unique identifier for some operation. *)
+    val get_uid : t -> int
+
+    (** An empty contract environment. *)
+    val empty : unit -> t
+
+    (** Registers a name/contract binding.
+
+        Throws an exception if the name is already mapped to something.
+    *)
+    val add : Contract.t -> t -> unit
+
+    (** Retrieves a contract from its name. *)
+    val get : string -> t -> Contract.t
+
+    (** Operations dealing with live contracts. *)
+    module Live : sig
+        (** Creates a live contract. *)
+        val create : Theory.contract_params -> Contract.t -> t -> unit
+
+        (** Retrieves a live contract from its address. *)
+        val get : Theory.Address.t -> t -> live option
+
+        (** Formats the live contracts of an environment. *)
+        val fmt : formatter -> t -> unit
+
+        (** Number of live contracts. *)
+        val count : t -> int
+
+        (** Transfers some money to a live contract. *)
+        val transfer : Theory.Tez.t -> live -> unit
+
+        (** Updates a live contract.
+
+            Arguments
+
+            - new balance, will replace the old balance
+            - new storage and its type
+            - address of the contract being updated
+            - environment
+
+            The new balance is **not** added to the old one, it's a purely destructive update.
+        *)
+        val update : Theory.Tez.t -> Theory.value * Dtyp.t -> Theory.Address.t -> t -> unit
+    end
+end
+
 (** A stack and its most basic operations. *)
 module type StackBase = sig
     (** Underlying theory. *)
     module Theory : Theo.Sigs.Theory
 
+    (** Underling contract environment. *)
+    module Env : ContractEnv with module Theory = Theory
+
     (** Type of the stack. *)
     type t
+
+    (** Contract environment. *)
+    val contract_env : t -> Env.t
 
     (** Stack formatter. *)
     val fmt : formatter -> t -> unit
 
     (** The empty stack. *)
-    val empty : unit -> t
+    val empty : Env.t -> t
 
     (** True if the stack is empty. *)
     val is_empty : t -> bool
@@ -92,14 +196,14 @@ module type Stack = sig
     val pop_pair : t -> (Theory.value * Dtyp.t) * (Theory.value * Dtyp.t)
 
     (** Pops a list of operation. *)
-    val pop_operation_list : t -> Theory.operation list * Dtyp.t
+    val pop_operation_list : t -> Env.operation list * Dtyp.t
 
     (** Pops the result of a contract call.
 
         A list of operations and the new storage value. The datatype returned is that of the
         storage value.
     *)
-    val pop_contract_res : t -> Theory.operation list * Theory.value * Dtyp.t
+    val pop_contract_res : t -> Env.operation list * Theory.value * Dtyp.t
 
     (** Pops parameters for a contract creation.
 
@@ -129,78 +233,6 @@ module type Stack = sig
 
     (** Pushes a `nil` value. *)
     val nil : ?binding : Annot.Var.t option -> ?alias : Dtyp.alias -> Dtyp.t -> t -> unit
-end
-
-(** Contract environment.
-
-    Contains a type and some functions to store
-
-    - a user-provided name-contract map (for deployment)
-    - a map from addresses to live (deployed) contracts
-*)
-module type ContractEnv = sig
-    (** The underlying theory. *)
-    module Theory : Theo.Sigs.Theory
-
-    (** Type of the contract environment. *)
-    type t
-
-    (** Type of a live contract. *)
-    type live = private {
-        address : Theory.Address.t ;
-        (** Address of the live contract. *)
-        contract : Contract.t ;
-        (** Contract declaration. *)
-        mutable balance : Theory.Tez.t ;
-        (** Balance of the contract. *)
-        mutable storage : Theory.value ;
-        (** Value of the storage. *)
-        params : Theory.contract_params ;
-        (** Parameters the contract was created with. *)
-    }
-
-    (** An empty contract environment. *)
-    val empty : unit -> t
-
-    (** Registers a name/contract binding.
-
-        Throws an exception if the name is already mapped to something.
-    *)
-    val add : Contract.t -> t -> unit
-
-    (** Retrieves a contract from its name. *)
-    val get : string -> t -> Contract.t
-
-    (** Operations dealing with live contracts. *)
-    module Live : sig
-        (** Creates a live contract. *)
-        val create : Theory.contract_params -> Contract.t -> t -> unit
-
-        (** Retrieves a live contract from its address. *)
-        val get : Theory.Address.t -> t -> live option
-
-        (** Formats the live contracts of an environment. *)
-        val fmt : formatter -> t -> unit
-
-        (** Number of live contracts. *)
-        val count : t -> int
-
-        (** Transfers some money to a live contract. *)
-        val transfer : Theory.Tez.t -> live -> unit
-
-        (** Updates a live contract.
-
-            Arguments
-
-            - new balance, will replace the old balance
-            - new storage and its type
-            - address of the contract being updated
-            - environment
-
-            The new balance is **not** added to the old one, it's a purely destructive update.
-        *)
-        val update : Theory.Tez.t -> Theory.value * Dtyp.t -> Theory.Address.t -> t -> unit
-    end
 end
 
 (** Stores the source of something.
@@ -241,14 +273,14 @@ module type Interpreter = sig
     (** Underlying theory. *)
     module Theory : Theo.Sigs.Theory
 
-    (** Stack used by the interpreter. *)
-    module Stack : Stack with module Theory := Theory
-
     (** Contract environment module. *)
-    module Contracts : ContractEnv with module Theory := Theory
+    module Env : ContractEnv with module Theory = Theory
+
+    (** Stack used by the interpreter. *)
+    module Stack : Stack with module Theory = Theory and module Env = Env
 
     (** Operation source module. *)
-    module Src : SigSrc with module Theory := Theory
+    module Src : SigSrc with module Theory = Theory
 
     (** Type of interpreters. *)
     type t
@@ -263,13 +295,13 @@ module type Interpreter = sig
         Src.t ->
         balance : Theory.Tez.t ->
         amount : Theory.Tez.t ->
-        Contracts.t ->
+        Env.t ->
         (Theory.value * Dtyp.t * Annot.Var.t option) list ->
         Mic.t list ->
         t
 
     (** Contract environment of an interpreter. *)
-    val contract_env : t -> Contracts.t
+    val contract_env : t -> Env.t
 
     (** Performs an interpretation step, return true if there are no more instructions to run.
 
@@ -322,7 +354,7 @@ module type TestInterpreter = sig
     module Run : Interpreter
 
     (** Contract environment. *)
-    module Contracts = Run.Contracts
+    module Env = Run.Env
 
     (** Underlying theory. *)
     module Theory = Run.Theory
@@ -334,10 +366,10 @@ module type TestInterpreter = sig
     type t
 
     (** Contract environment of an interpreter. *)
-    val contract_env : t -> Contracts.t
+    val contract_env : t -> Env.t
 
     (** Constructor. *)
-    val mk : Src.t -> Testcase.t -> Contracts.t -> t
+    val mk : Src.t -> Testcase.t -> Env.t -> t
 
     (** Performs a step.
 
@@ -346,7 +378,7 @@ module type TestInterpreter = sig
         instruction (such as `APPLY_OPERATIONS`) asks us to do something, or there are no more
         instructions in the test.
     *)
-    val step : t -> Theory.operation list option
+    val step : t -> Env.operation list option
 
     (** True if the test has not more instruction to run. *)
     val is_done : t -> bool
@@ -363,14 +395,14 @@ end
     This is what the main functor returns.
 *)
 module type Cxt = sig
+    (** Underlying theory. *)
+    module Theory : Theo.Sigs.Theory
+
     (** Underlying contract interpreter. *)
-    module Run : Interpreter
+    module Run : Interpreter with module Theory = Theory
 
     (** Underlying test interpreter. *)
-    module TestRun : TestInterpreter with module Run := Run
-
-    (** Underyling theory. *)
-    module Theory = Run.Theory
+    module TestRun : TestInterpreter with module Run = Run
 
     (** Type of contexts. *)
     type t

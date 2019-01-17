@@ -84,15 +84,17 @@ let rename (alias : alias) ({ typ ; _ } : t) : t = { typ ; alias }
 
 let fmt (fmtt : formatter) (typ : t) =
     (* Forms the stack frame for types with annotated subtypes. *)
-    let frame_of_named (named : named) : (Fmt.sep * t * Fmt.sep) =
+    let frame_of_named (named : named) : (Fmt.sep * t * Annot.Field.t option * Fmt.sep) =
         match named.name with
         | Some name ->
             (fun () -> fprintf fmtt "@ ("),
             named.inner,
-            (fun () -> fprintf fmtt " %a)" Annot.Field.fmt name)
+            Some name,
+            (fun () -> fprintf fmtt ")")
         | None ->
             (fun () -> fprintf fmtt "@ "),
             named.inner,
+            None,
             ignore
     in
 
@@ -102,7 +104,7 @@ let fmt (fmtt : formatter) (typ : t) =
         things to print `t` with something to print before `pre` and after `post`. Once everything
         in the list is printed, `close` prints whatever needs to be printed to close the sequence.
     *)
-    let rec loop (stack : ( (Fmt.sep * t * Fmt.sep) list * Fmt.seq_end) list) : unit =
+    let rec loop (stack : ( (Fmt.sep * t * Annot.Field.t option * Fmt.sep) list * Fmt.seq_end) list) : unit =
         match stack with
 
         (* Stack is empty, we're done. *)
@@ -114,10 +116,15 @@ let fmt (fmtt : formatter) (typ : t) =
             loop stack
 
         (* There's stuff to print in the current sequence, let's do this. *)
-        | (((pre, to_do, post) :: to_do_tail), seq_end) :: stack ->
+        | (((pre, to_do, field, post) :: to_do_tail), seq_end) :: stack ->
             (* Remember there might be more stuff to print in this sequence. *)
             let stack = (to_do_tail, seq_end) :: stack in
             let { typ = to_do ; alias } = to_do in
+            let fmt_field (fmt : formatter) (field : Annot.Field.t option) : unit =
+                match field with
+                | Some field -> fprintf fmt " %a" Annot.Field.fmt field
+                | None -> ()
+            in
 
             (* Print the part before printing `to_do` so that we don't forget. *)
             pre ();
@@ -137,41 +144,42 @@ let fmt (fmtt : formatter) (typ : t) =
                     in
                     fprintf fmtt "%s" alias_pre;
                     fmt_leaf fmtt leaf;
+                    fmt_field fmtt field;
                     fmt_alias fmtt ();
                     fprintf fmtt "%s" alias_post;
                     post ();
                     stack
 
                 | List sub ->
-                    fprintf fmtt "(list%a " fmt_alias ();
+                    fprintf fmtt "(list%a%a " fmt_alias () fmt_field field;
                     (
-                        [(ignore, sub, ignore)],
+                        [(ignore, sub, None, ignore)],
                         Fmt.unit_combine (Fmt.cls_paren fmtt) post
                     ) :: stack
 
                 | Option sub ->
-                    fprintf fmtt "(option%a " fmt_alias ();
+                    fprintf fmtt "(option%a%a " fmt_alias () fmt_field field;
                     (
-                        [(ignore, sub, ignore)],
+                        [(ignore, sub, None, ignore)],
                         Fmt.unit_combine (Fmt.cls_paren fmtt) post
                     ) :: stack
 
                 | Set sub ->
-                    fprintf fmtt "(set%a " fmt_alias ();
+                    fprintf fmtt "(set%a%a " fmt_alias () fmt_field field;
                     (
-                        [(ignore, sub, ignore)],
+                        [(ignore, sub, None, ignore)],
                         Fmt.unit_combine (Fmt.cls_paren fmtt) post
                     ) :: stack
 
                 | Contract sub ->
-                    fprintf fmtt "(contract%a " fmt_alias ();
+                    fprintf fmtt "(contract%a%a " fmt_alias () fmt_field field;
                     (
-                        [(ignore, sub, ignore)],
+                        [(ignore, sub, None, ignore)],
                         Fmt.unit_combine (Fmt.cls_paren fmtt) post
                     ) :: stack
 
                 | Or (lft, rgt) ->
-                    fprintf fmtt "@[@[<hv 4>(or%a" fmt_alias ();
+                    fprintf fmtt "@[@[<hv 4>(or%a%a" fmt_alias () fmt_field field;
                     (
                         [
                             frame_of_named lft ;
@@ -181,7 +189,7 @@ let fmt (fmtt : formatter) (typ : t) =
                     ) :: stack
 
                 | Pair (lft, rgt) ->
-                    fprintf fmtt "@[@[<hv 4>(pair%a" fmt_alias ();
+                    fprintf fmtt "@[@[<hv 4>(pair%a%a" fmt_alias () fmt_field field;
                     (
                         [
                             frame_of_named lft ;
@@ -191,25 +199,25 @@ let fmt (fmtt : formatter) (typ : t) =
                     ) :: stack
 
                 | Map (k, v) ->
-                    fprintf fmtt "@[@[<hv 4>(map%a@ " fmt_alias ();
+                    fprintf fmtt "@[@[<hv 4>(map%a%a@ " fmt_alias () fmt_field field;
 
                     (
-                        [ (ignore, k, ignore) ; (Fmt.sep_spc fmtt, v, ignore) ],
+                        [ (ignore, k, None, ignore) ; (Fmt.sep_spc fmtt, v, None, ignore) ],
                         Fmt.unit_combine (Fmt.cls_of fmtt "@]@,)@]") post
                     ) :: stack
 
                 | BigMap (k, v) ->
-                    fprintf fmtt "@[@[<hv 4>(big_map%a@ " fmt_alias ();
+                    fprintf fmtt "@[@[<hv 4>(big_map%a%a@ " fmt_alias () fmt_field field;
 
                     (
-                        [ (ignore, k, ignore) ; (Fmt.sep_spc fmtt, v, ignore) ],
+                        [ (ignore, k, None, ignore) ; (Fmt.sep_spc fmtt, v, None, ignore) ],
                         Fmt.unit_combine (fun () -> fprintf fmtt "@]@,)@]") post
                     ) :: stack
         in
         loop stack
     in
     fprintf fmtt "@[";
-    loop [ [ignore, typ, ignore], ignore ];
+    loop [ [ignore, typ, None, ignore], ignore ];
     fprintf fmtt "@]"
 
 module Inspect = struct

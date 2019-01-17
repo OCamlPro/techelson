@@ -37,6 +37,11 @@ open Common
     Each state is encoded as a type and the different transitions as functions in modules `Test`,
     `Ops` and `Transfer` respectively.
 
+    # Safety
+
+    When changing state, the old state becomes obsolete, meaning that taking a transition from that
+    state will fail. (Inspection functions will still work though.)
+
     # Invariants
 
     From the semantics described above, it follows that
@@ -51,7 +56,7 @@ module type TestCxt = sig
     module RunTest : Interpreter.Sigs.TestInterpreter with module Run = Run
 
     (** Contract environment module. *)
-    module Contracts = Run.Contracts
+    module Env = Run.Env
 
     (** Underlying theory. *)
     module Theory = Run.Theory
@@ -79,7 +84,7 @@ module type TestCxt = sig
         val interpreter : run_test -> RunTest.t
 
         (** The contract environment. *)
-        val contract_env : run_test -> Contracts.t
+        val contract_env : run_test -> Env.t
 
         (** Concise `run_test` formatter.
         
@@ -95,10 +100,10 @@ module type TestCxt = sig
         val apply : apply_ops -> (run_test, transfer) Either.t
 
         (** Operations awaiting treatment. *)
-        val operations : apply_ops -> Theory.operation list
+        val operations : apply_ops -> Env.operation list
 
         (** The contract environment. *)
-        val contract_env : apply_ops -> Contracts.t
+        val contract_env : apply_ops -> Env.t
 
         (** Concise `run_test` formatter.
         
@@ -120,10 +125,10 @@ module type TestCxt = sig
         val interpreter : transfer -> Run.t
 
         (** Operations awaiting treatment. *)
-        val operations : transfer -> Theory.operation list
+        val operations : transfer -> Env.operation list
 
         (** The contract environment. *)
-        val contract_env : transfer -> Contracts.t
+        val contract_env : transfer -> Env.t
 
         (** Concise `run_test` formatter.
         

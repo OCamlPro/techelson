@@ -126,6 +126,16 @@ module Fmt = struct
     let plurify (n : int) : string = if n = 1 then "" else "s"
 end
 
+module IntSet = struct
+    type t = (int, unit) Hashtbl.t
+    let empty () : t = Hashtbl.create ~random:false 101
+    let add (elm : int) (set : t) : bool =
+        if Hashtbl.mem set elm then false else (
+            Hashtbl.add set elm ();
+            true
+        )
+end
+
 module StrMap = struct
     include Map.Make(String)
     let get (key : key) (map : 'a t) : 'a option =

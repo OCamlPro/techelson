@@ -117,6 +117,21 @@ module Fmt : sig
     val plurify : int -> string
 end
 
+(** Int set. *)
+module IntSet : sig
+    (** Type of int sets. *)
+    type t
+
+    (** Creates an empty set. *)
+    val empty : unit -> t
+
+    (** Adds an element to the set.
+
+        Returns true if the element was not there (`is_new`).
+    *)
+    val add : int -> t -> bool
+end
+
 (** String maps. *)
 module StrMap : sig
     type 'a t

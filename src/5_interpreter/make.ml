@@ -5,9 +5,10 @@ open Base.Common
 
     This functor is automatically used by the main `Interpreter` functor. *)
 module Stack (S : Sigs.StackBase)
-    : Sigs.Stack with type t = S.t and module Theory = S.Theory
+    : Sigs.Stack with type t = S.t and module Theory = S.Theory and module Env = S.Env
 = struct
     include S
+
     let pop_bool (self : t) : bool * Dtyp.t =
         let run () =
             match pop self with
@@ -148,19 +149,24 @@ module Stack (S : Sigs.StackBase)
         | v, dtyp ->
             asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v |> Exc.throw
 
-    let to_operation_list (values : Theory.value Theory.Lst.t) : Theory.operation list =
+    let to_operation_list
+        (values : Theory.value Theory.Lst.t)
+        : Env.operation list
+    =
         Theory.Lst.fold (
             fun lst value ->
                 match value with
-                | Theory.Operation op -> op :: lst
+                | Theory.Operation (uid, op) ->
+                    let op = Env.Op.mk uid op in
+                    op :: lst
                 | _ ->
                     asprintf "expected an operation but found value %a" Theory.fmt value
                     |> Exc.throw
         ) [] values
         |> List.rev
 
-    let pop_operation_list (self : t) : Theory.operation list * Dtyp.t =
-        let run () : Theory.operation list * Dtyp.t =
+    let pop_operation_list (self : t) : Env.operation list * Dtyp.t =
+        let run () : Env.operation list * Dtyp.t =
             let lst, dtyp = pop_list self in
             (to_operation_list lst), dtyp
         in
@@ -168,8 +174,8 @@ module Stack (S : Sigs.StackBase)
             fun () -> "while popping a list of operations from the stack"
         )
     
-    let pop_contract_res (self : t) : Theory.operation list * Theory.value * Dtyp.t =
-        let run () : Theory.operation list * Theory.value * Dtyp.t =
+    let pop_contract_res (self : t) : Env.operation list * Theory.value * Dtyp.t =
+        let run () : Env.operation list * Theory.value * Dtyp.t =
             let (ops, ops_dtyp), (storage, storage_dtyp) = pop_pair self in
             let ops =
                 match ops with
@@ -298,57 +304,16 @@ module Stack (S : Sigs.StackBase)
         push ~binding dtyp (Theory.Of.list Theory.Lst.nil) self
 end
 
-(** Creates a test interpreter from a normal interpreter. *)
-module TestInterpreter (I : Sigs.Interpreter) : Sigs.TestInterpreter with module Run = I = struct
-    module Run = I
-    module Contracts = Run.Contracts
-    module Theory = Run.Theory
-
-    module Src = Run.Src
-
-    type t = {
-        interp : Run.t ;
-        tc : Testcase.t ;
-        src : Src.t ;
-    }
-
-    let contract_env (self : t) : Contracts.t = self.interp |> Run.contract_env
-
-    let is_done (self : t) : bool = Run.is_done self.interp
-    let interp (self : t) : Run.t = self.interp
-    let mk (src : Src.t) (tc : Testcase.t) (contracts : Contracts.t) : t =
-        let many_tez = Theory.Tez.of_native Int64.max_int in
-        let interp = I.init src ~balance:many_tez ~amount:many_tez contracts [] [ tc.code ] in
-        { interp ; tc ; src }
-
-    let step (self : t) : Theory.operation list option =
-        if Run.is_done self.interp then None else (
-            try (
-                Run.run self.interp;
-                None
-            ) with
-            | Exc.Exc (_, Some Exc.ApplyOpsExc)
-            | Exc.ApplyOpsExc -> Some (
-                Run.stack self.interp |> Run.Stack.pop_operation_list |> fst
-            )
-        )
-    
-    let balance (self : t) : Theory.Tez.t = Run.balance self.interp
-end
-
 (** Creates an interpreter from a base stack module and a contract environment module.
 
     This functor contains the code actually interpreting the instructions. *)
 module Interpreter (
     S : Sigs.StackBase
-) (
-    C : Sigs.ContractEnv with module Theory = S.Theory
-) : Sigs.Interpreter with
-    module Theory = S.Theory
+) : Sigs.Interpreter with module Theory = S.Theory
 = struct
-    module Theory = S.Theory
     module Stack = Stack (S)
-    module Contracts = C
+    module Theory = Stack.Theory
+    module Env = Stack.Env
 
     module Src = struct
         module Theory = Theory
@@ -391,12 +356,12 @@ module Interpreter (
         mutable src : Src.t ;
         mutable balance : Theory.Tez.t ;
         amount : Theory.Tez.t ;
-        env : Contracts.t ;
+        env : Env.t ;
     }
 
     let balance (self : t) : Theory.Tez.t = self.balance
 
-    let contract_env (self : t) : Contracts.t = self.env
+    let contract_env (self : t) : Env.t = self.env
 
     let push_block (block : block_end) (self : t) : unit =
         self.blocks <- block :: self.blocks
@@ -873,7 +838,7 @@ module Interpreter (
 
                     Stack.push ~binding dtyp value self.stack
 
-                (* ## Contracts. *)
+                (* ## Env. *)
 
                 | Mic.Leaf Mic.Balance ->
                     let binding = Lst.hd mic.vars in
@@ -884,28 +849,20 @@ module Interpreter (
 
                 | Mic.Leaf Mic.BalanceOf ->
                     let binding = Lst.hd mic.vars in
-                    let address = Stack.pop_address self.stack |> fst in
+                    let address, _ = Stack.pop_contract self.stack in
+                    let address =
+                        match address with
+                        | Some address -> address
+                        | None -> Exc.throw "cannot retrieve balance of an undeployed contract"
+                    in
                     let value =
-                        match Contracts.Live.get address self.env with
+                        match Env.Live.get address self.env with
                         | None ->
                             asprintf "there is no contract at address %a" Theory.Address.fmt address
                             |> Exc.throw
                         | Some contract -> contract.balance |> Theory.Of.tez
                     in
                     let dtyp = Dtyp.Mutez |> Dtyp.mk_leaf in
-
-                    Stack.push ~binding dtyp value self.stack
-
-                | Mic.Leaf Mic.StorageOf ->
-                    let binding = Lst.hd mic.vars in
-                    let address = Stack.pop_address self.stack |> fst in
-                    let value, dtyp =
-                        match Contracts.Live.get address self.env with
-                        | None ->
-                            asprintf "there is no contract at address %a" Theory.Address.fmt address
-                            |> Exc.throw
-                        | Some contract -> contract.storage, contract.contract.storage
-                    in
 
                     Stack.push ~binding dtyp value self.stack
 
@@ -920,19 +877,19 @@ module Interpreter (
                 | Mic.Contract dtyp -> (
                     let binding = Lst.hd mic.vars in
                     let address = Stack.pop_address self.stack |> fst in
-                    (* log_0 "CONTRACT %a@." Address.fmt address; *)
+                    (* log_0 "CONTRACT %a@." Theory.Address.fmt address; *)
                     let value =
-                        match Contracts.Live.get address self.env with
+                        match Env.Live.get address self.env with
                         | None -> Theory.Of.option None
                         | Some contract -> (
                             (* log_0 "found the contract %a / %a@." Dtyp.fmt dtyp Dtyp.fmt contract.contract.entry_param; *)
                             let contract = Contract.to_mic contract.contract in
-                            if dtyp <> contract.param then (
-                                Theory.Of.option None
-                            ) else (
+                            try (
+                                Dtyp.check dtyp contract.param;
                                 Some (Theory.Of.contract address contract)
                                 |> Theory.Of.option
-                            )
+                            ) with
+                            | _ -> Theory.Of.option None
                         )
                     in
                     let dtyp = Dtyp.Contract dtyp |> Dtyp.mk in
@@ -957,16 +914,17 @@ module Interpreter (
                             |> Exc.throw
                         )
                     in
+                    let uid = Env.get_uid self.env in
                     match param with
                     | Either.Lft (Some c) ->
                         check_storage_dtyp c.storage;
-                        let operation = Theory.Of.Operation.create params c in
+                        let operation = Theory.Of.Operation.create uid params c in
                         Stack.push ~binding dtyp operation self.stack
                     | Either.Lft None -> Exc.throw "aaa"
                     | Either.Rgt name ->
-                        let contract = Contracts.get name self.env in
+                        let contract = Env.get name self.env in
                         check_storage_dtyp contract.storage;
-                        let operation = Theory.Of.Operation.create_named params contract in
+                        let operation = Theory.Of.Operation.create_named uid params contract in
                         Stack.push ~binding dtyp operation self.stack
                 )
 
@@ -985,7 +943,8 @@ module Interpreter (
                         | Some a -> a
                         | None -> Exc.throw "cannot transfer to undeployed contract"
                     in
-                    let operation = Theory.Of.Operation.transfer address contract tez param in
+                    let uid = Env.get_uid self.env in
+                    let operation = Theory.Of.Operation.transfer uid address contract tez param in
                     let dtyp = Dtyp.Operation |> Dtyp.mk_leaf in
                     Stack.push ~binding dtyp operation self.stack
 
@@ -1001,6 +960,38 @@ module Interpreter (
 
                 | Mic.Leaf Mic.PrintStack ->
                     log_0 "@[%a@]@." Stack.fmt self.stack
+
+                | Mic.Extension (Mic.StorageOf storage_dtyp) ->
+                    let binding = Lst.hd mic.vars in
+                    let alias = Lst.hd mic.typs in
+                    let address, _ = Stack.pop_contract self.stack in
+                    let address =
+                        match address with
+                        | Some address -> address
+                        | None -> Exc.throw "cannot retrieve storage of an undeployed contract"
+                    in
+                    let value, dtyp =
+                        match Env.Live.get address self.env with
+                        | None ->
+                            asprintf "there is no contract at address %a" Theory.Address.fmt address
+                            |> Exc.throw
+                        | Some contract -> (
+                            let dtyp =
+                                Dtyp.Option contract.contract.storage |>
+                                Dtyp.mk ~alias
+                            in
+                            let value =
+                                try (
+                                    Dtyp.check storage_dtyp contract.contract.storage;
+                                    Some contract.storage |> Theory.Of.option
+                                ) with
+                                | _ -> Theory.Of.option None
+                            in
+                            value, dtyp
+                        )
+                    in
+
+                    Stack.push ~binding dtyp value self.stack
 
                 (* # Unimplemented stuff. *)
 
@@ -1027,14 +1018,14 @@ module Interpreter (
         (src : Src.t)
         ~(balance : Theory.Tez.t)
         ~(amount : Theory.Tez.t)
-        (env : Contracts.t)
+        (env : Env.t)
         (values : (Theory.value * Dtyp.t * Annot.Var.t option) list)
         (inss : Mic.t list)
         : t
     =
         let self =
             {
-                stack = Stack.empty () ;
+                stack = Stack.empty env ;
                 blocks = [] ;
                 next = inss ;
                 last = None ;
@@ -1049,4 +1040,44 @@ module Interpreter (
                 Stack.push ~binding dtyp value self.stack
         );
         self
+end
+
+(** Creates a test interpreter from a normal interpreter. *)
+module TestInterpreter (
+    I : Sigs.Interpreter
+) : Sigs.TestInterpreter with module Run = I
+= struct
+    module Run = I
+    module Env = Run.Env
+    module Theory = Run.Theory
+    module Src = Run.Src
+
+    type t = {
+        interp : Run.t ;
+        tc : Testcase.t ;
+        src : Src.t ;
+    }
+
+    let contract_env (self : t) : Env.t = self.interp |> Run.contract_env
+
+    let is_done (self : t) : bool = Run.is_done self.interp
+    let interp (self : t) : Run.t = self.interp
+    let mk (src : Src.t) (tc : Testcase.t) (contracts : Env.t) : t =
+        let many_tez = Theory.Tez.of_native Int64.max_int in
+        let interp = I.init src ~balance:many_tez ~amount:many_tez contracts [] [ tc.code ] in
+        { interp ; tc ; src }
+
+    let step (self : t) : Env.operation list option =
+        if Run.is_done self.interp then None else (
+            try (
+                Run.run self.interp;
+                None
+            ) with
+            | Exc.Exc (_, Some Exc.ApplyOpsExc)
+            | Exc.ApplyOpsExc -> Some (
+                Run.stack self.interp |> Run.Stack.pop_operation_list |> fst
+            )
+        )
+    
+    let balance (self : t) : Theory.Tez.t = Run.balance self.interp
 end

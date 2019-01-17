@@ -1,9 +1,6 @@
-(** Stores a functor that creates a contract environment from a theory. *)
-
 open Base
 open Common
 
-(** Creates a contract environment from a theory. *)
 module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = T = struct
     module Theory = T
 
@@ -18,9 +15,16 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
     type t = {
         mutable defs : (string, Contract.t) Hashtbl.t ;
         mutable live : (int, live) Hashtbl.t ;
+        mutable next_op_uid : int ;
+        mutable expired_uids : IntSet.t ;
     }
 
-    let empty () : t = { defs = Hashtbl.create 47 ; live = Hashtbl.create 47 }
+    let empty () : t = {
+        defs = Hashtbl.create 47 ;
+        live = Hashtbl.create 47 ;
+        next_op_uid = 0 ;
+        expired_uids = IntSet.empty () ;
+    }
 
     let add (contract : Contract.t) (self : t) : unit =
         if Hashtbl.mem self.defs contract.name then (
@@ -102,5 +106,34 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
 
         let transfer (tez : Theory.Tez.t) (live : live) : unit =
             live.balance <- Theory.Tez.add live.balance tez
+    end
+
+    type operation = {
+        operation : Theory.operation ;
+        uid : int ;
+    }
+
+    let get_uid (self : t) : int =
+        let res = self.next_op_uid in
+        self.next_op_uid <- self.next_op_uid + 1;
+        res
+
+    module Op = struct
+        let fmt (fmt : formatter) (self : operation) : unit =
+            Theory.fmt_operation self.uid fmt self.operation
+
+        let op (env : t) (self : operation) : Theory.operation =
+            let is_new = IntSet.add self.uid env.expired_uids in
+            if is_new then (
+                self.operation
+            ) else (
+                Exc.Failure (
+                    asprintf "cannot run the exact same operation twice: %a"
+                        (Theory.fmt_operation self.uid) self.operation
+                ) |> raise
+            )
+
+        let mk (uid : int) (operation : Theory.operation) : operation =
+            { operation ; uid }
     end
 end

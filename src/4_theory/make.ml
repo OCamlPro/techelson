@@ -28,7 +28,7 @@ module Theory (
                 Int64.to_string t
 
             let fmt (fmt : formatter) (t : t) : unit =
-                Int64.to_string t |> fprintf fmt "%stz"
+                Int64.to_string t |> fprintf fmt "%sutz"
 
             let to_nat (t : t) : nat =
                 (fun () -> Int64.to_string t |> Nat.of_string)
@@ -378,7 +378,7 @@ module Theory (
     | Lst of value Lst.t
     | Pair of value * value
     | Contract of Address.t option * Mic.contract
-    | Operation of operation
+    | Operation of int * operation
     | Address of Address.t
 
     and contract_params = {
@@ -417,16 +417,20 @@ module Theory (
             params.spendable params.delegatable
             Tez.fmt params.tez
 
-    and fmt_operation (fmtt : formatter) (op : operation) : unit =
+    and fmt_operation (uid : int) (fmtt : formatter) (op : operation) : unit =
         match op with
         | Create (params, contract) ->
-            fprintf fmtt "@[<hv 4>CREATE %a %a@]" fmt_contract_params params Mic.fmt_contract contract
+            fprintf fmtt "@[<hv 4>CREATE[uid:%i] %a %a@]"
+                uid fmt_contract_params params Mic.fmt_contract contract
         | CreateNamed (params, contract) ->
-            fprintf fmtt "@[<hv 4>CREATE %a \"%s\"@]" fmt_contract_params params contract.name
+            fprintf fmtt "@[<hv 4>CREATE[uid:%i] %a \"%s\"@]"
+                uid fmt_contract_params params contract.name
         | InitNamed (params, value, name) ->
-            fprintf fmtt "@[<hv 4>CREATE %a %a %s@]" fmt_contract_params params fmt value name
+            fprintf fmtt "@[<hv 4>CREATE[uid:%i] %a %a %s@]"
+                uid fmt_contract_params params fmt value name
         | Transfer (address, _, tez, value) ->
-            fprintf fmtt "@[<hv 4> TRANSFER %a %a %a@]" Address.fmt address Tez.fmt tez fmt value
+            fprintf fmtt "@[<hv 4>TRANSFER[uid:%i] %a %a %a@]"
+                uid Address.fmt address Tez.fmt tez fmt value
         
 
     and fmt (fmt : formatter) (v : value) : unit =
@@ -525,8 +529,8 @@ module Theory (
                 )
             )
             
-            | Operation op ->
-                fprintf fmt "%a" fmt_operation op;
+            | Operation (uid, op) ->
+                fprintf fmt "%a" (fmt_operation uid) op;
                 go_up stack
 
         and go_up (stack : ((string * value) list * string) list) : unit =
@@ -618,14 +622,14 @@ module Theory (
             go_down [] c
 
         module Operation = struct
-            let create (params : contract_params) (contract : Mic.contract) : value =
-                Operation (Create (params, contract))
-            let create_named (params : contract_params) (contract : Contract.t) : value =
-                Operation (CreateNamed (params, contract))
-            let init_named (params : contract_params) (input : value) (name : string) : value =
-                Operation (InitNamed (params, input, name))
-            let transfer (address : Address.t) (contract : Mic.contract) (tez : Tez.t) (param : value) : value =
-                Operation (Transfer (address, contract, tez, param))
+            let create (uid : int) (params : contract_params) (contract : Mic.contract) : value =
+                Operation (uid, Create (params, contract))
+            let create_named (uid : int) (params : contract_params) (contract : Contract.t) : value =
+                Operation (uid, CreateNamed (params, contract))
+            let init_named (uid : int) (params : contract_params) (input : value) (name : string) : value =
+                Operation (uid, InitNamed (params, input, name))
+            let transfer (uid : int) (address : Address.t) (contract : Mic.contract) (tez : Tez.t) (param : value) : value =
+                Operation (uid, Transfer (address, contract, tez, param))
         end
     end
 

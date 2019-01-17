@@ -147,7 +147,6 @@ type leaf =
 | SetDelegate
 | Balance
 | BalanceOf
-| StorageOf
 | Source
 | Sender
 | Self
@@ -205,7 +204,6 @@ let fmt_leaf (fmt : formatter) (leaf : leaf) : unit = match leaf with
 | SetDelegate -> fprintf fmt "SET_DELEGATE"
 | Balance -> fprintf fmt "BALANCE"
 | BalanceOf -> fprintf fmt "BALANCE_OF"
-| StorageOf -> fprintf fmt "STORAGE_OF"
 | Source -> fprintf fmt "SOURCE"
 | Sender -> fprintf fmt "SENDER"
 | Self -> fprintf fmt "SELF"
@@ -263,7 +261,6 @@ let leaf_of_string (token : string) : leaf option = match token with
 | "SET_DELEGATE" -> Some SetDelegate
 | "BALANCE" -> Some Balance
 | "BALANCE_OF" -> Some BalanceOf
-| "STORAGE_OF" -> Some StorageOf
 | "SOURCE" -> Some Source
 | "SENDER" -> Some Sender
 | "SELF" -> Some Self
@@ -283,6 +280,18 @@ let leaf_of_string (token : string) : leaf option = match token with
 | "APPLY_OPERATIONS" -> Some ApplyOps
 | "PRINT_STACK" -> Some PrintStack
 | _ -> None
+
+type extension =
+| StorageOf of Dtyp.t
+
+let fmt_extension
+    ?annots:(annots = fun (_ : formatter) () -> ())
+    (fmt : formatter)
+    (e : extension)
+    : unit
+=
+    match e with
+    | StorageOf dtyp -> fprintf fmt "STORAGE_OF%a %a" annots () Dtyp.fmt dtyp
 
 let annot_arity_of_leaf (leaf : leaf) : (int * int * int) = match leaf with
 (* Supports nothing. *)
@@ -333,7 +342,6 @@ let annot_arity_of_leaf (leaf : leaf) : (int * int * int) = match leaf with
 | SetDelegate
 | Balance
 | BalanceOf
-| StorageOf
 | Source
 | Sender
 | Self
@@ -373,6 +381,7 @@ type 'sub ins =
 | IfCons of 'sub * 'sub
 | CreateContract of (contract option, string) Either.t
 | Macro of 'sub list * 'sub Macro.t
+| Extension of extension
 
 and const =
 | Unit
@@ -667,6 +676,10 @@ and fmt (fmtt : formatter) (t : t) : unit =
                             fun () -> fprintf fmtt "@]@,}@]"
                         ) :: tail
                 )
+
+                | Extension ext ->
+                    fmt_extension ~annots:fmt_annots fmtt ext;
+                    tail
             in
             loop tail
     in

@@ -92,7 +92,6 @@ type leaf =
 | SetDelegate
 | Balance
 | BalanceOf
-| StorageOf
 | Source
 | Sender
 | Self
@@ -123,6 +122,15 @@ val leaf_of_string : string -> leaf option
 *)
 val annot_arity_of_leaf : leaf -> int * int * int
 
+type extension =
+| StorageOf of Dtyp.t
+
+val fmt_extension :
+    ?annots : (formatter -> unit -> unit) ->
+    formatter ->
+    extension ->
+    unit
+
 (** Instructions. *)
 type 'sub ins =
 | Leaf of leaf
@@ -148,6 +156,7 @@ type 'sub ins =
 | IfCons of 'sub * 'sub
 | CreateContract of (contract option, string) Either.t
 | Macro of 'sub list * 'sub Macro.t
+| Extension of extension
 
 and const =
 | Unit

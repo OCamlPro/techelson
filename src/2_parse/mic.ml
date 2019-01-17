@@ -147,11 +147,11 @@ let rec parse
             Lambda (List.hd dtyps, List.tl dtyps |> List.hd, code)
         | "CREATE_CONTRACT" when (List.length args) = 0 ->
             param_arity_check 0 0;
-            annot_arity_check 0 2 0;
+            annot_arity_check 0 1 0;
             CreateContract (Either.Lft None)
         | "CREATE_CONTRACT" -> (
             param_arity_check 0 1;
-            annot_arity_check 0 2 0;
+            annot_arity_check 0 1 0;
             let const, _ = next_const_arg args in
             match const with
             | Cont c -> CreateContract (Either.Lft (Some c))
@@ -161,6 +161,14 @@ let rec parse
                 asprintf "expected constant contract, found `%a`" Mic.fmt_const cst
             ] |> Exc.throws
         )
+
+        | "STORAGE_OF" -> (
+            param_arity_check 1 0;
+            annot_arity_check 0 1 0;
+            let dtyp = List.hd dtyps in
+            Extension (StorageOf dtyp)
+        )
+
         | _ -> (
             let args = args_to_mic args in
             match Mic.leaf_of_string token with
