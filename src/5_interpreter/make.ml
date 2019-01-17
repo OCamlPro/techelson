@@ -350,8 +350,6 @@ module Interpreter (
     module Stack = Stack (S)
     module Contracts = C
 
-    exception Failure of Theory.value
-
     module Src = struct
         module Theory = Theory
         type t =
@@ -416,7 +414,34 @@ module Interpreter (
 
     let last_ins (self : t) : Mic.t option = self.last
 
-    let next_ins (self : t) : Mic.t option =  Lst.hd self.next
+    let next_ins (self : t) : string list * Mic.t option =
+        match self.next with
+        | hd :: _ -> [], Some hd
+        | [] -> (
+            let rec loop
+                (acc : string list)
+                (blocks : block_end list)
+                : string list * Mic.t option
+            =
+                match blocks with
+                | [] -> acc, None
+                | Dip next :: blocks -> (
+                    let acc = "undip" :: acc in
+                    match next with
+                    | [] -> loop acc blocks
+                    | hd :: _ -> acc, Some hd
+                )
+                | Loop (ins, _) :: _ -> "re-loop" :: acc, Some ins
+                | Nop (ins, next) :: blocks -> (
+                    let acc = (asprintf "exit block %a" Mic.fmt ins) :: acc in
+                    match next with
+                    | [] -> loop  acc blocks
+                    | hd :: _ -> acc, Some hd
+                )
+            in
+            let pre_ops, ins = loop [] self.blocks in
+            List.rev pre_ops, ins
+        )
 
     let stack (self : t) : Stack.t = self.stack
 
@@ -459,7 +484,8 @@ module Interpreter (
 
                 | Mic.Leaf Mic.Failwith ->
                     let value = Stack.pop self.stack |> fst in
-                    raise (Failure value)
+                    let s = asprintf "%a" Theory.fmt value in
+                    raise (Exc.Failure s)
 
                 (* # Basic stack manipulation. *)
 

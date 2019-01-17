@@ -247,9 +247,6 @@ module type Interpreter = sig
     (** Contract environment module. *)
     module Contracts : ContractEnv with module Theory := Theory
 
-    (** Exception thrown when running into an explicit failure. *)
-    exception Failure of Theory.value
-
     (** Operation source module. *)
     module Src : SigSrc with module Theory := Theory
 
@@ -301,7 +298,7 @@ module type Interpreter = sig
         When this function returns `None`, it means either that there is nothing else to run or
         that the next step will not consist in running an instruction.
     *)
-    val next_ins : t -> Mic.t option
+    val next_ins : t -> string list * Mic.t option
 
     (** The stack of the interpreter. *)
     val stack : t -> Stack.t

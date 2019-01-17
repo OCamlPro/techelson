@@ -94,13 +94,18 @@
             PUSH mutez 13 ;
             NOW ;
             TRANSFER_TOKENS ;
+            MUST_FAIL ;
             DIP SWAP ;
             PRINT_STACK ;
+            DUP ;
+            DIP CONS ;
             CONS
         } {
             PUSH string "failed to resolve Test1" ;
             FAILWITH
         } ;
+
+        PRINT_STACK ;
 
         # Call.
         APPLY_OPERATIONS
@@ -110,13 +115,15 @@
     # Make sure the balance of Test1 is correct.
     DUP ;
     BALANCE_OF ;
-    PRINT_STACK ;
     PUSH mutez 55 ;
+    SWAP ;
+    PRINT_STACK ;
     SUB ;
     IFNEQ {
         PUSH string "Test1 does not have a balance of 55tz" ;
         FAILWITH
     } {} ;
+
     STORAGE_OF ;
     PRINT_STACK ;
     CAR ;

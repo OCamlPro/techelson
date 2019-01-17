@@ -76,8 +76,16 @@ let run () : unit =
                         |> printf "@.@[<v>%a@]@.@." Cxt.Run.Stack.fmt;
                         Cxt.Transfer.interpreter cxt
                         |> Cxt.Run.next_ins
-                        |> if_let_some (
-                            log_1 "@[<v 4>> %a@]@." Mic.fmt
+                        |> (
+                            fun (pre_ops, ins) -> (
+                                pre_ops |> List.iter (
+                                    log_1 "@[<v 4>next > %s@]@."
+                                );
+                                match ins with
+                                | None when pre_ops = [] -> log_1 "@[<v 4>next > done"
+                                | None -> ()
+                                | Some mic -> log_1 "@[<v 4>next > %a@]@." Mic.fmt mic
+                        )
                         );
                         
                         match Cxt.Transfer.transfer_step cxt with
@@ -94,5 +102,6 @@ let run () : unit =
                 )
             in
 
-            test_loop cxt
+            try test_loop cxt with
+            | Exc.Failure s -> log_0 "@.@.Test `%s` failed on@.  %s@." test.name s
     )

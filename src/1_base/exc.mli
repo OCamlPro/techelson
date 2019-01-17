@@ -8,6 +8,11 @@ exception Exc of string list * exn option
     This exception is left untouched by `chain_err`, `erase_err` *etc*. *)
 exception ApplyOpsExc
 
+(** Exception thrown on the `FAILWITH` instruction.
+
+    This exception is left untouched by `chain_err`, `erase_err` *etc*. *)
+exception Failure of string
+
 (** Raises an exception from a single trace frame. *)
 val throw : string -> 'a
 
