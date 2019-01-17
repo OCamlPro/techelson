@@ -1,7 +1,7 @@
 all: compile
 
 compile:
-	dune build src/main.exe && mkdir -p bin && cp _build/default/src/main.exe bin/micheltest
+	dune build src/main.exe && mkdir -p bin && cp _build/default/src/main.exe bin/techelson
 
 test: compile
 	for file in `find tests/thezos -iname "*.tz"` ; do \
@@ -22,10 +22,10 @@ test: compile
 	done
 
 test1 : compile
-	./bin/micheltest -vvvvvv --contract rsc/test1/test1.liq.tz --step off -- rsc/test1/test1.liq.tz.tst
+	./bin/techelson -vvvvvv --contract rsc/test1/test1.liq.tz --step off -- rsc/test1/test1.liq.tz.tst
 
 test1_step : compile
-	./bin/micheltest -vvvvvv --contract rsc/test1/test1.liq.tz --step on -- rsc/test1/test1.liq.tz.tst
+	./bin/techelson -vvvvvv --contract rsc/test1/test1.liq.tz --step on -- rsc/test1/test1.liq.tz.tst
 
 clean:
 	dune clean

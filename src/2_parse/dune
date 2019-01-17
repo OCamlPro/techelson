@@ -3,7 +3,7 @@
 
 (library
     (name parse)
-    (public_name micheltest.parse)
+    (public_name techelson.parse)
     (libraries
         base
     )

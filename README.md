@@ -1,45 +1,51 @@
-# micheltest
+# techelson
 
-A test framework for michelson smart contracts.
+TEst miCHELSON: `techelson`
+
+A test execution engine for Michelson smart contracts.
 
 # Build
 
 We recommend to use the latest version of the OCaml compiler. For example
 
 ```bash
-> opam switch create micheltest 4.07.1
+> opam switch create techelson 4.07.1
 ```
 
-`micheltest` relies on the [`dune`] build system and a few other libraries:
+`techelson` relies on the [`dune`] build system and a few other libraries:
 
 ```bash
 > opam install dune menhir
 ```
 
-Finally, build `micheltest` with `make`. The binary will be `bin/micheltest`.
+Finally, build `techelson` with `make`. The binary will be `./bin/techelson`.
 
 # Usage
 
-Assuming the binary `micheltest` is in you path, you can run it with
+Assuming the binary `techelson` is in you path, you can run it with
 
 ```bash
-> micheltest [ --contract <contract_file> <optional_init_file> ]* -- [ <testcase> ]*
+> techelson [ --contract <contract_file> <optional_init_file> ]* -- [ <testcase> ]*
 ```
 
 Argument `<contract_file>` is a michelson contract (`storage`, `parameter` and `code` fields). `<optional_init_file>` is an optional initializer for the contract. It should contain two fields : `parameter` and `code`. The former is the type of data the initializer takes as input, and the latter is a (sequence of) michelson instruction(s) which, from a stack with a value of type `parameter`, produces a stack with a value of the `storage` type appearing in the `<contract_file>` associated with the initializer.
 
-A `<testcase>` is a (sequence of) michelson instruction(s) which produce(s) a list of `operation`s from an empty stack. `micheltest` runs all testcases sequentially and reports the errors it runs into.
+A `<testcase>` is a (sequence of) michelson instruction(s) which produce(s) a list of `operation`s from an empty stack. `techelson` runs all testcases sequentially and reports the errors it runs into. Testcases have access to extended Michelson instructions:
+
+- `APPLY_OPERATIONS`:
+    - consumes a list of operations on the stack
+    - suspends the execution of the testcase
+    - applies all the operations in the list (these operations can create operations which will be applied too)
+    - resumes the execution of the testcase
+- `STORAGE_OF`:
+    - consumes a contract on the stack
+    - pushes the current value of the storage of the contract
+- `BALANCE_OF`: same as `STORAGE_OF`, but pushes the balance of the contract instead
 
 For example
 
 ```bash
-> micheltest --contract rsc/test1/test1.liq.tz -- test1.liq.tz.init.tst
-```
-
-For more details run
-
-```bash
-> micheltest --help
+> techelson --contract rsc/test1/test1.liq.tz -- rsc/test1/test1.liq.tz.tst
 ```
 
 [`dune`] : https://github.com/ocaml/dune (Dune project manager's Github page)

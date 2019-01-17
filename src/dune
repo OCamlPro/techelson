@@ -1,9 +1,9 @@
 (executable
     (name main)
     (libraries
-        micheltest.base
-        micheltest.parse
-        micheltest.interpreter
-        micheltest.test
+        techelson.base
+        techelson.parse
+        techelson.interpreter
+        techelson.test
     )
 )

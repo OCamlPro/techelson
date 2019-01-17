@@ -1,6 +1,6 @@
 (library
     (name test)
-    (public_name micheltest.test)
+    (public_name techelson.test)
     (modules_without_implementation sigs)
     (synopsis "Environment able to run tests.")
     (libraries

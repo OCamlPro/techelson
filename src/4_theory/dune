@@ -1,6 +1,6 @@
 (library
     (name theo)
-    (public_name micheltest.theo)
+    (public_name techelson.theo)
     (modules_without_implementation sigs)
     (synopsis "Theories, for evaluation.")
     (libraries
