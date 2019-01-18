@@ -1,0 +1,9 @@
+parameter nat ;
+storage int ;
+code {
+    UNPAIR @param @storage ;
+    ADD @nu_storage ;
+
+    NIL operation ;
+    PAIR
+} ;

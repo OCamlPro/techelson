@@ -42,8 +42,8 @@ let run () : unit =
         |> Exc.throw
     );
 
-    Tests.get_tests context |> List.iter (
-        fun (test : Testcase.t) ->
+    Tests.get_tests context |> Lst.fold (
+        fun (err_count : int) (test : Testcase.t) ->
             let cxt = Cxt.init (Tests.get_contracts context) test in
 
             let rec test_loop (cxt : Cxt.run_test) : unit =
@@ -108,6 +108,19 @@ let run () : unit =
                 )
             in
 
-            try test_loop cxt with
-            | e -> log_0 "@.@.Test `%s` failed:@.    @[%a@]@." test.name Exc.fmt e
+            try (
+                test_loop cxt;
+                err_count
+            ) with
+            | e ->
+                log_0 "@.@.Test `%s` failed:@.    @[%a@]@." test.name Exc.fmt e;
+                err_count + 1
+    ) 0
+    |> (
+        function
+        | 0 -> ()
+        | n ->
+            let test_count = Tests.get_tests context |> List.length in
+            sprintf "%i of the %i testcase%s failed" n test_count (Fmt.plurify test_count)
+            |> Exc.throw
     )

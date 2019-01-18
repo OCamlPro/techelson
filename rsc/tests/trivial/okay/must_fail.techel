@@ -1,0 +1,84 @@
+{
+    # Deploy `Add`.
+    {
+        PUSH @storage int 7 ;
+
+        # Contract deployment parameters.
+        PUSH mutez 13 ;
+        PUSH bool True ;
+        PUSH bool True ;
+        NONE key_hash ;
+        PUSH key "some_key" ;
+        HASH_KEY ;
+
+        # Build contract creation operation.
+        CREATE_CONTRACT @add "Add" ;
+        DUP ;
+        NONE string ;
+        MUST_FAIL ;
+        NIL operation ;
+        SWAP ;
+        CONS ;
+        SWAP ;
+        CONS ;
+
+        # Apply.
+        APPLY_OPERATIONS
+    } ;
+
+    # Address of `Add` is on top of the stack.
+
+    # Retrieve `Add`.
+    CONTRACT @add nat ;
+    IF_NONE {
+        PUSH string "failed to retrieve contract \"Add\"" ;
+        FAILWITH
+    } {} ;
+
+    # Remember it for later.
+    DUP ;
+
+    # Build transfer operation to `Add`.
+    PUSH mutez 4 ;
+    PUSH nat 35 ;
+    TRANSFER_TOKENS ;
+    DUP ;
+    NONE string ;
+    MUST_FAIL ;
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    SWAP ;
+    CONS ;
+
+    # Apply.
+    APPLY_OPERATIONS ;
+
+    # Contract `Add` is on top of the stack.
+    # Remember it for storage check.
+    DUP ;
+
+    # Check balance.
+    BALANCE_OF ;
+    PUSH mutez 17 ;
+    SUB ;
+    IFNEQ {
+        PUSH string "balance of \"Add\" is not 17utz" ;
+        FAILWITH
+    } {} ;
+
+    # Contract `Add` is on top of the stack.
+
+    # Check storage.
+    STORAGE_OF int ;
+    IF_NONE {
+        PUSH string "failed to retrieve storage for \"Add\"" ;
+        FAILWITH
+    } {} ;
+
+    PUSH int 42 ;
+    SUB ;
+    IFNEQ {
+        PUSH string "storage of \"Add\" is not 42"
+    } {}
+}

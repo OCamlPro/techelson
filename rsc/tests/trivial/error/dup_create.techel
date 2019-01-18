@@ -1,0 +1,26 @@
+{
+    # Deploy `Add`.
+    {
+        PUSH @storage int 7 ;
+
+        # Contract deployment parameters.
+        PUSH mutez 13 ;
+        PUSH bool True ;
+        PUSH bool True ;
+        NONE key_hash ;
+        PUSH key "some_key" ;
+        HASH_KEY ;
+
+        # Build contract creation operation.
+        CREATE_CONTRACT @add "Add" ;
+        DUP ;
+        NIL operation ;
+        SWAP ;
+        CONS ;
+        SWAP ;
+        CONS ;
+
+        # Apply.
+        APPLY_OPERATIONS
+    }
+}

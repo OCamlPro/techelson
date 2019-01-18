@@ -1,0 +1,49 @@
+{
+    # Deploy `Add`.
+    {
+        PUSH @storage int 7 ;
+
+        # Contract deployment parameters.
+        PUSH mutez 13 ;
+        PUSH bool True ;
+        PUSH bool True ;
+        NONE key_hash ;
+        PUSH key "some_key" ;
+        HASH_KEY ;
+
+        # Build contract creation operation.
+        CREATE_CONTRACT @add "Add" ;
+        NIL operation ;
+        SWAP ;
+        CONS ;
+
+        # Apply.
+        APPLY_OPERATIONS
+    } ;
+
+    # Address of `Add` is on top of the stack.
+
+    # Retrieve `Add`.
+    CONTRACT @add nat ;
+    IF_NONE {
+        PUSH string "failed to retrieve contract \"Add\"" ;
+        FAILWITH
+    } {} ;
+
+    # Remember it for later.
+    DUP ;
+
+    # Build transfer operation to `Add`.
+    PUSH mutez 4 ;
+    PUSH nat 35 ;
+    TRANSFER_TOKENS ;
+    DUP ;
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    SWAP ;
+    CONS ;
+
+    # Apply.
+    APPLY_OPERATIONS
+}
