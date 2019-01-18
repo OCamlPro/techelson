@@ -40,7 +40,7 @@ For example
 
 # Extensions
 
-Techelson testcases have access to extended Michelson instruction to ease the process of writing tests.
+Techelson testcases have access to extended Michelson instruction to ease the process of writing tests. See `rsc/tests/` for more examples.
 
 - `APPLY_OPERATIONS`:
 
@@ -63,5 +63,21 @@ Techelson testcases have access to extended Michelson instruction to ease the pr
     `contract 'a : S` `->` `mutez : S`
 
     same as `STORAGE_OF`, but pushes the balance of the contract instead of its storage
+
+- `MUST_FAIL`:
+
+    `(option 'a) : operation : S` `->` `S`
+
+    specifies that an operation must fail, and optionaly that it `FAILWITH` a certain value. More precisely, the whole testcase will fail if the `operation`, *when applied*, either
+
+    - succeeds, or
+    - the `(option 'a)` parameter is `(Some value)` and the operation's failure was not caused by a `FAILWITH` on precisely `value`, *e.g.*
+
+        ```
+        PUSH <'a> <value> ;
+        FAILWITH
+        ```
+    
+    > Note that if the optional value is `NONE`, then `MUST_FAIL` accepts any kind of *protocol* failure, not just `FAILWITH`. For instance, it will also accept creation/transfer operations that fail because of insufficient balance, because this precise operation already ran (it was `DUP`-ed), *etc*.
 
 [dune]:https://github.com/ocaml/dune (Dune project manager's Github page)
