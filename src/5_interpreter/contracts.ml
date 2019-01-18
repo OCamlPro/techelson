@@ -136,11 +136,19 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
             if is_new then (
                 self.operation
             ) else (
-                Exc.Failure (
-                    asprintf "cannot run the exact same operation twice: %a"
-                        (Theory.fmt_operation self.uid) self.operation
-                ) |> raise
+                asprintf "cannot run the exact same operation twice: %a"
+                    (Theory.fmt_operation self.uid) self.operation
+                |> Exc.Throw.tezos
             )
+
+        let must_fail
+            (env : t)
+            (expected : Theory.value option)
+            (self : operation)
+            : Theory.value
+        =
+            let must_fail_uid = get_uid env in
+            Theory.Of.Operation.must_fail must_fail_uid expected (self.operation, self.uid)
 
         let mk (uid : int) (operation : Theory.operation) : operation =
             { operation ; uid }

@@ -338,6 +338,7 @@ type extension =
 | BalanceOf
 | ApplyOps
 | PrintStack
+| MustFail
 
 let fmt_extension
     ?annots:(annots = fun (_ : formatter) () -> ())
@@ -350,6 +351,7 @@ let fmt_extension
     | BalanceOf -> fprintf fmt "BALANCE_OF"
     | ApplyOps -> fprintf fmt "APPLY_OPERATIONS"
     | PrintStack -> fprintf fmt  "PRINT_STACK"
+    | MustFail -> fprintf fmt "MUST_FAIL"
 
 type 'sub ins =
 | Leaf of leaf

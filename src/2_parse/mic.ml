@@ -162,6 +162,7 @@ let rec parse
             ] |> Exc.throws
         )
 
+        (* Extensions. *)
         | "STORAGE_OF" -> (
             param_arity_check 1 0;
             annot_arity_check 0 1 0;
@@ -180,6 +181,10 @@ let rec parse
             param_arity_check 0 0;
             annot_arity_check 0 0 0;
             Extension PrintStack
+        | "MUST_FAIL" ->
+            param_arity_check 0 0;
+            annot_arity_check 0 0 0;
+            Extension MustFail
 
         | _ -> (
             let args = args_to_mic args in

@@ -51,6 +51,17 @@ module type ContractEnv = sig
         *)
         val op : t -> operation -> Theory.operation
 
+        (** MustFail version of an operation.
+
+            The operation is not considered processed: does not invalid the uid of the operation.
+            This is used when wrapping an operation into a `MustFail`.
+        *)
+        val must_fail :
+            t ->
+            Theory.value option ->
+            operation ->
+            Theory.value
+
         (** The unique identifier of the operation. *)
         val uid : operation -> int
 
@@ -209,6 +220,9 @@ module type Stack = sig
 
     (** Pops a pair. *)
     val pop_pair : t -> (Theory.value * Dtyp.t) * (Theory.value * Dtyp.t)
+
+    (** Pops an operation. *)
+    val pop_operation : t -> Env.operation * Dtyp.t
 
     (** Pops a list of operation. *)
     val pop_operation_list : t -> Env.operation list * Dtyp.t

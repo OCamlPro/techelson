@@ -109,5 +109,5 @@ let run () : unit =
             in
 
             try test_loop cxt with
-            | Exc.Failure s -> log_0 "@.@.Test `%s` failed on@.  %s@." test.name s
+            | e -> log_0 "@.@.Test `%s` failed:@.    @[%a@]@." test.name Exc.fmt e
     )

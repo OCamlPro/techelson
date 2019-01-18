@@ -9,7 +9,7 @@ let of_source (src : Source.t list) : in_channel list * error_count =
     Lst.fold (
         fun (res, err_count) src ->
             let () = log_3 "extracting input channel from %a.@." Source.fmt src in
-            match Exc.catch_print 3 (fun () -> Source.to_channel src) with
+            match Exc.catch_print (fun () -> Source.to_channel src) with
             | None -> log_0 "@." ; res, err_count + 1
             | Some chan -> res @ [chan], err_count
     ) ([], 0) src
@@ -39,7 +39,7 @@ let load_map
                         fun () -> sprintf "while loading %s file `%s`" desc file
                     )
                 )
-                |> Exc.catch_print 3
+                |> Exc.catch_print
             with
             | None -> log_3 "failed@." ; acc, err_count + 1
             | Some stuff -> log_3 "success@." ; stuff :: acc, err_count

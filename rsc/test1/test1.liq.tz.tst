@@ -3,8 +3,6 @@
     NIL @ops operation ;
     DUP @ops_too ;
 
-    PRINT_STACK ;
-
     # Storage parameter for `Test1` contract deployment.
     NOW ;
     PUSH @v_5 mutez 0 ;
@@ -38,7 +36,6 @@
 
     # Spawn contract.
     CREATE_CONTRACT @test1_contract "Test1" ;
-    PRINT_STACK ;
     DIP SWAP ;
     CONS ;
 
@@ -67,10 +64,8 @@
             NIL operation
         } ;
     } ;
-    PRINT_STACK ;
     DIP SWAP ;
     CONS ;
-    PRINT_STACK ;
 
     # Apply operations on top of the stack.
     APPLY_OPERATIONS ;
@@ -84,12 +79,16 @@
         # Create call.
         CONTRACT timestamp ;
         IF_SOME {
-            PRINT_STACK ;
             PUSH mutez 13 ;
             NOW ;
             TRANSFER_TOKENS ;
             DIP SWAP ;
-            PRINT_STACK ;
+            DUP ;
+            DIP {
+                NONE string ;
+                MUST_FAIL ;
+                CONS
+            } ;
             CONS
         } {
             PUSH string "failed to resolve Test1" ;
@@ -104,7 +103,6 @@
     # Make sure the balance of Test1 is correct.
     CONTRACT timestamp ;
     # Checking we got none.
-    PRINT_STACK ;
     IF_SOME {} {
         PUSH string "failed to retrieve `Test1`." ;
         FAILWITH
@@ -113,7 +111,6 @@
     BALANCE_OF ;
     PUSH mutez 55 ;
     SWAP ;
-    PRINT_STACK ;
     SUB ;
     IFNEQ {
         PUSH string "Test1 does not have a balance of 55tz" ;
@@ -130,12 +127,9 @@
         PUSH string "could not retrieve storage of Test1" ;
         FAILWITH
     } {} ;
-    PRINT_STACK ;
     CAR ;
     PUSH string "blah" ;
-    PRINT_STACK ;
     COMPARE ;
-    PRINT_STACK ;
     IFNEQ {
         PUSH string "Test1 does not have the first element of its storage equal to \"blah\"" ;
         FAILWITH

@@ -149,21 +149,33 @@ module Stack (S : Sigs.StackBase)
         | v, dtyp ->
             asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v |> Exc.throw
 
+    let to_operation (value : Theory.value) : Env.operation =
+        match value with
+        | Theory.Operation (uid, op) ->
+            Env.Op.mk uid op
+        | _ ->
+            asprintf "expected an operation but found value %a" Theory.fmt value
+            |> Exc.throw
+
     let to_operation_list
         (values : Theory.value Theory.Lst.t)
         : Env.operation list
     =
         Theory.Lst.fold (
             fun lst value ->
-                match value with
-                | Theory.Operation (uid, op) ->
-                    let op = Env.Op.mk uid op in
-                    op :: lst
-                | _ ->
-                    asprintf "expected an operation but found value %a" Theory.fmt value
-                    |> Exc.throw
+                let op = to_operation value in
+                op :: lst
         ) [] values
         |> List.rev
+
+    let pop_operation (self : t) : Env.operation * Dtyp.t =
+        let run () : Env.operation * Dtyp.t =
+            let op, dtyp = pop self in
+            (to_operation op), dtyp
+        in
+        run |> Exc.chain_err (
+            fun () -> "while popping an operation from the stack"
+        )
 
     let pop_operation_list (self : t) : Env.operation list * Dtyp.t =
         let run () : Env.operation list * Dtyp.t =
@@ -448,9 +460,9 @@ module Interpreter (
                 match mic.ins with
 
                 | Mic.Leaf Mic.Failwith ->
-                    let value = Stack.pop self.stack |> fst in
-                    let s = asprintf "%a" Theory.fmt value in
-                    raise (Exc.Failure s)
+                    Stack.pop self.stack |> fst
+                    |> asprintf "%a" Theory.fmt
+                    |> Exc.Throw.failure
 
                 (* # Basic stack manipulation. *)
 
@@ -969,7 +981,7 @@ module Interpreter (
 
                     Stack.push ~binding dtyp value self.stack
 
-                | Mic.Extension Mic.ApplyOps -> raise Exc.ApplyOpsExc
+                | Mic.Extension Mic.ApplyOps -> Exc.Throw.apply_ops ()
 
                 | Mic.Extension Mic.PrintStack ->
                     log_0 "@[%a@]@." Stack.fmt self.stack
@@ -992,6 +1004,17 @@ module Interpreter (
                     let dtyp = Dtyp.Mutez |> Dtyp.mk_leaf in
 
                     Stack.push ~binding dtyp value self.stack
+                
+                | Mic.Extension Mic.MustFail ->
+                    let expected = Stack.pop_option self.stack |> fst in
+                    let value =
+                        Stack.pop_operation self.stack
+                        |> fst
+                        |> Env.Op.must_fail self.env expected
+                    in
+                    let dtyp = Dtyp.Operation |> Dtyp.mk_leaf in
+
+                    Stack.push dtyp value self.stack
 
                 (* # Unimplemented stuff. *)
 
@@ -1073,8 +1096,7 @@ module TestInterpreter (
                 Run.run self.interp;
                 None
             ) with
-            | Exc.Exc (_, Some Exc.ApplyOpsExc)
-            | Exc.ApplyOpsExc -> Some (
+            | Exc.Exc (Exc.Internal Exc.Internal.ApplyOps)-> Some (
                 Run.stack self.interp |> Run.Stack.pop_operation_list |> fst
             )
         )

@@ -203,5 +203,12 @@ let log_3 (args : ('a, Format.formatter, unit) format) : 'a = log 3 args
 let log_4 (args : ('a, Format.formatter, unit) format) : 'a = log 4 args
 
 let catch_exn (f : unit -> 'a) : ('a, exn) Either.t =
-    try Either.Lft (f ()) with
+    try f () |> Either.lft with
     | e -> Either.Rgt e
+
+let catch_protocol_exn (f : unit -> 'a) : ('a, Exc.Protocol.t) Either.t =
+    try f () |> Either.lft with
+    | Exc.Exc (Exc.Protocol p) -> Either.rgt p
+    | e ->
+        log_0 "@.@.%s@.@." (Printexc.to_string e);
+        raise e

@@ -124,6 +124,7 @@ type extension =
 | BalanceOf
 | ApplyOps
 | PrintStack
+| MustFail
 
 val fmt_extension :
     ?annots : (formatter -> unit -> unit) ->

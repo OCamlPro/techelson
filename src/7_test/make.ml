@@ -67,6 +67,16 @@ module TestCxt (
         (** This flag is set to true when changing states. *)
     }
 
+    let fmt_outcome (fmt : formatter) (outcome : outcome) : unit =
+        match outcome with
+        | Success _ -> fprintf fmt "success"
+        | Fail (value, _, _) -> (
+            fprintf fmt "fail ";
+            match value with
+            | None -> fprintf fmt "<none>"
+            | Some v -> fprintf fmt "%a" Theory.fmt v
+        )
+
     let fmt_contracts (fmt : formatter) (env : Env.t) : unit =
         fprintf fmt "live contracts: @[";
         if Run.Env.Live.count env = 0 then (
@@ -124,7 +134,9 @@ module TestCxt (
         let contract_env (self : run_test) : Env.t = RunTest.contract_env self.test
 
         let fmt (fmt : formatter) (self : run_test) : unit =
-            contract_env self |> fmt_contracts fmt
+            fprintf fmt "@[<v>state : test@,";
+            contract_env self |> fmt_contracts fmt;
+            fprintf fmt "@]"
     end
 
     module Ops = struct
@@ -132,6 +144,17 @@ module TestCxt (
             match self.outcome with
             | Success _ -> RunTest.contract_env self.test
             | Fail (_, _, env) -> env
+
+        let operations (self : apply_ops) : Env.operation list = self.ops
+
+        let fmt (fmt : formatter) (self : apply_ops) : unit =
+            fprintf fmt "@[<v>state   : apply_ops@,outcome : %a@,"
+                fmt_outcome self.outcome;
+            fprintf fmt "@[<v>%a@,%a@,test %a@]"
+                fmt_contracts (contract_env self)
+                fmt_operations self.ops
+                fmt_operations self.test_ops;
+            fprintf fmt "@]"
 
         let next_op (self : apply_ops) : Env.operation option =
             let op = Lst.hd self.ops in
@@ -142,23 +165,23 @@ module TestCxt (
             | op :: ops ->
                 self.ops <- ops;
                 Some op
-            | [] -> (
-                match self.test_ops with
-                | op :: test_ops ->
-                    self.test_ops <- test_ops;
-                    Some op
-                | [] -> None
-            )
+            | [] -> None
 
-        let apply (self : apply_ops) : (run_test, transfer) Either.t option =
+        let pop_next_test_op (self : apply_ops) : Env.operation option =
+            match self.test_ops with
+            | op :: test_ops ->
+                self.test_ops <- test_ops;
+                Some op
+            | [] -> None
+
+        let rec apply (self : apply_ops) : (run_test, transfer) Either.t option =
             if self.obsolete then (
                 Exc.throw "trying to call `ops_apply` on an obsolete `apply_ops` value"
             );
 
             match pop_next_op self with
-            | None ->
+            | None -> (
                 assert (self.ops = []);
-                assert (self.test_ops = []);
                 (
                     match self.outcome with
                     | Success _ -> ()
@@ -172,32 +195,51 @@ module TestCxt (
                             )
                         ] |> Exc.throws
                 );
-                Some (Either.Lft { test = self.test ; obsolete = false })
+
+                match pop_next_test_op self with
+                | None ->
+                    self.obsolete <- true;
+                    Some (Either.Lft { test = self.test ; obsolete = false })
+                | Some op ->
+                    self.outcome <- Success op;
+                    self.ops <- [ op ];
+                    apply self
+
+            )
 
             | Some next -> (
                 let rec loop
                     (op : Env.operation)
-                    : (transfer, Env.operation * (exn option)) Either.t
+                    : (transfer, Env.operation * (Exc.Protocol.t option)) Either.t
                 =
                     let contract_env = contract_env self in
-                    let next_op = Env.Op.op contract_env op in
-                    let uid = Env.Op.uid op in
+                    let next_op =
+                        (fun () -> Env.Op.op contract_env op)
+                        |> catch_protocol_exn
+                        |> Either.map_rgt (fun p -> op, Some p)
+                    in
 
                     match next_op with
-                    | Theory.MustFail (value, sub_op) -> (
+                    | Either.Rgt _ as res -> res
+
+                    | Either.Lft (
+                        Theory.MustFail (value, sub_op, sub_uid)
+                    ) -> (
                         match self.outcome with
                         | Fail (_, src, _) -> Exc.throws [
                             asprintf "while running test operation %a" Env.Op.fmt src ;
                             "illegal nested `MUST_FAIL` operation"
                         ]
                         | Success _ -> (
-                            let env = RunTest.contract_env self.test |> Env.clone in
+                            let env = Env.clone contract_env in
                             self.outcome <- Fail (value, op, env);
-                            Env.Op.mk uid sub_op |> loop
+                            Env.Op.mk sub_uid sub_op |> loop
                         )
                     )
 
-                    | Theory.CreateNamed (params, contract) -> (
+                    | Either.Lft (
+                        Theory.CreateNamed (params, contract)
+                    ) -> (
                         (
                             fun () ->
                                 (fun () -> Run.Env.Live.create params contract contract_env)
@@ -208,7 +250,7 @@ module TestCxt (
                                             contract.name Theory.Address.fmt params.address
                                 )
                         )
-                        |> catch_exn
+                        |> catch_protocol_exn
                         |> (
                             function
                             | Either.Lft () -> Either.Rgt (op, None)
@@ -216,7 +258,9 @@ module TestCxt (
                         )
                     )
 
-                    | Theory.Create (params, contract) -> (
+                    | Either.Lft (
+                        Theory.Create (params, contract)
+                    )-> (
                         let contract = Contract.of_mic contract in
                         (
                             fun () ->
@@ -228,7 +272,7 @@ module TestCxt (
                                             contract.name Theory.Address.fmt params.address
                                 )
                         )
-                        |> catch_exn
+                        |> catch_protocol_exn
                         |> (
                             function
                             | Either.Lft () -> Either.Rgt (op, None)
@@ -236,9 +280,13 @@ module TestCxt (
                         )
                     )
 
-                    | Theory.InitNamed _ -> Exc.unimplemented ()
+                    | Either.Lft (
+                        Theory.InitNamed _
+                    ) -> Exc.unimplemented ()
 
-                    | Theory.Transfer (address, contract, tez, param) -> (
+                    | Either.Lft (
+                        Theory.Transfer (address, contract, tez, param)
+                    ) -> (
                         match Run.Env.Live.get address contract_env with
                         | None ->
                             asprintf "address %a has no contract attached" Theory.Address.fmt address
@@ -270,7 +318,12 @@ module TestCxt (
                     )
                 in
 
-                match loop next, self.outcome with
+                let res = loop next in
+
+                log_0 "resolving outcome@.%a@.@."
+                    fmt self;
+
+                match res, self.outcome with
 
                 (* No error, need to apply a transfer. *)
                 | Either.Lft transfer, _ ->
@@ -294,20 +347,21 @@ module TestCxt (
                         log_1 "on operation %a" Env.Op.fmt op
                     );
                     log_1 "failure on operation %a@." Env.Op.fmt op;
-                    raise e
+                    Exc.Exc (Exc.Protocol e) |> raise
 
-                (* Failure, failure expected. *)
-                | Either.Rgt (op, Some (Exc.Failure _)), Fail (_, src, _) ->
+                (* Protocol error, any failure expected. *)
+                | Either.Rgt (op, Some err), Fail (None, src, _) ->
                     let uid = Env.Op.uid op in
                     let src_uid = Env.Op.uid src in
-                    log_1 "confirmed failure in test operation %a" Env.Op.fmt src;
+                    log_1 "confirmed failure in test operation %a@." Env.Op.fmt src;
                     if src_uid <> uid then (
-                        log_1 "on operation %a" Env.Op.fmt op
+                        log_1 "on operation %a@." Env.Op.fmt op
                     );
-                    (*  Cancel all operations in `ops`. `self.outcome` is outdated, but that's fine
-                        since there's no more operation associated to it.
+                    log_1 "%a@." Exc.fmt (Exc.Exc (Exc.Protocol err));
+                    (*  Cancel all operations in `ops`, update `self.outcome`.
                     *)
                     self.ops <- [];
+                    self.outcome <- Success src;
                     None
                 
                 (* Non-failure exception. *)
@@ -324,14 +378,9 @@ module TestCxt (
                             chain
                         )
                     in
-                    (fun () -> raise e)
+                    Exc.Exc (Exc.Protocol e) |> raise
                     |> Exc.chain_errs (fun () -> chain)
             )
-
-        let operations (self : apply_ops) : Env.operation list = self.ops
-
-        let fmt (fmt : formatter) (self : apply_ops) : unit =
-            fprintf fmt "@[<v>%a@,%a@]" fmt_contracts (contract_env self) fmt_operations (operations self)
     end
 
     module Transfer = struct
@@ -367,6 +416,12 @@ module TestCxt (
         let contract_env (self : transfer) : Env.t = RunTest.contract_env self.test
 
         let fmt (fmt : formatter) (self : transfer) : unit =
-            fprintf fmt "@[<v>%a@,%a@]" fmt_contracts (contract_env self) fmt_operations (operations self)
+            fprintf fmt "@[<v>state   : transfer@,outcome : %a@,"
+                fmt_outcome self.outcome;
+            fprintf fmt "@[<v>%a@,%a@,test %a@]"
+                fmt_contracts (contract_env self)
+                fmt_operations self.ops
+                fmt_operations self.test_ops;
+            fprintf fmt "@]"
     end
 end

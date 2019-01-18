@@ -179,6 +179,9 @@ val conf : unit -> Conf.t
 (** Catches an exception. *)
 val catch_exn : (unit -> 'a) -> ('a, exn) Either.t
 
+(** Catches protocol errors. *)
+val catch_protocol_exn : (unit -> 'a) -> ('a, Exc.Protocol.t) Either.t
+
 (** Logs something at some log level.
 
     Actually output if the configuration's log level is `>=` the level. *)

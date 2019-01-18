@@ -392,7 +392,7 @@ module Theory (
     }
 
     and operation =
-    | MustFail of value option * operation
+    | MustFail of value option * operation * int
     | Create of contract_params * Mic.contract
     | CreateNamed of contract_params * Contract.t
     | InitNamed of contract_params * value * string
@@ -420,14 +420,14 @@ module Theory (
 
     and fmt_operation (uid : int) (fmtt : formatter) (op : operation) : unit =
         match op with
-        | MustFail (value, operation) ->
-            fprintf fmtt "MUST_FAIL ";
+        | MustFail (value, operation, op_uid) ->
+            fprintf fmtt "MUST_FAIL[uid:%i] " uid;
             (
                 match value with
                 | None -> fprintf fmtt "_"
                 | Some v -> fmt fmtt v
             );
-            fprintf fmtt " %a" (fmt_operation uid) operation
+            fprintf fmtt " (%a)" (fmt_operation op_uid) operation
         | Create (params, contract) ->
             fprintf fmtt "@[<hv 4>CREATE[uid:%i] %a %a@]"
                 uid fmt_contract_params params Mic.fmt_contract contract
@@ -639,6 +639,8 @@ module Theory (
                 Operation (uid, InitNamed (params, input, name))
             let transfer (uid : int) (address : Address.t) (contract : Mic.contract) (tez : Tez.t) (param : value) : value =
                 Operation (uid, Transfer (address, contract, tez, param))
+            let must_fail (uid : int) (value : value option) (op, op_uid : operation * int) : value =
+                Operation (uid, MustFail (value, op, op_uid))
         end
     end
 
