@@ -37,6 +37,16 @@ module Either = struct
     let lft (lft : 'l) : ('l, 'r) t = Lft lft
     let rgt (rgt : 'r) : ('l, 'r) t = Rgt rgt
 
+    let map_lft (f : 'l -> 'lft) (self : ('l, 'r) t) : ('lft, 'r) t =
+        match self with
+        | Lft lft -> Lft (f lft)
+        | Rgt rgt -> Rgt rgt
+
+    let map_rgt (f : 'r -> 'rgt) (self : ('l, 'r) t) : ('l, 'rgt) t =
+        match self with
+        | Lft lft -> Lft lft
+        | Rgt rgt -> Rgt (f rgt)
+
     let fmt
         (fmt_l : formatter -> 'l -> unit)
         (fmt_r : formatter -> 'r -> unit)
@@ -191,3 +201,7 @@ let log_1 (args : ('a, Format.formatter, unit) format) : 'a = log 1 args
 let log_2 (args : ('a, Format.formatter, unit) format) : 'a = log 2 args
 let log_3 (args : ('a, Format.formatter, unit) format) : 'a = log 3 args
 let log_4 (args : ('a, Format.formatter, unit) format) : 'a = log 4 args
+
+let catch_exn (f : unit -> 'a) : ('a, exn) Either.t =
+    try Either.Lft (f ()) with
+    | e -> Either.Rgt e

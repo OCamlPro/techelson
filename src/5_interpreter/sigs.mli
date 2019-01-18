@@ -51,6 +51,9 @@ module type ContractEnv = sig
         *)
         val op : t -> operation -> Theory.operation
 
+        (** The unique identifier of the operation. *)
+        val uid : operation -> int
+
         (** Constructor. *)
         val mk : int -> Theory.operation -> operation
     end

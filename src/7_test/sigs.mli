@@ -96,14 +96,17 @@ module type TestCxt = sig
 
     (** Contains the operations related to `apply_ops`. *)
     module Ops : sig
-        (** Applies operations until a transfer is reached or we run out of operations. *)
-        val apply : apply_ops -> (run_test, transfer) Either.t
+        (** Applies the next operation. *)
+        val apply : apply_ops -> (run_test, transfer) Either.t option
 
         (** Operations awaiting treatment. *)
         val operations : apply_ops -> Env.operation list
 
         (** The contract environment. *)
         val contract_env : apply_ops -> Env.t
+
+        (** The next operation to apply. *)
+        val next_op : apply_ops -> Env.operation option
 
         (** Concise `run_test` formatter.
         

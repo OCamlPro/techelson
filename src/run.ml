@@ -56,15 +56,21 @@ let run () : unit =
                 | None -> log_1 "@.@.done running test `%s`@." test.name
 
             and ops_loop (cxt : Cxt.apply_ops) : unit =
-                log_1 "@.@.|===| Applying Operations...@.@.%a@." Cxt.Ops.fmt cxt;
+                log_1 "@.@.|===| Applying Operation...@.@.%a@." Cxt.Ops.fmt cxt;
+                (
+                    match Cxt.Ops.next_op cxt with
+                    | Some op -> log_1 "> %a@." Cxt.Env.Op.fmt op
+                    | None -> log_1 "> <none>@."
+                );
                 if conf.step then (
                     input_line stdin |> ignore;
                 );
                 match Cxt.Ops.apply cxt with
-                | Either.Lft test ->
+                | Some (Either.Lft test) ->
                     log_1 "No more operations to apply";
                     test_loop test
-                | Either.Rgt transfer -> transfer_loop transfer
+                | Some (Either.Rgt transfer) -> transfer_loop transfer
+                | None -> ops_loop cxt
 
             and transfer_loop (cxt : Cxt.transfer) : unit =
                 if conf.step then (

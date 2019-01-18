@@ -129,6 +129,8 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
         let fmt (fmt : formatter) (self : operation) : unit =
             Theory.fmt_operation self.uid fmt self.operation
 
+        let uid (self : operation) : int = self.uid
+
         let op (env : t) (self : operation) : Theory.operation =
             let is_new = IntSet.add self.uid env.expired_uids in
             if is_new then (
