@@ -26,6 +26,13 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
         expired_uids = IntSet.empty () ;
     }
 
+    let clone (self : t) : t = {
+        self with
+        defs = Hashtbl.copy self.defs ;
+        live = Hashtbl.copy self.live ;
+        expired_uids = IntSet.clone self.expired_uids ;
+    }
+
     let add (contract : Contract.t) (self : t) : unit =
         if Hashtbl.mem self.defs contract.name then (
             asprintf "trying to register two contracts named `%s`" contract.Contract.name

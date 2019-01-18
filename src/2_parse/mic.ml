@@ -168,6 +168,18 @@ let rec parse
             let dtyp = List.hd dtyps in
             Extension (StorageOf dtyp)
         )
+        | "BALANCE_OF" ->
+            param_arity_check 0 0;
+            annot_arity_check 0 1 0;
+            Extension BalanceOf
+        | "APPLY_OPERATIONS" ->
+            param_arity_check 0 0;
+            annot_arity_check 0 0 0;
+            Extension ApplyOps
+        | "PRINT_STACK" ->
+            param_arity_check 0 0;
+            annot_arity_check 0 0 0;
+            Extension PrintStack
 
         | _ -> (
             let args = args_to_mic args in

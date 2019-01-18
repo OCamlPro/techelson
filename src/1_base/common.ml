@@ -129,6 +129,7 @@ end
 module IntSet = struct
     type t = (int, unit) Hashtbl.t
     let empty () : t = Hashtbl.create ~random:false 101
+    let clone : t -> t = Hashtbl.copy
     let add (elm : int) (set : t) : bool =
         if Hashtbl.mem set elm then false else (
             Hashtbl.add set elm ();

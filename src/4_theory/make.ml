@@ -392,6 +392,7 @@ module Theory (
     }
 
     and operation =
+    | MustFail of value option * operation
     | Create of contract_params * Mic.contract
     | CreateNamed of contract_params * Contract.t
     | InitNamed of contract_params * value * string
@@ -419,6 +420,14 @@ module Theory (
 
     and fmt_operation (uid : int) (fmtt : formatter) (op : operation) : unit =
         match op with
+        | MustFail (value, operation) ->
+            fprintf fmtt "MUST_FAIL ";
+            (
+                match value with
+                | None -> fprintf fmtt "_"
+                | Some v -> fmt fmtt v
+            );
+            fprintf fmtt " %a" (fmt_operation uid) operation
         | Create (params, contract) ->
             fprintf fmtt "@[<hv 4>CREATE[uid:%i] %a %a@]"
                 uid fmt_contract_params params Mic.fmt_contract contract

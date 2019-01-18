@@ -146,7 +146,6 @@ type leaf =
 | TransferTokens
 | SetDelegate
 | Balance
-| BalanceOf
 | Source
 | Sender
 | Self
@@ -160,8 +159,6 @@ type leaf =
 | Hash of hash_fun
 | CheckSignature
 | Rename
-| ApplyOps
-| PrintStack
 
 let fmt_leaf (fmt : formatter) (leaf : leaf) : unit = match leaf with
 | Failwith -> fprintf fmt "FAILWITH"
@@ -203,7 +200,6 @@ let fmt_leaf (fmt : formatter) (leaf : leaf) : unit = match leaf with
 | TransferTokens -> fprintf fmt "TRANSFER_TOKENS"
 | SetDelegate -> fprintf fmt "SET_DELEGATE"
 | Balance -> fprintf fmt "BALANCE"
-| BalanceOf -> fprintf fmt "BALANCE_OF"
 | Source -> fprintf fmt "SOURCE"
 | Sender -> fprintf fmt "SENDER"
 | Self -> fprintf fmt "SELF"
@@ -217,8 +213,6 @@ let fmt_leaf (fmt : formatter) (leaf : leaf) : unit = match leaf with
 | Hash h -> fmt_hash_fun fmt h
 | CheckSignature -> fprintf fmt "CHECK_SIGNATURE"
 | Rename -> fprintf fmt "RENAME"
-| ApplyOps -> fprintf fmt "APPLY_OPERATIONS"
-| PrintStack -> fprintf fmt  "PRINT_STACK"
 
 let leaf_of_string (token : string) : leaf option = match token with
 | "FAILWITH" -> Some Failwith
@@ -260,7 +254,6 @@ let leaf_of_string (token : string) : leaf option = match token with
 | "TRANSFER_TOKENS" -> Some TransferTokens
 | "SET_DELEGATE" -> Some SetDelegate
 | "BALANCE" -> Some Balance
-| "BALANCE_OF" -> Some BalanceOf
 | "SOURCE" -> Some Source
 | "SENDER" -> Some Sender
 | "SELF" -> Some Self
@@ -277,29 +270,13 @@ let leaf_of_string (token : string) : leaf option = match token with
 | "SHA512" -> Some (Hash Sha512)
 | "CHECK_SIGNATURE" -> Some CheckSignature
 | "RENAME" -> Some Rename
-| "APPLY_OPERATIONS" -> Some ApplyOps
-| "PRINT_STACK" -> Some PrintStack
 | _ -> None
-
-type extension =
-| StorageOf of Dtyp.t
-
-let fmt_extension
-    ?annots:(annots = fun (_ : formatter) () -> ())
-    (fmt : formatter)
-    (e : extension)
-    : unit
-=
-    match e with
-    | StorageOf dtyp -> fprintf fmt "STORAGE_OF%a %a" annots () Dtyp.fmt dtyp
 
 let annot_arity_of_leaf (leaf : leaf) : (int * int * int) = match leaf with
 (* Supports nothing. *)
 | Failwith
 | Swap
-| Drop
-| ApplyOps
-| PrintStack -> (0, 0, 0)
+| Drop -> (0, 0, 0)
 
 (* One variable annotation, one field annotation. *)
 | Car
@@ -341,7 +318,6 @@ let annot_arity_of_leaf (leaf : leaf) : (int * int * int) = match leaf with
 | TransferTokens
 | SetDelegate
 | Balance
-| BalanceOf
 | Source
 | Sender
 | Self
@@ -356,6 +332,24 @@ let annot_arity_of_leaf (leaf : leaf) : (int * int * int) = match leaf with
 | CreateAccount
 | CheckSignature
 | Rename -> (0, 1, 0)
+
+type extension =
+| StorageOf of Dtyp.t
+| BalanceOf
+| ApplyOps
+| PrintStack
+
+let fmt_extension
+    ?annots:(annots = fun (_ : formatter) () -> ())
+    (fmt : formatter)
+    (e : extension)
+    : unit
+=
+    match e with
+    | StorageOf dtyp -> fprintf fmt "STORAGE_OF%a %a" annots () Dtyp.fmt dtyp
+    | BalanceOf -> fprintf fmt "BALANCE_OF"
+    | ApplyOps -> fprintf fmt "APPLY_OPERATIONS"
+    | PrintStack -> fprintf fmt  "PRINT_STACK"
 
 type 'sub ins =
 | Leaf of leaf

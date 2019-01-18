@@ -847,25 +847,6 @@ module Interpreter (
 
                     Stack.push ~binding dtyp value self.stack
 
-                | Mic.Leaf Mic.BalanceOf ->
-                    let binding = Lst.hd mic.vars in
-                    let address, _ = Stack.pop_contract self.stack in
-                    let address =
-                        match address with
-                        | Some address -> address
-                        | None -> Exc.throw "cannot retrieve balance of an undeployed contract"
-                    in
-                    let value =
-                        match Env.Live.get address self.env with
-                        | None ->
-                            asprintf "there is no contract at address %a" Theory.Address.fmt address
-                            |> Exc.throw
-                        | Some contract -> contract.balance |> Theory.Of.tez
-                    in
-                    let dtyp = Dtyp.Mutez |> Dtyp.mk_leaf in
-
-                    Stack.push ~binding dtyp value self.stack
-
 
                 | Mic.Leaf Mic.Amount ->
                     let binding = Lst.hd mic.vars in
@@ -956,11 +937,6 @@ module Interpreter (
 
                 (* # Extensions. *)
 
-                | Mic.Leaf Mic.ApplyOps -> raise Exc.ApplyOpsExc
-
-                | Mic.Leaf Mic.PrintStack ->
-                    log_0 "@[%a@]@." Stack.fmt self.stack
-
                 | Mic.Extension (Mic.StorageOf storage_dtyp) ->
                     let binding = Lst.hd mic.vars in
                     let alias = Lst.hd mic.typs in
@@ -990,6 +966,30 @@ module Interpreter (
                             value, dtyp
                         )
                     in
+
+                    Stack.push ~binding dtyp value self.stack
+
+                | Mic.Extension Mic.ApplyOps -> raise Exc.ApplyOpsExc
+
+                | Mic.Extension Mic.PrintStack ->
+                    log_0 "@[%a@]@." Stack.fmt self.stack
+
+                | Mic.Extension Mic.BalanceOf ->
+                    let binding = Lst.hd mic.vars in
+                    let address, _ = Stack.pop_contract self.stack in
+                    let address =
+                        match address with
+                        | Some address -> address
+                        | None -> Exc.throw "cannot retrieve balance of an undeployed contract"
+                    in
+                    let value =
+                        match Env.Live.get address self.env with
+                        | None ->
+                            asprintf "there is no contract at address %a" Theory.Address.fmt address
+                            |> Exc.throw
+                        | Some contract -> contract.balance |> Theory.Of.tez
+                    in
+                    let dtyp = Dtyp.Mutez |> Dtyp.mk_leaf in
 
                     Stack.push ~binding dtyp value self.stack
 

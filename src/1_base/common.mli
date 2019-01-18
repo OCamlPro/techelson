@@ -125,6 +125,9 @@ module IntSet : sig
     (** Creates an empty set. *)
     val empty : unit -> t
 
+    (** Clones a set. *)
+    val clone : t -> t
+
     (** Adds an element to the set.
 
         Returns true if the element was not there (`is_new`).

@@ -33,6 +33,12 @@ module type ContractEnv = sig
     *)
     type operation
 
+    (** Clones an environment.
+    
+        This is useful when an operation can fail: it acts as a backtracking mechanism.
+    *)
+    val clone : t -> t
+
     (** Functions over operations. *)
     module Op : sig
         (** Operation formatter. *)
@@ -138,6 +144,12 @@ module type StackBase = sig
 
     (** Pops something from the stack. *)
     val pop : t -> Theory.value * Dtyp.t
+
+    (** Clears the stack completely.
+    
+        Used when running into errors.
+    *)
+    val clear : t -> unit
 
     (** Map over the last element on the stack. *)
     val map_last : (Theory.value -> Dtyp.t -> Theory.value) -> t -> unit

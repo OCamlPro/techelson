@@ -98,6 +98,9 @@ module Stack : Sigs.StackBase = struct
             self.stack <- stack;
             hd.value, hd.typ
         | [] -> Exc.throw "the stack is empty"
+
+    let clear (self : t) : unit =
+        self.stack <- []
 end
 
 (** An interpreter that uses a naive stack and default contract environment. *)

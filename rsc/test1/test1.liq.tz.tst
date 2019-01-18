@@ -90,8 +90,6 @@
             TRANSFER_TOKENS ;
             DIP SWAP ;
             PRINT_STACK ;
-            DUP ;
-            DIP CONS ;
             CONS
         } {
             PUSH string "failed to resolve Test1" ;

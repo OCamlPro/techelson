@@ -101,8 +101,10 @@ module TestCxt (
                 | next :: ops -> (
                     self.ops <- ops;
                     let next = Env.Op.op contract_env next in
-                    let res =
-                        match next with
+                    let build (_env : Env.t) (op : Theory.operation) : Run.t option =
+                        match op with
+                        | Theory.MustFail (_value, _operation) -> failwith "aaa"
+
                         | Theory.CreateNamed (params, contract) -> (
                             (fun () -> Run.Env.Live.create params contract contract_env)
                             |> Exc.chain_err (
@@ -153,6 +155,7 @@ module TestCxt (
                                 Some interp
                         )
                     in
+                    let res = build contract_env next in
                     if res = None then loop () else res
                 )
                 | [] -> None

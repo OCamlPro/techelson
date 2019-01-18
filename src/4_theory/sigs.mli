@@ -22,7 +22,7 @@ end
 module type TFmt = sig
     include SigT
 
-    (** Formatter for value of this datatype. *)
+    (** Formatter. *)
     val fmt : formatter -> t -> unit
 
     (** Converts a value to a native string. *)
@@ -717,6 +717,8 @@ module type Theory = sig
 
     (** An operation in the (extended) michelson sense. *)
     and operation =
+    | MustFail of value option * operation
+    (** An operation that must fail with some optional value. *)
     | Create of contract_params * Mic.contract
     (** Vanilla contract creation. *)
     | CreateNamed of contract_params * Contract.t

@@ -91,7 +91,6 @@ type leaf =
 | TransferTokens
 | SetDelegate
 | Balance
-| BalanceOf
 | Source
 | Sender
 | Self
@@ -105,8 +104,6 @@ type leaf =
 | Hash of hash_fun
 | CheckSignature
 | Rename
-| ApplyOps
-| PrintStack
 
 (** Leaf formatter. *)
 val fmt_leaf : formatter -> leaf -> unit
@@ -124,6 +121,9 @@ val annot_arity_of_leaf : leaf -> int * int * int
 
 type extension =
 | StorageOf of Dtyp.t
+| BalanceOf
+| ApplyOps
+| PrintStack
 
 val fmt_extension :
     ?annots : (formatter -> unit -> unit) ->
