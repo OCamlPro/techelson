@@ -68,15 +68,10 @@ Techelson testcases have access to extended Michelson instruction to ease the pr
 
     `(option 'a) : operation : S` `->` `S`
 
-    specifies that an operation must fail, and optionaly that it `FAILWITH` a certain value. More precisely, the whole testcase will fail if the `operation`, *when applied*, either
+    specifies that an operation must fail, and optionaly that it `FAIL`ed`WITH` a certain value. More precisely, the whole testcase will fail if the `operation`, *when applied*, either
 
     - succeeds, or
-    - the `(option 'a)` parameter is `(Some value)` and the operation's failure was not caused by a `FAILWITH` on precisely `value`, *e.g.*
-
-        ```
-        PUSH <'a> <value> ;
-        FAILWITH
-        ```
+    - the `(option 'a)` parameter is `(Some value)` and the operation's failure was not caused by a `FAILWITH` on precisely `value`
     
     > Note that if the optional value is `NONE`, then `MUST_FAIL` accepts any kind of *protocol* failure, not just `FAILWITH`. For instance, it will also accept creation/transfer operations that fail because of insufficient balance, because this precise operation already ran (it was `DUP`-ed), *etc*.
 
