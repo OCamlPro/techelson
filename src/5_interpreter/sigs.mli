@@ -262,6 +262,12 @@ module type Stack = sig
 
     (** Pushes a `nil` value. *)
     val nil : ?binding : Annot.Var.t option -> ?alias : Dtyp.alias -> Dtyp.t -> t -> unit
+
+    (** Pushes an empty set value. *)
+    val empty_set : ?binding : Annot.Var.t option -> ?alias : Dtyp.alias -> Dtyp.t -> t -> unit
+
+    (** Pushes an empty map value. *)
+    val empty_map : ?binding : Annot.Var.t option -> ?alias : Dtyp.alias -> Dtyp.t -> Dtyp.t -> t -> unit
 end
 
 (** Stores the source of something.

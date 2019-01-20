@@ -311,9 +311,18 @@ module Stack (S : Sigs.StackBase)
         run |> Exc.chain_err (
             fun () -> "while running `CONS`"
         )
+
     let nil ?binding:(binding=None) ?alias:(alias=None) (dtyp : Dtyp.t) (self : t) : unit =
         let dtyp = Dtyp.List dtyp |> Dtyp.mk ~alias in
         push ~binding dtyp (Theory.Of.list Theory.Lst.nil) self
+
+    let empty_set ?binding:(binding=None) ?alias:(alias=None) (dtyp : Dtyp.t) (self : t) : unit =
+        let dtyp = Dtyp.Set dtyp |> Dtyp.mk ~alias in
+        push ~binding dtyp (Theory.Of.set Theory.Set.empty) self
+
+    let empty_map ?binding:(binding=None) ?alias:(alias=None) (key_dtyp : Dtyp.t) (val_dtyp : Dtyp.t) (self : t) : unit =
+        let dtyp = Dtyp.Map (key_dtyp, val_dtyp) |> Dtyp.mk ~alias in
+        push ~binding dtyp (Theory.Of.map Theory.Map.empty) self
 end
 
 (** Creates an interpreter from a base stack module and a contract environment module.
@@ -817,6 +826,22 @@ module Interpreter (
                     let lst, _ = Stack.pop_list self.stack in
                     let len = Theory.Lst.size lst |> Theory.Of.nat in
                     Stack.push (Dtyp.nat) len self.stack
+
+                (* # Set operations. *)
+
+                | Mic.EmptySet dtyp ->
+                    let binding = Lst.hd mic.vars in
+                    let alias = Lst.hd mic.typs in
+
+                    Stack.empty_set ~binding ~alias dtyp self.stack
+
+                (* # Map operations. *)
+
+                | Mic.EmptyMap (key_dtyp, val_dtyp) ->
+                    let binding = Lst.hd mic.vars in
+                    let alias = Lst.hd mic.typs in
+
+                    Stack.empty_map ~binding ~alias key_dtyp val_dtyp self.stack
 
                 (* # Domain-specific. *)
 
