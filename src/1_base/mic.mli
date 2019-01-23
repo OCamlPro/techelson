@@ -195,6 +195,9 @@ and t = {
 (** Type of a contract. *)
 val typ_of_contract : ?alias : Annot.Typ.t option -> contract -> Dtyp.t
 
+(** The unit contract. *)
+val unit_contract : contract
+
 (** Creates a string constant.
 
     De-escapes escape characters. *)

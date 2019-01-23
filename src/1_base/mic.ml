@@ -463,6 +463,11 @@ let mk_seq (seq : t list) : t =
     | [ins] -> ins
     | _ -> Seq seq |> mk
 
+let unit_contract : contract =
+    let dtyp = Dtyp.mk_leaf Dtyp.Unit in
+    let entry = mk_seq [] in
+    mk_contract ~storage:(dtyp) ~param:(dtyp) entry
+
 (* Formats an IF-like instruction. *)
 let fmt_if_like
     (fmt : formatter)

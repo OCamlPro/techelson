@@ -81,6 +81,25 @@ module Stack (S : Sigs.StackBase)
             fun () -> "while popping a key hash from the stack"
         )
 
+    let pop_key_hash_option (self : t) : (Theory.KeyH.t option) * Dtyp.t =
+        let run () =
+            match pop self with
+            | Theory.Option (
+                Some (Theory.C (Theory.Cmp.KeyH kh))
+            ), dtyp -> Some kh, Dtyp.Inspect.option dtyp
+            | Theory.Option None, dtyp -> (
+                let dtyp = Dtyp.Inspect.option dtyp in
+                Dtyp.check (Dtyp.mk_leaf Dtyp.KeyH) dtyp;
+                None, dtyp
+            )
+            | v, dtyp ->
+                asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v
+                |> Exc.throw
+        in
+        run |> Exc.chain_err (
+            fun () -> "while popping an optional key hash from the stack"
+        )
+
     let pop_tez (self : t) : Theory.Tez.t * Dtyp.t =
         let run () =
             match pop self with
@@ -266,7 +285,7 @@ module Stack (S : Sigs.StackBase)
         - mutez
     *)
     let pop_contract_params_head
-        ~(has_spendable : bool)
+        ~(is_account : bool)
         (self :t)
         : Theory.KeyH.t * Theory.KeyH.t option * bool * bool * Theory.Tez.t
     =
@@ -279,35 +298,20 @@ module Stack (S : Sigs.StackBase)
                 )
             in
             let delegate =
-                (fun () ->
-                    let flag, opt_dtyp = pop_option self in
-                    let dtyp = Dtyp.Inspect.option opt_dtyp in
-                    (
-                        if dtyp.typ <> Dtyp.Leaf Dtyp.KeyH then
-                            asprintf
-                                "expected an optional key hash, found a value of type %a"
-                                Dtyp.fmt opt_dtyp
-                            |> Exc.throw
-                    );
-                    match flag with
-                    | Some (Theory.C (Theory.Cmp.KeyH kh)) -> Some kh
-                    | None -> None
-                    | Some value ->
-                        asprintf "unexpected value %a found while retrieving key hash" Theory.fmt value
-                        |> Exc.throw
-                ) |> Exc.chain_err (
+                (fun () -> pop_key_hash_option self |> fst)
+                |> Exc.chain_err (
                     fun () ->
                         "while retrieving the `delegate` argument"
                 )
             in
             let spendable =
-                if has_spendable then (
+                if is_account then true else (
                     (fun () -> pop_bool self |> fst)
                     |> Exc.chain_err (
                         fun () ->
                             "while retrieving the `spendable` argument"
                     )
-                ) else true
+                )
             in
             let delegatable =
                 (fun () -> pop_bool self |> fst)
@@ -331,15 +335,14 @@ module Stack (S : Sigs.StackBase)
 
 
     let pop_contract_params
-        ~(has_spendable : bool)
         (address : Theory.Address.t)
         (self : t)
         : Theory.contract_params * Dtyp.t
     =
-        let manager, delegate, spendable, delegatable, tez =
-            pop_contract_params_head ~has_spendable self
-        in
         let run () =
+            let manager, delegate, spendable, delegatable, tez =
+                pop_contract_params_head ~is_account:false self
+            in
             let storage, storage_dtyp =
                 (fun () -> pop self)
                 |> Exc.chain_err (
@@ -354,13 +357,31 @@ module Stack (S : Sigs.StackBase)
             fun () -> "while popping parameters for a contract creation operation"
         )
 
+    let pop_account_params
+        (address : Theory.Address.t)
+        (self :t)
+        : Theory.contract_params
+    =
+        let run () =
+            let manager, delegate, spendable, delegatable, tez =
+                pop_contract_params_head ~is_account:true self
+            in
+            let storage = Theory.Of.unit in
+
+            Theory.mk_contract_params
+                ~spendable ~delegatable manager delegate tez address storage
+        in
+        run |> Exc.chain_err (
+            fun () -> "while popping parameters for an account creation operation"
+        )
+
     let pop_contract_params_and_lambda
         (address : Theory.Address.t)
         (self : t)
         : Theory.contract_params * Mic.contract
     =
         let manager, delegate, spendable, delegatable, tez =
-            pop_contract_params_head ~has_spendable:true self
+            pop_contract_params_head ~is_account:false self
         in
         let run () =
             let contract =
@@ -476,6 +497,11 @@ module Stack (S : Sigs.StackBase)
     let rename (binding : Annot.Var.t option) (self : t) : unit =
         let value, dtyp = pop self in
         push ~binding dtyp value self
+
+    let address (address : Theory.Address.t) (self : t) : unit =
+        let dtyp = Dtyp.Address |> Dtyp.mk_leaf in
+        push dtyp (Theory.Of.address address) self
+
 end
 
 (** Creates an interpreter from a base stack module and a contract environment module.
@@ -1328,9 +1354,9 @@ module Interpreter (
                     let params, contract =
                         Stack.pop_contract_params_and_lambda address self.stack
                     in
+
                     (* Push address. *)
-                    let dtyp = Dtyp.Address |> Dtyp.mk_leaf in
-                    Stack.push dtyp (Theory.Of.address address) self.stack;
+                    Stack.address address self.stack;
 
                     (* Push operation. *)
                     let dtyp = Dtyp.Operation |> Dtyp.mk_leaf in
@@ -1343,7 +1369,7 @@ module Interpreter (
                     let binding = Lst.hd mic.vars in
                     let address = Theory.Address.fresh binding in
                     let params, storage_val_dtyp =
-                        Stack.pop_contract_params ~has_spendable:true address self.stack
+                        Stack.pop_contract_params address self.stack
                     in
 
                     (* Type check. *)
@@ -1355,8 +1381,7 @@ module Interpreter (
                     );
 
                     (* Push address. *)
-                    let dtyp = Dtyp.Address |> Dtyp.mk_leaf in
-                    Stack.push dtyp (Theory.Of.address address) self.stack;
+                    Stack.address address self.stack;
 
                     (* Push operation. *)
                     let dtyp = Dtyp.Operation |> Dtyp.mk_leaf in
@@ -1365,12 +1390,29 @@ module Interpreter (
                     Stack.push ~binding dtyp operation self.stack
                 )
 
+                | Mic.Leaf CreateAccount -> (
+                    let binding = Lst.hd mic.vars in
+                    let address = Theory.Address.fresh binding in
+                    let params =
+                        Stack.pop_account_params address self.stack
+                    in
+
+                    (* Push address. *)
+                    Stack.address address self.stack;
+
+                    (* Push operation. *)
+                    let dtyp = Dtyp.Operation |> Dtyp.mk_leaf in
+                    let uid = Env.get_uid self.env in
+                    let operation = Theory.Of.Operation.create uid params Mic.unit_contract in
+                    Stack.push ~binding dtyp operation self.stack
+                )
+
                 | Mic.CreateContract (Either.Rgt name) -> (
                     let contract = Env.get name self.env in
                     let binding = Lst.hd mic.vars in
                     let address = Theory.Address.fresh binding in
                     let params, storage_val_dtyp =
-                        Stack.pop_contract_params ~has_spendable:true address self.stack
+                        Stack.pop_contract_params address self.stack
                     in
 
                     (* Type check. *)
@@ -1382,8 +1424,7 @@ module Interpreter (
                     );
 
                     (* Push address. *)
-                    let dtyp = Dtyp.Address |> Dtyp.mk_leaf in
-                    Stack.push dtyp (Theory.Of.address address) self.stack;
+                    Stack.address address self.stack;
 
                     (* Push operation. *)
                     let dtyp = Dtyp.Operation |> Dtyp.mk_leaf in
@@ -1395,11 +1436,28 @@ module Interpreter (
                     Stack.push ~binding dtyp operation self.stack
                 )
 
-                | Mic.Leaf CreateAccount -> (
-                    Exc.unimplemented ()
+                | Mic.Leaf SetDelegate -> (
+                    let binding = Lst.hd mic.vars in
+                    let delegate = Stack.pop_key_hash_option self.stack |> fst in
+
+                    let address =
+                        match self.src with
+                        | Src.Contract address -> address
+                        | Src.Test _ ->
+                            Exc.throw "cannot use `SET_DELEGATE` in a testcase"
+                    in
+
+                    (* Push operation. *)
+                    let dtyp = Dtyp.Operation |> Dtyp.mk_leaf in
+                    let uid = Env.get_uid self.env in
+                    let operation =
+                        Theory.Of.Operation.set_delegate uid address delegate
+                    in
+
+                    Stack.push ~binding dtyp operation self.stack
                 )
 
-                | Mic.Leaf Mic.TransferTokens ->
+                | Mic.Leaf TransferTokens ->
                     let binding = Lst.hd mic.vars in
                     let param, param_dtyp = Stack.pop self.stack in
                     let tez = Stack.pop_tez self.stack |> fst in
@@ -1496,7 +1554,7 @@ module Interpreter (
 
                 (* # Unimplemented stuff. *)
 
-                (* | _ -> asprintf "unsupported instruction @[%a@]" Mic.fmt mic |> Exc.throw *)
+                | _ -> asprintf "unsupported instruction @[%a@]" Mic.fmt mic |> Exc.throw
             );
             false
         )

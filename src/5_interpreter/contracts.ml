@@ -113,6 +113,9 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
 
         let transfer (tez : Theory.Tez.t) (live : live) : unit =
             live.balance <- Theory.Tez.add live.balance tez
+
+        let set_delegate (delegate : Theory.KeyH.t option) (self : live) : unit =
+            Theory.set_delegate delegate self.params
     end
 
     type operation = {

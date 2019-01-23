@@ -36,6 +36,12 @@ module Opt = struct
         match opt with
         | Some a -> Some (f a)
         | None -> None
+
+    let fmt (sub_fmt : formatter -> 'a -> unit) (fmt : formatter) (opt : 'a option) : unit =
+        match opt with
+        | None -> fprintf fmt "None"
+        | Some a ->
+            fprintf fmt "Some (%a)" sub_fmt a
 end
 
 module Either = struct

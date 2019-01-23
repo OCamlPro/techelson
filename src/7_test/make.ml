@@ -285,11 +285,35 @@ module TestCxt (
                     ) -> Exc.unimplemented ()
 
                     | Either.Lft (
+                        Theory.SetDelegate (address, delegate)
+                    ) -> (
+                        match Run.Env.Live.get address contract_env with
+                        | None ->
+                            asprintf "address %a has no contract attached"
+                                Theory.Address.fmt address
+                            |> Exc.throw
+                        | Some live ->
+                            if not live.params.delegatable then (
+                                Exc.Throw.tezos
+                                    "cannot `SET_DELEGATE` on a non-delegatable contract"
+                            ) else (
+                                (fun () -> Env.Live.set_delegate delegate live)
+                                |> catch_protocol_exn
+                                |> (
+                                    function
+                                    | Either.Lft () -> Either.Rgt (op, None)
+                                    | Either.Rgt e -> Either.Rgt (op, Some e)
+                                )
+                            )
+                    )
+
+                    | Either.Lft (
                         Theory.Transfer (address, contract, tez, param)
                     ) -> (
                         match Run.Env.Live.get address contract_env with
                         | None ->
-                            asprintf "address %a has no contract attached" Theory.Address.fmt address
+                            asprintf "address %a has no contract attached"
+                                Theory.Address.fmt address
                             |> Exc.throw
                         | Some live ->
                             Run.Env.Live.transfer tez live;

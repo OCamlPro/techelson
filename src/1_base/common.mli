@@ -27,6 +27,9 @@ val open_file : string -> in_channel
 module Opt : sig
     (** Map over options. *)
     val map : ('a -> 'b) -> 'a option -> 'b option
+
+    (** Formatter. *)
+    val fmt : (formatter -> 'a -> unit) -> formatter -> 'a option -> unit
 end
 
 (** Union type. *)

@@ -399,6 +399,7 @@ module Theory (
     | CreateNamed of contract_params * Contract.t
     | InitNamed of contract_params * value * string
     | Transfer of Address.t * Mic.contract * Tez.t * value
+    | SetDelegate of Address.t * KeyH.t option
 
     let mk_contract_params
         ~(spendable : bool)
@@ -445,6 +446,9 @@ module Theory (
         | Transfer (address, _, tez, value) ->
             fprintf fmtt "@[<hv 4>TRANSFER[uid:%i] %a %a %a@]"
                 uid Address.fmt address Tez.fmt tez fmt value
+        | SetDelegate (address, delegate) ->
+            fprintf fmtt "@[<hv 4>SET_DELEGATE[uid:%i] %a %a@]"
+                uid Address.fmt address (Opt.fmt KeyH.fmt) delegate
         
 
     and fmt (fmt : formatter) (v : value) : unit =
@@ -654,6 +658,8 @@ module Theory (
                 Operation (uid, Transfer (address, contract, tez, param))
             let must_fail (uid : int) (value : value option) (op, op_uid : operation * int) : value =
                 Operation (uid, MustFail (value, op, op_uid))
+            let set_delegate (uid : int) (address : Address.t) (delegate : KeyH.t option) : value =
+                Operation (uid, SetDelegate (address, delegate))
         end
     end
 

@@ -766,6 +766,7 @@ module type Theory = sig
         - entry point's input value
 
     *)
+    | SetDelegate of Address.t * KeyH.t option
 
     (** Constructor for contract parameters. *)
     val mk_contract_params :
@@ -903,6 +904,9 @@ module type Theory = sig
                 the contract environment.
             *)
             val must_fail : int -> value option -> (operation * int) -> value
+
+            (** Creates a set delegate operation. *)
+            val set_delegate : int -> Address.t -> KeyH.t option -> value
         end
     end
 
