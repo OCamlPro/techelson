@@ -201,6 +201,7 @@ module Theory (
         let to_nat : t -> Cmp.Nat.t option = Cmp.NatConv.int_to_nat
         let of_nat : Cmp.Nat.t -> t = Cmp.NatConv.nat_to_int
         let abs : t -> Cmp.Nat.t = Cmp.NatConv.int_abs
+        let ediv : t -> t -> (t * Cmp.Nat.t) option = Cmp.NatConv.ediv
     end
 
     module Nat = struct
@@ -380,11 +381,12 @@ module Theory (
     | Contract of Address.t option * Mic.contract
     | Operation of int * operation
     | Address of Address.t
+    | Lambda of Dtyp.t * Dtyp.t * Mic.t
 
     and contract_params = {
         address : Address.t ;
         manager : KeyH.t ;
-        delegate : KeyH.t option ;
+        mutable delegate : KeyH.t option ;
         spendable : bool ;
         delegatable : bool ;
         tez : Tez.t ;
@@ -409,6 +411,9 @@ module Theory (
         : contract_params
     =
         { address ; manager ; delegate ; spendable ; delegatable ; tez ; value }
+
+    let set_delegate (delegate : KeyH.t option) (self : contract_params) : unit =
+        self.delegate <- delegate
 
     let rec fmt_contract_params (fmtt : formatter) (params : contract_params) : unit =
         fprintf fmtt "(@%a, %a, %a, %b, %b, %a)"
@@ -542,6 +547,11 @@ module Theory (
                 fprintf fmt "%a" (fmt_operation uid) op;
                 go_up stack
 
+            | Lambda (dom, codom, mic) ->
+                fprintf fmt "LAMBDA %a %a %a"
+                    Dtyp.fmt dom Dtyp.fmt codom Mic.fmt mic;
+                go_up stack
+
         and go_up (stack : ((string * value) list * string) list) : unit =
             match stack with
             | [] -> ()
@@ -581,6 +591,9 @@ module Theory (
         let key (k : Key.t) : value = Key k
         let key_h (kh : KeyH.t) : value = C (Cmp.KeyH kh)
         let tez (tz : Tez.t) : value = C (Cmp.Tz tz)
+
+        let lambda (domain : Dtyp.t) (codomain : Dtyp.t) (mic : Mic.t) : value =
+            Lambda (domain, codomain, mic)
 
         let address (a : Address.t) : value = Address a
 
@@ -791,6 +804,104 @@ module Theory (
 
         | _ -> asprintf "cannot multiply %a and %a" fmt v_1 fmt v_2 |> Exc.throw
 
+    let ediv (v_1 : value) (v_2 : value) : value * Dtyp.t =
+        (*  - the numerator
+            - the denominator
+            - function to apply to the quotient: `Int.t -> value`
+            - type of the quotient
+            - function to apply to the remainder: `Nat.t -> value`
+            - type of the remainder
+        *)
+        let i_1, i_2, f_div, div_dtyp, f_rem, rem_dtyp =
+            let bail () =
+                asprintf "internal fatal error in `ediv` application to %a, %a"
+                    fmt v_1 fmt v_2
+                |> Exc.throw
+            in
+            match v_1, v_2 with
+            | C (Cmp.I i_1), C (Cmp.I i_2) -> (
+                i_1, i_2,
+                Of.int, Dtyp.mk_leaf Int,
+                Of.nat, Dtyp.mk_leaf Nat
+            )
+            | C (Cmp.N n_1), C (Cmp.I i_2) -> (
+                Nat.to_int n_1, i_2,
+                Of.int, Dtyp.mk_leaf Int,
+                Of.nat, Dtyp.mk_leaf Nat
+            )
+            | C (Cmp.I i_1), C (Cmp.N n_2) -> (
+                i_1, Nat.to_int n_2,
+                Of.int, Dtyp.mk_leaf Int,
+                Of.nat, Dtyp.mk_leaf Nat
+            )
+            | C (Cmp.N n_1), C (Cmp.N n_2) -> (
+                Nat.to_int n_1, Nat.to_int n_2,
+                (
+                    fun i ->
+                        match Nat.of_int i with
+                        | Some n -> Of.nat n
+                        | None -> bail ()
+                ), Dtyp.mk_leaf Nat,
+                Of.nat, Dtyp.mk_leaf Nat
+            )
+
+            | C (Cmp.Tz tz_1), C (Cmp.N n_2) -> (
+                Tez.to_nat tz_1 |> Nat.to_int, Nat.to_int n_2,
+                (
+                    fun i -> match Nat.of_int i with
+                    | Some n -> Tez.of_nat n |> Of.tez
+                    | None -> bail ()
+                ), Dtyp.mk_leaf Dtyp.Mutez,
+                (
+                    fun n -> Tez.of_nat n |> Of.tez
+                ), Dtyp.mk_leaf Dtyp.Mutez
+            )
+
+            | C (Cmp.Tz tz_1), C (Cmp.Tz tz_2) -> (
+                Tez.to_nat tz_1 |> Nat.to_int, Tez.to_nat tz_2 |> Nat.to_int,
+                (
+                    fun i -> match Nat.of_int i with
+                    | Some n -> Of.nat n
+                    | None -> bail ()
+                ), Dtyp.mk_leaf Dtyp.Nat,
+                (
+                    fun n -> Tez.of_nat n |> Of.tez
+                ), Dtyp.mk_leaf Dtyp.Mutez
+            )
+
+            | _ -> asprintf "cannot apply EDIV to %a and %a" fmt v_1 fmt v_2 |> Exc.throw
+        in
+        let dtyp =
+            Dtyp.Pair (
+                div_dtyp |> Dtyp.mk_named None,
+                rem_dtyp |> Dtyp.mk_named None
+            ) |> Dtyp.mk
+        in
+        let value =
+            Int.ediv i_1 i_2 |> Opt.map (
+                fun (div, rem) ->
+                    let div, rem = f_div div, f_rem rem in
+                    Of.pair div rem
+            )
+            |> Of.option
+        in
+        let dtyp = Dtyp.Option dtyp |> Dtyp.mk in
+        value, dtyp
+
+    let lshift_lft (v_1 : value) (v_2 : value) : value * Dtyp.t =
+        let dtyp = Dtyp.mk_leaf Dtyp.Nat in
+        match v_1, v_2 with
+        | C (Cmp.N n_1), C (Cmp.N n_2) ->
+            C (Cmp.N (Nat.lshift_lft n_1 n_2)), dtyp
+        | _ -> asprintf "cannot apply LSL to %a and %a" fmt v_1 fmt v_2 |> Exc.throw
+
+    let lshift_rgt (v_1 : value) (v_2 : value) : value * Dtyp.t =
+        let dtyp = Dtyp.mk_leaf Dtyp.Nat in
+        match v_1, v_2 with
+        | C (Cmp.N n_1), C (Cmp.N n_2) ->
+            C (Cmp.N (Nat.lshift_rgt n_1 n_2)), dtyp
+        | _ -> asprintf "cannot apply LSL to %a and %a" fmt v_1 fmt v_2 |> Exc.throw
+
     let disj (v_1 : value) (v_2 : value) : value * Dtyp.t =
         match v_1, v_2 with
         | C (Cmp.B b_1), C (Cmp.B b_2) -> C (Cmp.B (b_1 || b_2)), Dtyp.Bool |> Dtyp.mk_leaf
@@ -803,9 +914,42 @@ module Theory (
 
         | _ -> asprintf "cannot compute conjunction of %a and %a" fmt v_1 fmt v_2 |> Exc.throw
 
+    let xor (v_1 : value) (v_2 : value) : value * Dtyp.t =
+        match v_1, v_2 with
+        | C (Cmp.B b_1), C (Cmp.B b_2) ->
+            C (Cmp.B ((b_1 && not b_2) || (not b_1 && b_2))), Dtyp.Bool |> Dtyp.mk_leaf
+        | C (Cmp.N n_1), C (Cmp.N n_2) ->
+            C (Cmp.N (Nat.xor n_1 n_2)), Dtyp.Nat |> Dtyp.mk_leaf
+
+        | _ -> asprintf "cannot compute conjunction of %a and %a" fmt v_1 fmt v_2 |> Exc.throw
+
     let not (v : value) : value * Dtyp.t =
         match v with
         | C (Cmp.B b) -> C (Cmp.B (not b)), Dtyp.Bool |> Dtyp.mk_leaf
 
         | _ -> asprintf "cannot compute negation of %a" fmt v |> Exc.throw
+
+    let coll_to_list (v : value) : value list =
+        match v with
+        | Lst lst -> lst
+        | Set set -> (
+            Set.fold_as (Of.cmp) (fun acc elm -> elm :: acc) [] set |> List.rev
+        )
+        | Map map -> (
+            Map.fold (
+                fun (acc : value list) key value ->
+                    let key = key |> Of.cmp in
+                    let pair = Of.pair key value in
+                    pair :: acc
+            ) ([] : value list) map |> List.rev
+        )
+        | BigMap map -> (
+            BigMap.fold (
+                fun acc key value ->
+                    let key = key |> Of.cmp in
+                    let pair = Of.pair key value in
+                    pair :: acc
+            ) [] map |> List.rev
+        )
+        | _ -> asprintf "cannot turn this value into a list: %a" fmt v |> Exc.throw
 end

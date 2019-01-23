@@ -48,6 +48,7 @@ and dtyp =
 | Or of named * named
 | Map of t * t
 | BigMap of t * t
+| Lambda of t * t
 
 (** Datatypes. *)
 and t = {
@@ -97,6 +98,15 @@ module Inspect : sig
 
     (** Retrieves the two type parameters of a pair. *)
     val pair : t -> t * t
+
+    (** Retrieves the type parameter of a set. *)
+    val set : t -> t
+
+    (** Retrieves the two type parameters of a map or a bigmap. *)
+    val map : t -> t * t
+
+    (** Retrieves the type of the elements taken by an iterator over some collection. *)
+    val iter_elm : t -> t
 end
 
 (** Checks that two types are compatible. *)

@@ -31,6 +31,13 @@ let open_file (file : string) : in_channel =
         Printexc.to_string e
     ]
 
+module Opt = struct
+    let map (f : 'a -> 'b) (opt : 'a option) : 'b option =
+        match opt with
+        | Some a -> Some (f a)
+        | None -> None
+end
+
 module Either = struct
     type ('l, 'r) t = | Lft of 'l | Rgt of 'r
 

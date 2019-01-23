@@ -28,7 +28,7 @@ module Int : Sigs.Int with type t = int = struct
     let to_native (t : t) : int = t
 end
 
-module Nat : Sigs.Arith with type t = int = struct
+module Nat : Sigs.Nat with type t = int = struct
     type t = int
 
     let of_native (n : int) : t = n
@@ -53,6 +53,11 @@ module Nat : Sigs.Arith with type t = int = struct
     let add (t_1 : t) (t_2 : t) : t = t_1 + t_2
     let mul (t_1 : t) (t_2 : t) : t = t_1 * t_2
     let div (t_1 : t) (t_2 : t) : t = t_1 / t_2
+    
+    let lshift_lft (n : t) (m : t) : t = n lsl m
+    let lshift_rgt (n : t) (m : t) : t = n lsr m
+
+    let xor (n : t) (m : t) : t = n lxor m
 
     let fmt (fmt : formatter) (t : t) : unit =
         fprintf fmt "%ip" t
@@ -116,6 +121,20 @@ module NatConv : Sigs.NatConv with type int = Int.t and type nat = Nat.t = struc
             | Some res -> res
         )
         | Some res -> res
+    let ediv (i_1 : Int.t) (i_2 : Int.t) : (Int.t * Nat.t) option =
+        try (
+            let q = i_1 / i_2 in
+            let r = i_1 mod i_2 in
+            let q, r =
+                if r < 0 && q >= 0 then
+                    q + 1, r - i_2
+                else if r < 0 && q < 0 then
+                    q - 1, r + i_2
+                else q - 1, i_2 + r
+            in
+            Some (Int.of_native q, Nat.of_native r)
+        ) with
+        | Division_by_zero -> None
 end
 
 module StrConv

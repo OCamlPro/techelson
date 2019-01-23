@@ -57,6 +57,18 @@ module Stack (S : Sigs.StackBase)
             fun () -> "while popping a string from the stack"
         )
 
+    let pop_bytes (self : t) : Theory.Bytes.t * Dtyp.t =
+        let run () =
+            match pop self with
+            | Theory.C (Theory.Cmp.By by), dtyp -> by, dtyp
+            | v, dtyp ->
+                asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v
+                |> Exc.throw
+        in
+        run |> Exc.chain_err (
+            fun () -> "while popping bytes from the stack"
+        )
+
     let pop_key_hash (self : t) : Theory.KeyH.t * Dtyp.t =
         let run () =
             match pop self with
@@ -79,6 +91,18 @@ module Stack (S : Sigs.StackBase)
         in
         run |> Exc.chain_err (
             fun () -> "while popping a mutez from the stack"
+        )
+
+    let pop_cmp (self : t) : Theory.Cmp.t * Dtyp.t =
+        let run () =
+            match pop self with
+            | Theory.C cmp, dtyp -> cmp, dtyp
+            | v, dtyp ->
+                asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v
+                |> Exc.throw
+        in
+        run |> Exc.chain_err (
+            fun () -> "while popping a value of a comparable type from the stack"
         )
 
     let pop_address (self : t) : Theory.Address.t * Dtyp.t =
@@ -132,7 +156,7 @@ module Stack (S : Sigs.StackBase)
     let pop_list (self : t) : Theory.value Theory.Lst.t * Dtyp.t =
         let run () =
             match pop self with
-            | Theory.Lst opt, dtyp -> opt, dtyp
+            | Theory.Lst lst, dtyp -> lst, dtyp
             | v, dtyp ->
                 asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v
                 |> Exc.throw
@@ -141,11 +165,41 @@ module Stack (S : Sigs.StackBase)
             fun () -> "while popping a list from the stack"
         )
 
+    let pop_set (self : t) : Theory.Set.t * Dtyp.t =
+        let run () =
+            match pop self with
+            | Theory.Set set, dtyp -> set, dtyp
+            | v, dtyp ->
+                asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v
+                |> Exc.throw
+        in
+        run |> Exc.chain_err (
+            fun () -> "while popping a set from the stack"
+        )
+
+    let pop_map (self : t) : Theory.value Theory.Map.t * Dtyp.t =
+        let run () =
+            match pop self with
+            | Theory.Map map, dtyp -> map, dtyp
+            | v, dtyp ->
+                asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v
+                |> Exc.throw
+        in
+        run |> Exc.chain_err (
+            fun () -> "while popping a map from the stack"
+        )
+
     let pop_pair (self : t) : (Theory.value * Dtyp.t) * (Theory.value * Dtyp.t) =
         match pop self with
         | Theory.Pair (lft, rgt), dtyp ->
             let lft_dtyp, rgt_dtyp = Dtyp.Inspect.pair dtyp in
             (lft, lft_dtyp), (rgt, rgt_dtyp)
+        | v, dtyp ->
+            asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v |> Exc.throw
+
+    let pop_lambda (self : t) : Dtyp.t * Dtyp.t * Mic.t =
+        match pop self with
+        | Theory.Lambda (dom, codom, mic), _ -> (dom, codom, mic)
         | v, dtyp ->
             asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v |> Exc.throw
 
@@ -203,8 +257,19 @@ module Stack (S : Sigs.StackBase)
             fun () -> "while popping a contract result: operation list * storage value"
         )
 
+    (*  Pops contract creation parameters.
 
-    let pop_contract_params (address : Theory.Address.t) (self : t) : Theory.contract_params * Dtyp.t =
+        - manager
+        - delegate
+        - spendable
+        - delegatable
+        - mutez
+    *)
+    let pop_contract_params_head
+        ~(has_spendable : bool)
+        (self :t)
+        : Theory.KeyH.t * Theory.KeyH.t option * bool * bool * Theory.Tez.t
+    =
         let run () =
             let manager =
                 (fun () -> pop_key_hash self |> fst)
@@ -236,11 +301,13 @@ module Stack (S : Sigs.StackBase)
                 )
             in
             let spendable =
-                (fun () -> pop_bool self |> fst)
-                |> Exc.chain_err (
-                    fun () ->
-                        "while retrieving the `spendable` argument"
-                )
+                if has_spendable then (
+                    (fun () -> pop_bool self |> fst)
+                    |> Exc.chain_err (
+                        fun () ->
+                            "while retrieving the `spendable` argument"
+                    )
+                ) else true
             in
             let delegatable =
                 (fun () -> pop_bool self |> fst)
@@ -256,13 +323,95 @@ module Stack (S : Sigs.StackBase)
                         "while retrieving the `mutez` argument"
                 )
             in
-            let storage, dtyp =
+            manager, delegate, spendable, delegatable, tez
+        in
+        run |> Exc.chain_err (
+            fun () -> "while popping parameters for a contract creation operation"
+        )
+
+
+    let pop_contract_params
+        ~(has_spendable : bool)
+        (address : Theory.Address.t)
+        (self : t)
+        : Theory.contract_params * Dtyp.t
+    =
+        let manager, delegate, spendable, delegatable, tez =
+            pop_contract_params_head ~has_spendable self
+        in
+        let run () =
+            let storage, storage_dtyp =
                 (fun () -> pop self)
                 |> Exc.chain_err (
                     fun () -> "while retrieving the storage value"
                 )
             in
-            Theory.mk_contract_params ~spendable ~delegatable manager delegate tez address storage, dtyp
+
+            Theory.mk_contract_params
+                ~spendable ~delegatable manager delegate tez address storage, storage_dtyp
+        in
+        run |> Exc.chain_err (
+            fun () -> "while popping parameters for a contract creation operation"
+        )
+
+    let pop_contract_params_and_lambda
+        (address : Theory.Address.t)
+        (self : t)
+        : Theory.contract_params * Mic.contract
+    =
+        let manager, delegate, spendable, delegatable, tez =
+            pop_contract_params_head ~has_spendable:true self
+        in
+        let run () =
+            let contract =
+                let dom, codom, lambda = pop_lambda self in
+                let lambda_dom_param, lambda_dom_storage =
+                    Dtyp.Inspect.pair dom
+                in
+                let lambda_codom_ops, lambda_codom_storage =
+                    Dtyp.Inspect.pair codom
+                in
+
+                (* Type-checking. *)
+                let lambda_storage_dtyp, lambda_param_dtyp =
+                    (fun () ->
+                        Dtyp.check lambda_dom_storage lambda_codom_storage;
+                        let lambda_codom_op = Dtyp.Inspect.list lambda_codom_ops in
+                        Dtyp.check (Dtyp.mk_leaf Dtyp.Operation) lambda_codom_op;
+                        lambda_dom_storage, lambda_dom_param
+                    )
+                    |> Exc.chain_errs (
+                        fun () -> [
+                            "expected lambda \
+                                (pair 'p 'g) -> (pair (list operation) 'g)" ;
+                            asprintf "found lambda %a %a" Dtyp.fmt dom Dtyp.fmt codom
+                        ]
+                    )
+                in
+
+                let contract =
+                    Mic.mk_contract ~storage:lambda_storage_dtyp ~param:lambda_param_dtyp lambda
+                in
+
+                contract
+            in
+
+            let storage =
+                (fun () ->
+                    let storage, dtyp = pop self in
+                    Dtyp.check contract.storage dtyp;
+                    storage
+                )
+                |> Exc.chain_err (
+                    fun () -> "while retrieving the storage value"
+                )
+            in
+
+            let params =
+                Theory.mk_contract_params
+                    ~spendable ~delegatable manager delegate tez address storage
+            in
+            params, contract
         in
         run |> Exc.chain_err (
             fun () -> "while popping parameters for a contract creation operation"
@@ -323,6 +472,10 @@ module Stack (S : Sigs.StackBase)
     let empty_map ?binding:(binding=None) ?alias:(alias=None) (key_dtyp : Dtyp.t) (val_dtyp : Dtyp.t) (self : t) : unit =
         let dtyp = Dtyp.Map (key_dtyp, val_dtyp) |> Dtyp.mk ~alias in
         push ~binding dtyp (Theory.Of.map Theory.Map.empty) self
+
+    let rename (binding : Annot.Var.t option) (self : t) : unit =
+        let value, dtyp = pop self in
+        push ~binding dtyp value self
 end
 
 (** Creates an interpreter from a base stack module and a contract environment module.
@@ -356,18 +509,19 @@ module Interpreter (
 
     (* Represents the end of a runtime block of instruction. *)
     type block_end =
-    (* Need to un-dip when exiting this block, and run what's left. *)
     | Dip of Mic.t list
+    (* Need to un-dip when exiting this block, and run what's left. *)
+    | Loop of Mic.t * Mic.t list
     (* Reached the end of the body of a loop.
     
         First argument is the loop instruction. Second is whatever is left to run after the loop.Base
     *)
-    | Loop of Mic.t * Mic.t list
+    | Nop of Mic.t * Mic.t list
     (* Reached the end of a block that triggers nothing on exit.
     
         First argument is the instruction that caused the block to start. `SEQ` for instance.
     *)
-    | Nop of Mic.t * Mic.t list
+    | Iter of Dtyp.t * Theory.value list * Mic.t * Mic.t list
 
     type t = {
         mutable stack : Stack.t ;
@@ -421,7 +575,22 @@ module Interpreter (
                 | Nop (ins, next) :: blocks -> (
                     let acc = (asprintf "exit block %a" Mic.fmt ins) :: acc in
                     match next with
-                    | [] -> loop  acc blocks
+                    | [] -> loop acc blocks
+                    | hd :: _ -> acc, Some hd
+                )
+                | Iter (_, elm :: _, mic, _) :: _ -> (
+                    let acc =
+                        (
+                            asprintf "continueing iteration, next: %a, code: %a"
+                                Theory.fmt elm Mic.fmt mic
+                        ) :: acc
+                    in
+                    acc, Some mic
+                )
+                | Iter (_, [], mic, next) :: blocks -> (
+                    let acc = (asprintf "exiting iteration %a" Mic.fmt mic) :: acc in
+                    match next with
+                    | [] -> loop acc blocks
                     | hd :: _ -> acc, Some hd
                 )
             in
@@ -448,11 +617,21 @@ module Interpreter (
                 self.next <- next;
                 fetch_next self
             | Some (Loop (ins, next)) ->
-                    self.next <- ins :: next;
-                    fetch_next self
+                self.next <- ins :: next;
+                fetch_next self
             | Some (Nop (_, next)) ->
                 self.next <- next;
                 fetch_next self
+            | Some (Iter (dtyp, value :: coll, mic, next)) -> (
+                push_block (Iter (dtyp, coll, mic, next)) self;
+                let binding = Some (Annot.Var.of_string "lambda_param") in
+                Stack.push ~binding dtyp value self.stack;
+                Some mic
+            )
+            | Some (Iter (_, [], _, next)) -> (
+                self.next <- next;
+                fetch_next self
+            )
             | None -> None
         )
 
@@ -674,6 +853,18 @@ module Interpreter (
 
                     Stack.push ~binding dtyp value self.stack
 
+                (* # Casts, renaming... *)
+
+                | Mic.Cast target ->
+                    let value, _ = Stack.pop self.stack in
+                    let value = Theory.cast target value in
+
+                    Stack.push target value self.stack
+
+                | Mic.Leaf Rename ->
+                    let binding = Lst.hd mic.vars in
+                    Stack.rename binding self.stack
+
                 (* # Booleans. *)
 
                 | Mic.Leaf And ->
@@ -696,6 +887,14 @@ module Interpreter (
                     let binding = Lst.hd mic.vars in
                     let value, _ = Stack.pop self.stack in
                     let value, dtyp = Theory.not value in
+
+                    Stack.push ~binding dtyp value self.stack
+
+                | Mic.Leaf Xor ->
+                    let binding = Lst.hd mic.vars in
+                    let v_1, _ = Stack.pop self.stack in
+                    let v_2, _ = Stack.pop self.stack in
+                    let value, dtyp = Theory.xor v_1 v_2 in
 
                     Stack.push ~binding dtyp value self.stack
 
@@ -738,6 +937,72 @@ module Interpreter (
                     let value, dtyp = Theory.abs value in
 
                     Stack.push ~binding dtyp value self.stack
+
+                | Mic.Leaf Lsl ->
+                    let binding = Lst.hd mic.vars in
+                    let v_1, _ = Stack.pop self.stack in
+                    let v_2, _ = Stack.pop self.stack in
+                    let value, dtyp = Theory.lshift_lft v_1 v_2 in
+
+                    Stack.push ~binding dtyp value self.stack
+
+                | Mic.Leaf Lsr ->
+                    let binding = Lst.hd mic.vars in
+                    let v_1, _ = Stack.pop self.stack in
+                    let v_2, _ = Stack.pop self.stack in
+                    let value, dtyp = Theory.lshift_rgt v_1 v_2 in
+
+                    Stack.push ~binding dtyp value self.stack
+
+                | Mic.Leaf EDiv ->
+                    let binding = Lst.hd mic.vars in
+                    let v_1, _ = Stack.pop self.stack in
+                    let v_2, _ = Stack.pop self.stack in
+                    let value, dtyp = Theory.ediv v_1 v_2 in
+
+                    Stack.push ~binding dtyp value self.stack
+
+                (* # String/bytes. *)
+
+                | Mic.Leaf Slice -> (
+                    let binding = Lst.hd mic.vars in
+                    let start, _ = Stack.pop_nat self.stack in
+                    let length, _ = Stack.pop_nat self.stack in
+                    let value, dtyp =
+                        match Stack.pop self.stack with
+                        | Theory.C (Theory.Cmp.S s), dtyp ->
+                            Theory.Str.slice start length s |> Theory.Of.str, dtyp
+                        | Theory.C (Theory.Cmp.By by), dtyp ->
+                            Theory.Bytes.slice start length by |> Theory.Of.bytes, dtyp
+                        | v, d ->
+                            asprintf "expected string or bytes, found %a of type %a"
+                                Theory.fmt v Dtyp.fmt d
+                            |> Exc.throw
+                    in
+
+                    Stack.push ~binding dtyp value self.stack
+                )
+
+                | Mic.Leaf Concat -> (
+                    let binding = Lst.hd mic.vars in
+                    let value, dtyp =
+                        match Stack.pop self.stack with
+                        | Theory.C (Theory.Cmp.S s_1), dtyp_1 ->
+                            let s_2, dtyp_2 = Stack.pop_str self.stack in
+                            Dtyp.check dtyp_1 dtyp_2;
+                            Theory.Str.concat s_1 s_2 |> Theory.Of.str, dtyp_1
+                        | Theory.C (Theory.Cmp.By by_1), dtyp_1 ->
+                            let by_2, dtyp_2 = Stack.pop_bytes self.stack in
+                            Dtyp.check dtyp_1 dtyp_2;
+                            Theory.Bytes.concat by_1 by_2 |> Theory.Of.bytes, dtyp_2
+                        | v, d ->
+                            asprintf "expected string or bytes, found %a of type %a"
+                                Theory.fmt v Dtyp.fmt d
+                            |> Exc.throw
+                    in
+
+                    Stack.push ~binding dtyp value self.stack
+                )
 
                 (* # Comparison. *)
 
@@ -843,6 +1108,131 @@ module Interpreter (
 
                     Stack.empty_map ~binding ~alias key_dtyp val_dtyp self.stack
 
+                (* # Set/Map operations. *)
+
+                | Mic.Leaf Update ->
+                    let key, key_dtyp = Stack.pop_cmp self.stack in
+                    let apply : Theory.value -> Dtyp.t -> Theory.value =
+                        match Stack.pop self.stack with
+
+                        (* Boolean flag means set update. *)
+                        | Theory.C (Theory.Cmp.B add), _ -> (
+                            function
+                            | Theory.Set set -> (
+                                fun set_dtyp ->
+                                    (* Type check. *)
+                                    let _ =
+                                        let edtyp = Dtyp.Inspect.set set_dtyp in
+                                        Dtyp.check edtyp key_dtyp
+                                    in
+                                    Theory.Set.update key add set
+                                    |> Theory.Of.set
+                            )
+                            | value -> (
+                                fun dtyp ->
+                                    asprintf "expected set, found value of type %a : %a"
+                                        Dtyp.fmt dtyp Theory.fmt value
+                                    |> Exc.throw
+                            )
+                        )
+                        (* Option means (big)map update. *)
+                        | Theory.Option v, val_dtyp -> (
+                            function
+                            | Theory.Map map ->
+                                fun map_dtyp ->
+                                    (* Type check. *)
+                                    let _ =
+                                        let kdtyp, vdtyp = Dtyp.Inspect.map map_dtyp in
+                                        Dtyp.check kdtyp key_dtyp ;
+                                        Dtyp.check vdtyp val_dtyp
+                                    in
+                                    Theory.Map.update key v map
+                                    |> Theory.Of.map
+                            | Theory.BigMap big_map ->
+                                fun big_map_dtyp ->
+                                    (* Type check. *)
+                                    let _ =
+                                        let kdtyp, vdtyp = Dtyp.Inspect.map big_map_dtyp in
+                                        Dtyp.check kdtyp key_dtyp ;
+                                        Dtyp.check vdtyp val_dtyp
+                                    in
+                                    Theory.BigMap.update key v big_map
+                                    |> Theory.Of.big_map
+                            | value -> (
+                                fun dtyp ->
+                                    asprintf "expected map, found value of type %a : %a"
+                                        Dtyp.fmt dtyp Theory.fmt value
+                                    |> Exc.throw
+                            )
+                        )
+                        | _, dtyp ->
+                            asprintf "second parameter of UPDATE cannot have type %a" Dtyp.fmt dtyp
+                            |> Exc.throw
+                    in
+
+                    self.stack |> Stack.map_last apply
+
+                | Mic.Leaf Get ->
+                    let binding = Lst.hd mic.vars in
+                    let key, key_dtyp = Stack.pop_cmp self.stack in
+                    let value, map_dtyp =
+                        match Stack.pop self.stack with
+                        | Theory.Map map, dtyp -> Theory.Map.get key map |> Theory.Of.option, dtyp
+                        | Theory.BigMap map, dtyp -> Theory.BigMap.get key map |> Theory.Of.option, dtyp
+                        | v, d ->
+                            asprintf "expected (big) map, found vaule of type %a : %a"
+                                Dtyp.fmt d Theory.fmt v
+                            |> Exc.throw
+                    in
+                    let kdtyp, value_dtyp = Dtyp.Inspect.map map_dtyp in
+                    Dtyp.check kdtyp key_dtyp;
+
+                    Stack.push ~binding value_dtyp value self.stack
+
+                | Mic.Leaf Mem ->
+                    let binding = Lst.hd mic.vars in
+                    let key, key_dtyp = Stack.pop_cmp self.stack in
+                    let mem, kdtyp =
+                        match Stack.pop self.stack with
+                        | Theory.Set set, dtyp -> Theory.Set.mem key set, Dtyp.Inspect.set dtyp
+                        | Theory.Map map, dtyp -> Theory.Map.mem key map, Dtyp.Inspect.map dtyp |> fst
+                        | Theory.BigMap map, dtyp -> Theory.BigMap.mem key map, Dtyp.Inspect.map dtyp |> fst
+                        | v, d ->
+                            asprintf "expected set or (big) map, found vaule of type %a : %a"
+                                Dtyp.fmt d Theory.fmt v
+                            |> Exc.throw
+                    in
+                    let dtyp = Dtyp.mk_leaf Dtyp.Bool in
+                    Dtyp.check kdtyp key_dtyp;
+                    let mem = Theory.Of.bool mem in
+
+                    Stack.push ~binding dtyp mem self.stack
+
+                (* # Iterations. *)
+
+                | Mic.Iter mic -> (
+                    let value, dtyp = Stack.pop self.stack in
+                    let elm_dtyp = Dtyp.Inspect.iter_elm dtyp in
+                    let elms = Theory.coll_to_list value in
+                    push_block (Iter (elm_dtyp, elms, mic, self.next)) self;
+                    self.next <- []
+                )
+
+                (* # Lambdas. *)
+
+                | Mic.Leaf Exec ->
+                    let _, _, mic = Stack.pop_lambda self.stack in
+                    push_block (Nop (mic, self.next)) self;
+                    self.next <- [mic]
+
+                | Mic.Lambda (dom, codom, mic) ->
+                    let binding = Lst.hd mic.vars in
+                    let alias = Lst.hd mic.typs in
+                    let value = Theory.Of.lambda dom codom mic in
+                    let dtyp = Dtyp.Lambda (dom, codom) |> Dtyp.mk ~alias in
+
+                    Stack.push ~binding dtyp value self.stack
+
                 (* # Domain-specific. *)
 
                 (* ## Timestamps. *)
@@ -895,12 +1285,10 @@ module Interpreter (
                 | Mic.Contract dtyp -> (
                     let binding = Lst.hd mic.vars in
                     let address = Stack.pop_address self.stack |> fst in
-                    (* log_0 "CONTRACT %a@." Theory.Address.fmt address; *)
                     let value =
                         match Env.Live.get address self.env with
                         | None -> Theory.Of.option None
                         | Some contract -> (
-                            (* log_0 "found the contract %a / %a@." Dtyp.fmt dtyp Dtyp.fmt contract.contract.entry_param; *)
                             let contract = Contract.to_mic contract.contract in
                             try (
                                 Dtyp.check dtyp contract.param;
@@ -915,35 +1303,100 @@ module Interpreter (
                     Stack.push ~binding dtyp value self.stack
                 )
 
-                | Mic.CreateContract param -> (
+                | Mic.Leaf Self -> (
+                    let binding = Lst.hd mic.vars in
+                    let bail () =
+                        Exc.throw "internal error while retrieving self contract"
+                    in
+                    match self.src with
+                    | Src.Test _ -> "instruction `SELF` is illegal in testcases" |> Exc.throw
+                    | Src.Contract address -> (
+                        match Env.Live.get address self.env with
+                        | None -> bail ()
+                        | Some contract -> (
+                            let contract = Contract.to_mic contract.contract in
+                            let value = Theory.Of.contract address contract in
+                            let dtyp = Dtyp.Contract contract.param |> Dtyp.mk in
+                            Stack.push ~binding dtyp value self.stack
+                        )
+                    )
+                )
+
+                | Mic.CreateContract (Either.Lft None) -> (
                     let binding = Lst.hd mic.vars in
                     let address = Theory.Address.fresh binding in
-                    let params, storage_val_dtyp = Stack.pop_contract_params address self.stack in
+                    let params, contract =
+                        Stack.pop_contract_params_and_lambda address self.stack
+                    in
                     (* Push address. *)
                     let dtyp = Dtyp.Address |> Dtyp.mk_leaf in
                     Stack.push dtyp (Theory.Of.address address) self.stack;
+
                     (* Push operation. *)
                     let dtyp = Dtyp.Operation |> Dtyp.mk_leaf in
-                    let check_storage_dtyp (expected : Dtyp.t) : unit =
-                        if expected <> storage_val_dtyp then (
-                            asprintf
-                                "expected a storage value of type %a, found one of type %a"
-                                Dtyp.fmt expected Dtyp.fmt storage_val_dtyp
-                            |> Exc.throw
-                        )
-                    in
                     let uid = Env.get_uid self.env in
-                    match param with
-                    | Either.Lft (Some c) ->
-                        check_storage_dtyp c.storage;
-                        let operation = Theory.Of.Operation.create uid params c in
-                        Stack.push ~binding dtyp operation self.stack
-                    | Either.Lft None -> Exc.throw "aaa"
-                    | Either.Rgt name ->
-                        let contract = Env.get name self.env in
-                        check_storage_dtyp contract.storage;
-                        let operation = Theory.Of.Operation.create_named uid params contract in
-                        Stack.push ~binding dtyp operation self.stack
+                    let operation = Theory.Of.Operation.create uid params contract in
+                    Stack.push ~binding dtyp operation self.stack
+                )
+
+                | Mic.CreateContract (Either.Lft Some (contract)) -> (
+                    let binding = Lst.hd mic.vars in
+                    let address = Theory.Address.fresh binding in
+                    let params, storage_val_dtyp =
+                        Stack.pop_contract_params ~has_spendable:true address self.stack
+                    in
+
+                    (* Type check. *)
+                    (
+                        (fun () -> Dtyp.check contract.storage storage_val_dtyp)
+                        |> Exc.chain_err (
+                            fun () -> "storage value does not typecheck"
+                        )
+                    );
+
+                    (* Push address. *)
+                    let dtyp = Dtyp.Address |> Dtyp.mk_leaf in
+                    Stack.push dtyp (Theory.Of.address address) self.stack;
+
+                    (* Push operation. *)
+                    let dtyp = Dtyp.Operation |> Dtyp.mk_leaf in
+                    let uid = Env.get_uid self.env in
+                    let operation = Theory.Of.Operation.create uid params contract in
+                    Stack.push ~binding dtyp operation self.stack
+                )
+
+                | Mic.CreateContract (Either.Rgt name) -> (
+                    let contract = Env.get name self.env in
+                    let binding = Lst.hd mic.vars in
+                    let address = Theory.Address.fresh binding in
+                    let params, storage_val_dtyp =
+                        Stack.pop_contract_params ~has_spendable:true address self.stack
+                    in
+
+                    (* Type check. *)
+                    (
+                        (fun () -> Dtyp.check contract.storage storage_val_dtyp)
+                        |> Exc.chain_err (
+                            fun () -> "storage value does not typecheck"
+                        )
+                    );
+
+                    (* Push address. *)
+                    let dtyp = Dtyp.Address |> Dtyp.mk_leaf in
+                    Stack.push dtyp (Theory.Of.address address) self.stack;
+
+                    (* Push operation. *)
+                    let dtyp = Dtyp.Operation |> Dtyp.mk_leaf in
+                    let uid = Env.get_uid self.env in
+                    let operation =
+                        Contract.to_mic contract
+                        |> Theory.Of.Operation.create uid params
+                    in
+                    Stack.push ~binding dtyp operation self.stack
+                )
+
+                | Mic.Leaf CreateAccount -> (
+                    Exc.unimplemented ()
                 )
 
                 | Mic.Leaf Mic.TransferTokens ->
@@ -1043,7 +1496,7 @@ module Interpreter (
 
                 (* # Unimplemented stuff. *)
 
-                | _ -> asprintf "unsupported instruction @[%a@]" Mic.fmt mic |> Exc.throw
+                (* | _ -> asprintf "unsupported instruction @[%a@]" Mic.fmt mic |> Exc.throw *)
             );
             false
         )

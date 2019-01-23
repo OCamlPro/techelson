@@ -67,6 +67,7 @@ and dtyp =
 | Or of named * named
 | Map of t * t
 | BigMap of t * t
+| Lambda of t * t
 
 and t = {
     typ : dtyp ;
@@ -213,6 +214,14 @@ let fmt (fmtt : formatter) (typ : t) =
                         [ (ignore, k, None, ignore) ; (Fmt.sep_spc fmtt, v, None, ignore) ],
                         Fmt.unit_combine (fun () -> fprintf fmtt "@]@,)@]") post
                     ) :: stack
+
+                | Lambda (dom, codom) ->
+                    fprintf fmtt "@[@[<hv 4>(lambda%a%a@ " fmt_alias () fmt_field field;
+
+                    (
+                        [ (ignore, dom, None, ignore) ; (Fmt.sep_spc fmtt, codom, None, ignore) ],
+                        Fmt.unit_combine (fun () -> fprintf fmtt "@]@,)@]") post
+                    ) :: stack
         in
         loop stack
     in
@@ -241,6 +250,27 @@ module Inspect = struct
         match dtyp.typ with
         | Pair (lft, rgt) -> lft.inner, rgt.inner
         | _ -> asprintf "expected pair type, found %a" fmt dtyp |> Exc.throw
+
+    let set (dtyp : t) : t =
+        match dtyp.typ with
+        | Set dtyp -> dtyp
+        | _ -> asprintf "expected set type, found %a" fmt dtyp |> Exc.throw
+
+    let map (dtyp : t) : t * t =
+        match dtyp.typ with
+        | Map (k, v)
+        | BigMap (k, v) -> k, v
+        | _ -> asprintf "expected map type, found %a" fmt dtyp |> Exc.throw
+
+    let iter_elm (dtyp : t) : t =
+        match dtyp.typ with
+        | List sub
+        | Set sub -> sub
+        | Map (key, value) ->
+            let key = mk_named None key in
+            let value = mk_named None value in
+            Pair (key, value) |> mk
+        | _ -> asprintf "expected collection type, found %a" fmt dtyp |> Exc.throw
 
 end
 
@@ -283,6 +313,10 @@ let rec check (t_1 : t) (t_2 : t) : unit =
         check lft_1.inner lft_2.inner;
         check rgt_1.inner rgt_2.inner
     )
+    | Lambda (dom_1, codom_1), Lambda (dom_2, codom_2) -> (
+        check dom_1 dom_2;
+        check codom_1 codom_2
+    )
 
     | Leaf _, _
     | Option _, _
@@ -292,4 +326,5 @@ let rec check (t_1 : t) (t_2 : t) : unit =
     | Map _, _
     | BigMap _, _
     | Pair _, _
-    | Or _, _ -> bail ()
+    | Or _, _
+    | Lambda _, _ -> bail ()

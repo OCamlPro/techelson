@@ -23,6 +23,12 @@ val unwrap_or_else : (unit -> 'a) -> 'a option -> 'a
 (** Tries to open a file. *)
 val open_file : string -> in_channel
 
+(** Option type. *)
+module Opt : sig
+    (** Map over options. *)
+    val map : ('a -> 'b) -> 'a option -> 'b option
+end
+
 (** Union type. *)
 module Either : sig
     (** Either of two types. *)
