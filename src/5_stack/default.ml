@@ -102,6 +102,3 @@ module Stack : Sigs.StackBase = struct
     let clear (self : t) : unit =
         self.stack <- []
 end
-
-(** An interpreter that uses a naive stack and default contract environment. *)
-module Interpreter = Make.Interpreter (Stack)

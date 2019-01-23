@@ -1,0 +1,10 @@
+(library
+    (name stack)
+    (public_name techelson.stack)
+    (synopsis "Constructs stacks.")
+    (modules_without_implementation sigs)
+    (libraries
+        base
+        theo
+    )
+)
