@@ -125,7 +125,7 @@ let run () : unit =
             |> Exc.throw
     );
 
-
+(* 
     let val_gen stuff = Testgen.Values.from stuff |> Mic.mk_seq in
 
     log_0 "Arith.zero: %i@." Proba.Arith.zero ;
@@ -183,6 +183,6 @@ let run () : unit =
         fun contract ->
             let testcase = Testgen.Test.generate contract "test_testgen" in
             log_0 "@.testcase: @[%a@]@." (Testcase.fmt ~full:true) testcase
-    );
+    ); *)
 
     ()
