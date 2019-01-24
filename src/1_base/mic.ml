@@ -406,6 +406,7 @@ and t = {
     typs : Annot.typs ;
     vars : Annot.vars ;
     fields : Annot.fields ;
+    comments : string list ;
 }
 
 let mk_str_const (s : string) : const =
@@ -429,9 +430,10 @@ let mk
     ?vars:(vars=[])
     ?fields:(fields=[])
     ?typs:(typs=[])
+    ?comments:(comments=[])
     (ins : t ins)
     : t
-= { ins ; vars ; fields ; typs }
+= { ins ; vars ; fields ; typs ; comments }
 
 let mk_contract ~(storage : Dtyp.t) ~(param : Dtyp.t) (entry : t) : contract =
     { storage ; param ; entry }
@@ -535,7 +537,14 @@ and fmt (fmtt : formatter) (t : t) : unit =
                 ) else tail
             in
 
-            let { ins = to_do ; vars ; fields ; typs } = to_do in
+            let { ins = to_do ; vars ; fields ; typs ; comments } = to_do in
+            let _ =
+                fprintf fmtt "@[<v>";
+                comments |> List.iter (
+                    fprintf fmtt "# %s@,"
+                );
+                fprintf fmtt "@]"
+            in
             let fmt_annots fmtt () : unit =
                 Annot.fmt_typs fmtt typs;
                 Annot.fmt_vars fmtt vars;
@@ -543,6 +552,7 @@ and fmt (fmtt : formatter) (t : t) : unit =
             in
             let tail =
                 match to_do with
+
                 | Cast dtyp ->
                     fprintf fmtt "CAST%a %a" fmt_annots () Dtyp.fmt dtyp;
                     tail
@@ -654,7 +664,7 @@ and fmt (fmtt : formatter) (t : t) : unit =
                             [ignore, c.entry, true], fun () -> fprintf fmtt ";@]@,}@]"
                         ) :: tail
                     | Either.Rgt name ->
-                        fprintf fmtt " %s@]@]" name;
+                        fprintf fmtt " \"%s\"@]@]" name;
                         tail
                 )
 
@@ -688,3 +698,6 @@ and fmt (fmtt : formatter) (t : t) : unit =
 
 let typ_of_contract ?alias:(alias = None) (c : contract) : Dtyp.t =
     Dtyp.Contract c.param |> Dtyp.mk ~alias
+
+let comments (blah : string list) (self : t) : t =
+    { self with comments = self.comments @ blah }

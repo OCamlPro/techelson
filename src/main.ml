@@ -8,4 +8,4 @@ let _ =
 
 (* Actually do stuff. *)
 let _ =
-    Exc.catch_fail Run.run
+    Exc.catch_fail Run.run;

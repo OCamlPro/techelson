@@ -175,16 +175,19 @@ module Source = struct
     type t =
     | Stdin
     | File of string
+    | Gen
 
     let fmt (fmt : formatter) (t : t) : unit =
         match t with
         | Stdin -> fprintf fmt "stdin"
         | File file -> fprintf fmt "file `%s`" file
+        | Gen -> fprintf fmt "test generation"
 
     let to_channel (t : t) : in_channel =
         match t with
         | Stdin -> stdin
         | File file -> open_file file
+        | Gen -> Exc.throw "no channel associated with `Generated` source"
 end
 
 let conf_ref : Conf.t ref = ref Conf.default
@@ -225,4 +228,139 @@ let catch_protocol_exn (f : unit -> 'a) : ('a, Exc.Protocol.t) Either.t =
     | e ->
         log_0 "@.@.%s@.@." (Printexc.to_string e);
         raise e
-  
+
+module Rng = struct
+    let state : Random.State.t ref = (
+        let old_state = Random.get_state () in
+        Random.init 42;
+        let state = Random.get_state () in
+        Random.set_state old_state;
+        ref state
+    )
+
+    let wrap (f : 'a -> 'b) (a : 'a) : 'b =
+        let old_state = Random.get_state () in
+        Random.set_state !state;
+        let set_state () =
+            state := Random.get_state ();
+            Random.set_state old_state;
+        in
+        try (
+            let res = f a in
+            set_state () ;
+            res
+        ) with e -> set_state () ; raise e
+
+    let unsafe_bool () : bool =
+        Random.bool ()
+    let bool () : bool = wrap unsafe_bool ()
+
+    let unsafe_pos_int bound : int =
+        bound
+        |> unwrap_or max_int
+        |> Random.int
+    let pos_int ?bound:(bound=None) () : int =
+        wrap unsafe_pos_int bound
+
+    let unsafe_int bound : int =
+        bound
+        |> unwrap_or max_int
+        |> (
+            fun bound ->
+                let res = Random.int bound in
+                let neg = Random.bool () in
+                if neg then - res else res
+        )
+    let int ?bound:(bound=None) () : int =
+        wrap unsafe_int bound
+
+    let unsafe_int64 bound : int64 =
+        bound
+        |> unwrap_or Int64.max_int
+        |> Random.int64
+    let int64 ?bound:(bound=None) () : int64 =
+        wrap unsafe_int64 bound
+
+    let unsafe_char () : char =
+        unsafe_pos_int (Some 256)
+        |> Char.chr
+    let char () : char =
+        wrap unsafe_char ()
+
+    module Arith = struct
+        let unsafe_zero () : bool =
+            let rand = Random.int 101 in
+            Proba.Arith.zero >= rand
+        let zero () : bool = wrap unsafe_zero ()
+    end
+
+    module Opt = struct
+        let unsafe_none () : bool =
+            Proba.Opt.none >= Random.int 101
+        let none () : bool = wrap unsafe_none ()
+
+    end
+
+    module Coll = struct
+        let unsafe_empty () : bool =
+            Proba.Coll.empty >= Random.int 101
+        let empty () : bool = wrap unsafe_empty ()
+
+        let unsafe_add_one () : bool =
+            Proba.Coll.add_one >= Random.int 101
+        let add_one () : bool = wrap unsafe_add_one ()
+    end
+
+    let unsafe_build_coll (empty : 'a) (add_one : 'a -> 'a) : 'a =
+        if Coll.unsafe_empty () then empty else (
+            let rec loop (coll : 'a) : 'a =
+                if Coll.unsafe_add_one () then
+                    add_one coll |> loop
+                else
+                    coll
+            in
+            loop empty
+        )
+
+    let unsafe_string () : string =
+        unsafe_build_coll "" (
+            fun s -> unsafe_char () |> sprintf "%s%c" s
+        )
+    let string () : string =
+        wrap unsafe_string ()
+
+    let unsafe_big_nat () : string =
+        if Arith.unsafe_zero () then "0" else (
+            let digit = 1 + (Some 8 |> unsafe_pos_int) |> string_of_int in
+            let rec loop (big_nat : string) : string =
+                if Coll.unsafe_add_one () then
+                    sprintf "%s%i" big_nat (Some 9 |> unsafe_pos_int) |> loop
+                else big_nat
+            in
+            loop digit
+        )
+    let big_nat () : string =
+        wrap unsafe_big_nat ()
+
+    let unsafe_big_int () : string =
+        if Arith.unsafe_zero () then "0" else (
+            let digit = 1 + (Some 8 |> unsafe_pos_int) |> string_of_int in
+            let head =
+                if unsafe_bool () then "-" ^ digit else digit
+            in
+            let rec loop (big_nat : string) : string =
+                if Coll.unsafe_add_one () then
+                    sprintf "%s%i" big_nat (Some 9 |> unsafe_pos_int) |> loop
+                else big_nat
+            in
+            loop head
+        )
+    let big_int () : string =
+        wrap unsafe_big_int ()
+
+    module Test = struct
+        let transfer () : bool =
+            let rand = Random.int 101 in
+            Proba.Test.add_transfer >= rand
+    end
+end

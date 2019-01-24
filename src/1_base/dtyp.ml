@@ -105,7 +105,9 @@ let fmt (fmtt : formatter) (typ : t) =
         things to print `t` with something to print before `pre` and after `post`. Once everything
         in the list is printed, `close` prints whatever needs to be printed to close the sequence.
     *)
-    let rec loop (stack : ( (Fmt.sep * t * Annot.Field.t option * Fmt.sep) list * Fmt.seq_end) list) : unit =
+    let rec loop (
+        stack : ( (Fmt.sep * t * Annot.Field.t option * Fmt.sep) list * Fmt.seq_end) list
+    ) : unit =
         match stack with
 
         (* Stack is empty, we're done. *)
@@ -186,7 +188,7 @@ let fmt (fmtt : formatter) (typ : t) =
                             frame_of_named lft ;
                             frame_of_named rgt
                         ],
-                        (fun () -> fprintf fmtt "@]@,@]" ; post ())
+                        (fun () -> fprintf fmtt "@]@,)@]" ; post ())
                     ) :: stack
 
                 | Pair (lft, rgt) ->

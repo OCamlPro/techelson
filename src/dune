@@ -3,6 +3,7 @@
     (libraries
         techelson.base
         techelson.parse
+        techelson.testgen
         techelson.interpreter
         techelson.test
     )

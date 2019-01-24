@@ -123,4 +123,66 @@ let run () : unit =
             let test_count = Tests.get_tests context |> List.length in
             sprintf "%i of the %i testcase%s failed" n test_count (Fmt.plurify test_count)
             |> Exc.throw
-    )
+    );
+
+
+    let val_gen stuff = Testgen.Values.from stuff |> Mic.mk_seq in
+
+    log_0 "Arith.zero: %i@." Proba.Arith.zero ;
+    log_0 "From int: %a@." Mic.fmt (Dtyp.Int |> Dtyp.mk_leaf |> val_gen) ;
+    log_0 "From int: %a@." Mic.fmt (Dtyp.Int |> Dtyp.mk_leaf |> val_gen) ;
+    log_0 "From int: %a@." Mic.fmt (Dtyp.Int |> Dtyp.mk_leaf |> val_gen) ;
+    log_0 "From int: %a@." Mic.fmt (Dtyp.Int |> Dtyp.mk_leaf |> val_gen) ;
+    log_0 "From int: %a@." Mic.fmt (Dtyp.Int |> Dtyp.mk_leaf |> val_gen) ;
+    log_0 "From int: %a@." Mic.fmt (Dtyp.Int |> Dtyp.mk_leaf |> val_gen) ;
+    log_0 "From int: %a@." Mic.fmt (Dtyp.Int |> Dtyp.mk_leaf |> val_gen) ;
+    log_0 "From int: %a@." Mic.fmt (Dtyp.Int |> Dtyp.mk_leaf |> val_gen) ;
+    log_0 "From int: %a@.@." Mic.fmt (Dtyp.Int |> Dtyp.mk_leaf |> val_gen) ;
+
+    let int = Dtyp.Int |> Dtyp.mk_leaf in
+    let nat = Dtyp.Nat |> Dtyp.mk_leaf in
+    let pair = Dtyp.Pair (int |> Dtyp.mk_named None, nat |> Dtyp.mk_named None) |> Dtyp.mk in
+    let either = Dtyp.Or (pair |> Dtyp.mk_named None, nat |> Dtyp.mk_named None) |> Dtyp.mk in
+
+    log_0 "From %a: %a@." Dtyp.fmt either Mic.fmt (val_gen either);
+    log_0 "From %a: %a@." Dtyp.fmt either Mic.fmt (val_gen either);
+    log_0 "From %a: %a@." Dtyp.fmt either Mic.fmt (val_gen either);
+    log_0 "From %a: %a@.@." Dtyp.fmt either Mic.fmt (val_gen either);
+
+    let option = Dtyp.Option either |> Dtyp.mk in
+
+    log_0 "From %a: %a@." Dtyp.fmt option Mic.fmt (val_gen option);
+    log_0 "From %a: %a@." Dtyp.fmt option Mic.fmt (val_gen option);
+    log_0 "From %a: %a@." Dtyp.fmt option Mic.fmt (val_gen option);
+    log_0 "From %a: %a@.@." Dtyp.fmt option Mic.fmt (val_gen option);
+
+    let list = Dtyp.List option |> Dtyp.mk in
+
+    log_0 "From %a: %a@." Dtyp.fmt list Mic.fmt (val_gen list);
+    log_0 "From %a: %a@." Dtyp.fmt list Mic.fmt (val_gen list);
+    log_0 "From %a: %a@." Dtyp.fmt list Mic.fmt (val_gen list);
+    log_0 "From %a: %a@.@." Dtyp.fmt list Mic.fmt (val_gen list);
+
+    let set = Dtyp.Set option |> Dtyp.mk in
+
+    log_0 "From %a: %a@." Dtyp.fmt set Mic.fmt (val_gen set);
+    log_0 "From %a: %a@." Dtyp.fmt set Mic.fmt (val_gen set);
+    log_0 "From %a: %a@." Dtyp.fmt set Mic.fmt (val_gen set);
+    log_0 "From %a: %a@.@." Dtyp.fmt set Mic.fmt (val_gen set);
+
+    let map = Dtyp.Map (int, option) |> Dtyp.mk in
+
+    log_0 "From %a: %a@." Dtyp.fmt map Mic.fmt (val_gen map);
+    log_0 "From %a: %a@." Dtyp.fmt map Mic.fmt (val_gen map);
+    log_0 "From %a: %a@." Dtyp.fmt map Mic.fmt (val_gen map);
+    log_0 "From %a: %a@.@." Dtyp.fmt map Mic.fmt (val_gen map);
+
+    log_0 "Generating testcases...@.";
+
+    Tests.get_contracts context |> List.iter (
+        fun contract ->
+            let testcase = Testgen.Test.generate contract "test_testgen" in
+            log_0 "@.testcase: @[%a@]@." (Testcase.fmt ~full:true) testcase
+    );
+
+    ()

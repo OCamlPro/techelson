@@ -1,0 +1,8 @@
+(library
+    (name testgen)
+    (public_name techelson.testgen)
+    (synopsis "Simple test generation.")
+    (libraries
+        base
+    )
+)

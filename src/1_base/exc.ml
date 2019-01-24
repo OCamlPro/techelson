@@ -81,7 +81,7 @@ let chain_err (blah : unit -> string) (stuff : unit -> 'a) : 'a =
 let catch_print (stuff : unit -> 'a) : 'a option =
     try Some (stuff ()) with
     | e ->
-        printf "%a" fmt e;
+        printf "%a@." fmt e;
         None
 
 let catch_fail (stuff : unit -> 'a) : 'a =

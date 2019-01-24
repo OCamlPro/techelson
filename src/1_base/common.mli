@@ -171,6 +171,7 @@ module Source : sig
     type t =
     | Stdin
     | File of string
+    | Gen
 
     (** Source formatter. *)
     val fmt : formatter -> t -> unit
@@ -210,3 +211,59 @@ val log_3 : ('a, Format.formatter, unit) format -> 'a
 
 (** Logs something at log level 4. *)
 val log_4 : ('a, Format.formatter, unit) format -> 'a
+
+(** Random number generator, all bounds are exclusive.
+
+    Fully deterministic, even if `Random.*` is used in other places. *)
+module Rng : sig
+    (** Generates a boolean. *)
+    val bool : unit -> bool
+
+    (** Generates an `int`. *)
+    val int : ?bound : int option -> unit -> int
+
+    (** Generates a positive `int`. *)
+    val pos_int : ?bound : int option -> unit -> int
+
+    (** Generates an `int64`. *)
+    val int64 : ?bound : int64 option -> unit -> int64
+
+    (** Generates a character. *)
+    val char : unit -> char
+
+    (** Generates a string. *)
+    val string : unit -> string
+
+    (** Generates a string representing a bigint. *)
+    val big_int : unit -> string
+
+    (** Generates a string representing a bignat. *)
+    val big_nat : unit -> string
+
+    (** Arith-related booleans. *)
+    module Arith : sig
+        (** True if the integer shall be zero. *)
+        val zero : unit -> bool
+    end
+
+    (** Collection-related booleans. *)
+    module Coll : sig
+        (** True if the collection shall be empty. *)
+        val empty : unit -> bool
+
+        (** True if the collection should have one more element. *)
+        val add_one : unit -> bool
+    end
+
+    (** Option-related booleans. *)
+    module Opt : sig
+        (** True if the option shall be `None`. *)
+        val none : unit -> bool
+    end
+
+    (** Testcase-generation-related booleans. *)
+    module Test : sig
+        (** True if a new transfer should be generated. *)
+        val transfer : unit -> bool
+    end
+end

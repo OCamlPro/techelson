@@ -4,6 +4,9 @@ open Base.Common
 module Int : Sigs.Int with type t = int = struct
     type t = int
 
+    let rand ?bound:(bound=None) () : t =
+        Rng.int ~bound ()
+
     let of_string (s : string) : t =
         try int_of_string s with
         | e -> [
@@ -30,6 +33,9 @@ end
 
 module Nat : Sigs.Nat with type t = int = struct
     type t = int
+
+    let rand ?bound:(bound=None) () : t =
+        Rng.pos_int ~bound ()
 
     let of_native (n : int) : t = n
     let to_native (t : t) : int = t
@@ -68,6 +74,9 @@ module Str : sig
 end = struct
     type t = string
 
+    let rand ?bound:(_=None) () : t =
+        Rng.string ()
+
     let of_native (s : string) : t = s
     let to_string (t : t) : string = t
 
@@ -78,18 +87,16 @@ end = struct
 end
 
 module Bytes : Sigs.Str with type t = string = struct
-    type t = string
-    let of_native (s : string) : t = s
-    let to_string (t : t) : string = t
-
-    let concat (t_1 : t) (t_2 : t) : t = t_1 ^ t_2
-
-    let fmt (fmt : formatter) (t : t) : unit =
-        fprintf fmt "\"%s\"" t
+    include Str
 end
 
 module TStamp : Sigs.TStamp with type t = int = struct
     type t = int
+
+    let now () : t = 42. +. (100. *. Sys.time ()) |> Float.floor |> Float.to_int
+
+    let rand ?bound:(_=None) () : t =
+        Rng.int ()
 
     let to_string (t : t) : string =
         sprintf "%i" t
@@ -98,8 +105,6 @@ module TStamp : Sigs.TStamp with type t = int = struct
         |> Exc.chain_err (
             fun () -> asprintf "illegal timestamp `%s`" s
         )
-
-    let now () : t = 42. +. (100. *. Sys.time ()) |> Float.floor |> Float.to_int
 
     let compare (t_1 : t) (t_2 : t) : Int.t = compare t_1 t_2 |> Int.of_native
 
@@ -162,6 +167,9 @@ end
 
 module Key : Sigs.Key with type t = string = struct
     type t = string
+
+    let rand = Str.rand
+
     let fmt (fmt : formatter) (t : t) : unit = fprintf fmt "\"%s\"" t
     let of_native (s : string) : t = s
     let to_string (t : t) : string = t

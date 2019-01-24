@@ -190,6 +190,7 @@ and t = {
     typs : Annot.typs ;
     vars : Annot.vars ;
     fields : Annot.fields ;
+    comments : string list ;
 }
 
 (** Type of a contract. *)
@@ -208,6 +209,7 @@ val mk :
     ?vars: Annot.vars ->
     ?fields: Annot.fields ->
     ?typs: Annot.typs ->
+    ?comments: string list ->
     t ins ->
     t
 
@@ -238,3 +240,6 @@ val fmt_const : formatter -> const -> unit
 
 (** Instruction formatter. *)
 val fmt : formatter -> t -> unit
+
+(** Adds comments to an instruction. *)
+val comments : string list -> t -> t

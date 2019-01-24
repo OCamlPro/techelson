@@ -24,6 +24,9 @@ module Theory (
             type t = Int64.t
             type nat = Nat.t
 
+            let rand ?bound:(bound=None) () : t =
+                Rng.int64 ~bound ()
+
             let to_string (t : t) : string =
                 Int64.to_string t
 
@@ -593,7 +596,7 @@ module Theory (
         let bytes (by : Bytes.t) : value = C (Cmp.By by)
         let timestamp (ts : TStamp.t) : value = C (Cmp.Ts ts)
         let key (k : Key.t) : value = Key k
-        let key_h (kh : KeyH.t) : value = C (Cmp.KeyH kh)
+        let key_hash (kh : KeyH.t) : value = C (Cmp.KeyH kh)
         let tez (tz : Tez.t) : value = C (Cmp.Tz tz)
 
         let lambda (domain : Dtyp.t) (codomain : Dtyp.t) (mic : Mic.t) : value =

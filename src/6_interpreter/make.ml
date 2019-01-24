@@ -779,7 +779,7 @@ module Interpreter (
                                 | Mic.Blake2B -> Theory.Key.blake2b
                                 | Mic.Sha256 -> Theory.Key.sha256
                                 | Mic.Sha512 -> Theory.Key.sha512
-                            ) key |> Theory.Of.key_h
+                            ) key |> Theory.Of.key_hash
                         ) |> Exc.chain_err (
                             fun () -> "while retrieving a key to hash (b58check)"
                         )

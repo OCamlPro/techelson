@@ -16,6 +16,12 @@ open Base.Common
 module type SigT = sig
     (** The actual representation of the datatype's values. *)
     type t
+
+    (** Generates a random value.
+
+        Not all datatypes take the bound into account. String for instance does not.
+    *)
+    val rand : ?bound : t option -> unit -> t
 end
 
 (** A module that can format the values of its datatype. *)
@@ -818,7 +824,7 @@ module type Theory = sig
         val key : Key.t -> value
 
         (** Key hash to value. *)
-        val key_h : KeyH.t -> value
+        val key_hash : KeyH.t -> value
 
         (** Mutez to value. *)
         val tez : Tez.t -> value

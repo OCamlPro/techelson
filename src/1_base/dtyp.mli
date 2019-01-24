@@ -50,7 +50,7 @@ and dtyp =
 | BigMap of t * t
 | Lambda of t * t
 
-(** Datatypes. *)
+(** Datatype with an alias. *)
 and t = {
     typ : dtyp ;
     (** Actual datatype. *)
