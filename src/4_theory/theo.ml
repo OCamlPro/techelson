@@ -49,3 +49,4 @@
 module Sigs = Sigs
 
 module Naive = Naive.Theory
+module BigNaive = BigArith.Theory

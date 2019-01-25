@@ -35,12 +35,8 @@ val contracts : Conf.contract list -> Contract.t list * error_count
 *)
 val tests : string list -> Testcase.t list * error_count
 
-(** Loads a ful context.
-
-    If there are no `test_files`, loading will parse from `else_chan`.
-*)
+(** Loads a ful context. *)
 val context :
     contract_files : Conf.contract list ->
     test_files : string list ->
-    else_chan : (in_channel * Source.t) option ->
     Testcases.t * error_count

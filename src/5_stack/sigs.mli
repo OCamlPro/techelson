@@ -273,10 +273,10 @@ module type Stack = sig
     (** Convenience push operation. *)
     module Push : sig
         (** Pushes on the stack `Some` of the last element of the stack. *)
-        val some : ?alias : Dtyp.alias -> t -> unit
+        val some : ?alias : Dtyp.alias -> ?field : Annot.Field.t option -> t -> unit
 
         (** Pushes a `None` value on the stack. *)
-        val none : ?alias : Dtyp.alias -> Dtyp.t -> t -> unit
+        val none : ?alias : Dtyp.alias -> ?field : Annot.Field.t option -> Dtyp.t -> t -> unit
 
         (** Pushes a left value for a disjunction. *)
         val left : ?alias : Dtyp.alias -> Dtyp.t -> t -> unit

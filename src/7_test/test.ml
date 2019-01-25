@@ -6,3 +6,6 @@ module Sigs = Sigs
 module Make = Make
 
 module Naive = Make.TestCxt (Interpreter.Naive)
+module BigNaive = Make.TestCxt (Interpreter.BigNaive)
+
+module Default = BigNaive

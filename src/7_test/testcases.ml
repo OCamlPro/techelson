@@ -12,6 +12,10 @@ let mk (contracts : Contract.t StrMap.t) (tests : Testcase.t list) : t = {
     contracts ; tests
 }
 
+let add_tests (tests : Testcase.t list) (self : t) : t = {
+    self with tests = tests @ self.tests
+}
+
 let of_raw
     (contracts : Contract.t list)
     (tests : Testcase.t list)

@@ -25,11 +25,16 @@ let unwrap_or_else (f : unit -> 'a) (opt : 'a option) : 'a = match opt with
 | Some a -> a
 
 let open_file (file : string) : in_channel =
-    try open_in file with
-    | e -> Exc.throws [
-        sprintf "while opening file `%s`" file ;
-        Printexc.to_string e
-    ]
+    (fun () -> open_in file)
+    |> Exc.chain_err (
+        fun () -> sprintf "while opening file `%s` in read mode" file
+    )
+
+let open_file_write (file : string) : out_channel =
+    (fun () -> open_out file)
+    |> Exc.chain_err (
+        fun () -> sprintf "while opening file `%s` in write mode" file
+    )
 
 module Opt = struct
     let map (f : 'a -> 'b) (opt : 'a option) : 'b option =
@@ -42,6 +47,16 @@ module Opt = struct
         | None -> fprintf fmt "None"
         | Some a ->
             fprintf fmt "Some (%a)" sub_fmt a
+
+    let to_list (opt : 'a option) : 'a list =
+        match opt with
+        | None -> []
+        | Some a -> [a]
+
+    let and_then (f : 'a -> 'b option) (opt : 'a option) : 'b option =
+        match opt with
+        | None -> None
+        | Some a -> f a
 end
 
 module Either = struct

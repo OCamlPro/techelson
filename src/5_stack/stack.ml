@@ -3,4 +3,5 @@
 module Sigs = Sigs
 module Make = Make
 
-module Default = Default
+module Naive : Sigs.Stack = Make.Stack (Make.StackBase (Theo.Naive))
+module BigNaive : Sigs.Stack = Make.Stack (Make.StackBase (Theo.BigNaive))

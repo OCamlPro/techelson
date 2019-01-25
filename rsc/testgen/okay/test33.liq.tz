@@ -1,0 +1,22 @@
+parameter mutez;
+storage
+  (pair :storage (nat %q) (pair %res (option (pair mutez mutez)) (option (pair nat mutez))));
+code { DUP ;
+       DIP { CDR @storage_slash_1 } ;
+       CAR @parameter_slash_2 ;
+       DUUP @storage ;
+       CAR %q ;
+       DUUP @parameter ;
+       DUUUP @parameter ;
+       EDIV @e2 ;
+       DUUUUP @storage ;
+       DIIIIP { DROP } ;
+       CAR %q ;
+       DUUUUP ;
+       DIIIIP { DROP } ;
+       EDIV @e1 ;
+       PAIR ;
+       SWAP ;
+       PAIR @storage %q %res ;
+       NIL operation ;
+       PAIR };

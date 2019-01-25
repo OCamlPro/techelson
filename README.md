@@ -15,7 +15,7 @@ We recommend to use the latest version of the OCaml compiler. For example
 `techelson`relies on the [dune] build system and a few other libraries:
 
 ```bash
-> opam install dune menhir
+> opam install dune menhir zarith
 ```
 
 Finally, build `techelson` with `make`. The binary will be `./bin/techelson`.

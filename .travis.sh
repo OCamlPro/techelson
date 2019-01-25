@@ -7,7 +7,7 @@ eval `./opam config env`
 eval `./opam config env`
 opam switch create techelson 4.07.1
 eval `./opam config env`
-opam install dune menhir
+opam install dune menhir zarith
 eval `./opam config env`
 
 ./opam --version

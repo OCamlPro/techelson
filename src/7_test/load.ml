@@ -64,19 +64,18 @@ let tests (files : string list) : Testcase.t list * error_count =
             let src = Source.File file in
             test name src chan
     )
-
+(* 
 let scenario
     (src : Source.t)
     (chan : in_channel)
     : Contract.t list * Testcase.t list
 =
     let everything = (Lexing.from_channel chan |> Parse.Micparse.scenario Parse.Miclex.token) in
-    everything src
+    everything src *)
 
 let context
     ~(contract_files : Conf.contract list)
     ~(test_files : string list)
-    ~(else_chan : (in_channel * Source.t) option)
     : Testcases.t * error_count
 =
     let contract_count = List.length contract_files in
@@ -99,16 +98,6 @@ let context
         );
         log_0 "@."
     );
-
-    let contracts, tests =
-        if test_files <> [] then contracts, tests else (
-            match else_chan with
-            | Some (chan, src) ->
-                let nu_contracts, nu_tests = scenario src chan in
-                contracts @ nu_contracts, tests @ nu_tests
-            | None -> contracts, tests
-        )
-    in
 
     let cxt = Testcases.of_raw contracts tests in
 

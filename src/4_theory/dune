@@ -6,5 +6,6 @@
     (libraries
         base
         parse
+        zarith
     )
 )

@@ -62,7 +62,8 @@ let hash () : Mic.t =
         | 1 -> Mic.Blake2B
         | 2 -> Mic.Sha256
         | 3 -> Mic.Sha512
-        | n -> log_0 "n: %i@." n ; Exc.unreachable ()
+        (* | n -> log_0 "n: %i@." n ; Exc.unreachable () *)
+        | _ -> Exc.unreachable ()
     )
     |> Mic.mk_leaf
 
@@ -112,9 +113,11 @@ let build_coll
 
     if Rng.Coll.empty () then stack else loop stack
 
-let from (dtyp : Dtyp.t) : Mic.t list =
+type contract_generator = Dtyp.t -> Mic.t list
+
+let from (generate_contract : contract_generator) (dtyp : Dtyp.t) : Mic.t list =
     let rec go_down (stack : stack) (current : (Dtyp.t, Mic.t list) Either.t) : Mic.t list =
-        log_4 "go down %a@." Dtyp.fmt dtyp;
+        (* log_4 "go down %a@." Dtyp.fmt dtyp; *)
         match current with
         | Either.Rgt mic -> go_up stack mic
         | Either.Lft dtyp -> (
@@ -131,34 +134,39 @@ let from (dtyp : Dtyp.t) : Mic.t list =
 
             | Dtyp.Leaf KeyH -> go_up stack (key_hash dtyp)
 
+            | Dtyp.Contract param -> generate_contract param |> go_up stack
+
             | Dtyp.Pair (lft, rgt) ->
                 let mic_pref = [] in
-                let mic_suff = (Mic.Pair |> Mic.mk_leaf) :: (rename dtyp) in
-                let to_do = [ Either.Lft rgt.inner] in
-                Either.Lft lft.inner |> go_down ({ to_do ; mic_pref ; mic_suff } :: stack)
+                let mic_suff = [ Mic.Pair |> Mic.mk_leaf ] in
+                let to_do = [ Either.Lft lft.inner] in
+                Either.Lft rgt.inner |> go_down ({ to_do ; mic_pref ; mic_suff } :: stack)
 
             | Dtyp.Or (lft, rgt) ->
                 let mic_suff = rename dtyp in
                 let mic_pref, to_do, (mic_suff, next) =
                     [], [], (
                         if Rng.bool () then (
-                            log_4 "> left@.";
+                            (* log_4 "> left@."; *)
                             (Mic.Left rgt.inner |> Mic.mk) :: mic_suff, lft.inner
                         ) else (
-                            log_4 "> right@.";
+                            (* log_4 "> right@."; *)
                             (Mic.Right lft.inner |> Mic.mk) :: mic_suff, rgt.inner
                         )
                     )
                 in
                 Either.Lft next |> go_down ({ to_do ; mic_pref ; mic_suff } :: stack)
 
-            | Dtyp.Option inner -> (
+            | Dtyp.Option sub -> (
+                let fields = Opt.to_list sub.name in
                 let mic_suff = rename dtyp in
                 if Rng.bool () then (
-                    let mic_pref, to_do, mic_suff = [], [], (Mic.Som |> Mic.mk_leaf) :: mic_suff in
-                    Either.Lft inner |> go_down ({ to_do ; mic_pref ; mic_suff } :: stack)
+                    let mic_pref, to_do, mic_suff =
+                        [], [], (Mic.Som |> Mic.mk_leaf ~fields) :: mic_suff
+                    in
+                    Either.Lft sub.inner |> go_down ({ to_do ; mic_pref ; mic_suff } :: stack)
                 ) else (
-                    (Mic.Non inner |> Mic.mk) :: mic_suff
+                    (Mic.Non sub.inner |> Mic.mk ~fields) :: mic_suff
                     |> go_up stack
                 )
             )
@@ -203,7 +211,7 @@ let from (dtyp : Dtyp.t) : Mic.t list =
             )
 
             | Dtyp.Map (keys, vals) -> (
-                let val_opt = Dtyp.Option vals |> Dtyp.mk in
+                let val_opt = Dtyp.Option (Dtyp.mk_named None vals) |> Dtyp.mk in
                 let empty = [ Mic.EmptyMap (keys, vals) |> Mic.mk ] in
                 let suff = rename dtyp in
                 let add_one () : frame =
@@ -224,7 +232,7 @@ let from (dtyp : Dtyp.t) : Mic.t list =
             )
 
             | Dtyp.BigMap (keys, vals) -> (
-                let val_opt = Dtyp.Option vals |> Dtyp.mk in
+                let val_opt = Dtyp.Option (Dtyp.mk_named None vals) |> Dtyp.mk in
                 let empty = [ Mic.EmptyMap (keys, vals) |> Mic.mk ] in
                 let suff = rename dtyp in
                 let add_one () : frame =
@@ -244,7 +252,6 @@ let from (dtyp : Dtyp.t) : Mic.t list =
                 go_up stack []
             )
 
-            | Dtyp.Contract _
             | Dtyp.Lambda _
             | Dtyp.Leaf Address
             | Dtyp.Leaf Operation
@@ -254,21 +261,21 @@ let from (dtyp : Dtyp.t) : Mic.t list =
         )
 
     and go_up (stack : stack) (current : Mic.t list) : Mic.t list =
-        log_4 "current : %a@." Mic.fmt (Mic.mk_seq current);
+        (* log_4 "current : %a@." Mic.fmt (Mic.mk_seq current); *)
 
         match stack with
         | [] -> current
 
         | { to_do = next :: to_do ; mic_pref ; mic_suff } :: stack_tail ->
-            log_4 "  pref 1: %a@." Mic.fmt (Mic.mk_seq mic_pref);
-            log_4 "  suff 1: %a@." Mic.fmt (Mic.mk_seq mic_suff);
+            (* log_4 "  pref 1: %a@." Mic.fmt (Mic.mk_seq mic_pref); *)
+            (* log_4 "  suff 1: %a@." Mic.fmt (Mic.mk_seq mic_suff); *)
             let mic_pref = List.rev_append current mic_pref in
             let stack = { to_do ; mic_pref ; mic_suff } :: stack_tail in
             go_down stack next
 
         | { to_do = [] ; mic_pref ; mic_suff } :: stack ->
-            log_4 "  pref 2: %a@." Mic.fmt (Mic.mk_seq mic_pref);
-            log_4 "  suff 2: %a@." Mic.fmt (Mic.mk_seq mic_suff);
+            (* log_4 "  pref 2: %a@." Mic.fmt (Mic.mk_seq mic_pref); *)
+            (* log_4 "  suff 2: %a@." Mic.fmt (Mic.mk_seq mic_suff); *)
             current @ mic_suff |> List.rev_append mic_pref |> go_up stack
 
     in

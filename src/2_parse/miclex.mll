@@ -34,7 +34,7 @@ rule token = parse
 | '@' { ATANNOT (Base.Annot.Var.of_string "") }
 | '%' { PERANNOT (Base.Annot.Field.of_string "") }
 
-| ['A'-'Z' '_']+ as str { INSTKN str }
+| ['A'-'Z']['A'-'Z' '0'-'9' '_']* as str { INSTKN str }
 | ['a'-'z' '_']+ as str { TYPTKN str }
 
 | "True"  { BOOL true }

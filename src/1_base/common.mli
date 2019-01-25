@@ -20,8 +20,11 @@ val unwrap_or : 'a -> 'a option -> 'a
 (** Getter on options with a lazy default value. *)
 val unwrap_or_else : (unit -> 'a) -> 'a option -> 'a
 
-(** Tries to open a file. *)
+(** Tries to open a file in read mode. *)
 val open_file : string -> in_channel
+
+(** Tries to open a file in write mode. *)
+val open_file_write : string -> out_channel
 
 (** Option type. *)
 module Opt : sig
@@ -30,6 +33,12 @@ module Opt : sig
 
     (** Formatter. *)
     val fmt : (formatter -> 'a -> unit) -> formatter -> 'a option -> unit
+
+    (** Turns an option in a list. *)
+    val to_list : 'a option -> 'a list
+
+    (** Map over options with a function that returns a value. *)
+    val and_then : ('a -> 'b option) -> 'a option -> 'b option
 end
 
 (** Union type. *)

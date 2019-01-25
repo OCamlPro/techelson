@@ -16,12 +16,6 @@ open Base.Common
 module type SigT = sig
     (** The actual representation of the datatype's values. *)
     type t
-
-    (** Generates a random value.
-
-        Not all datatypes take the bound into account. String for instance does not.
-    *)
-    val rand : ?bound : t option -> unit -> t
 end
 
 (** A module that can format the values of its datatype. *)

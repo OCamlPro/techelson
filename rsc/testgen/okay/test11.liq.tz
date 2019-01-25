@@ -1,0 +1,15 @@
+parameter string;
+storage string;
+code { DUP ;
+       DIP { CDR @storage_slash_1 } ;
+       CAR @parameter_slash_2 ;
+       PUSH string "" ;
+       DUUP @parameter ;
+       COMPARE ;
+       EQ ;
+       IF { DUUP @storage }
+          { NIL string ; DUUP @parameter ; CONS ; DUUUP @storage ; CONS ; CONCAT } ;
+       DIP { DROP ; DROP } ;
+       RENAME @storage ;
+       NIL operation ;
+       PAIR };

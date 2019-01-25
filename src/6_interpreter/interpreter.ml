@@ -3,4 +3,5 @@
 module Sigs = Sigs
 module Make = Make
 
-module Naive = Naive.Interpreter
+module Naive = Make.Interpreter (Stack.Naive)
+module BigNaive = Make.Interpreter (Stack.BigNaive)

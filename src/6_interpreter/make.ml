@@ -181,7 +181,10 @@ module Interpreter (
                 | Mic.Push (dtyp, const) ->
                     let binding = Lst.hd mic.vars in
                     let alias = Lst.hd mic.typs in
-                    let dtyp = Dtyp.rename alias dtyp in
+                    let dtyp =
+                        if alias = None then dtyp
+                        else Dtyp.rename alias dtyp
+                    in
                     let value = Theory.Of.const const |> Theory.cast dtyp in
                     self.stack |> Stack.push ~binding dtyp value
 
@@ -190,12 +193,15 @@ module Interpreter (
                     ()
 
                 | Mic.Leaf Som ->
-                    let _ = Stack.Push.some self.stack in
+                    let alias = Lst.hd mic.typs in
+                    let field = Lst.hd mic.fields in
+                    let _ = Stack.Push.some ~alias ~field self.stack in
                     ()
 
                 | Mic.Non dtyp ->
                     let alias = Lst.hd mic.typs in
-                    let _ = Stack.Push.none ~alias dtyp self.stack in
+                    let field = Lst.hd mic.fields in
+                    let _ = Stack.Push.none ~alias ~field dtyp self.stack in
                     ()
 
                 | Mic.Left dtyp ->
@@ -830,7 +836,7 @@ module Interpreter (
                         )
                     in
                     let dtyp = Dtyp.Contract dtyp |> Dtyp.mk in
-                    let dtyp = Dtyp.Option dtyp |> Dtyp.mk in
+                    let dtyp = Dtyp.Option (Dtyp.mk_named None dtyp) |> Dtyp.mk in
                     Stack.push ~binding dtyp value self.stack
                 )
 
@@ -967,11 +973,7 @@ module Interpreter (
                     let param, param_dtyp = Stack.pop self.stack in
                     let tez = Stack.Pop.tez self.stack |> fst in
                     let address, contract = Stack.Pop.contract self.stack in
-                    if contract.param <> param_dtyp then (
-                        asprintf "expected parameter of type %a, found %a : %a"
-                            Dtyp.fmt param_dtyp Dtyp.fmt contract.param Theory.fmt param
-                        |> Exc.throw
-                    );
+                    Dtyp.check contract.param param_dtyp;
                     let address =
                         match address with
                         | Some a -> a
@@ -1007,8 +1009,8 @@ module Interpreter (
                             |> Exc.throw
                         | Some contract -> (
                             let dtyp =
-                                Dtyp.Option contract.contract.storage |>
-                                Dtyp.mk ~alias
+                                let sub = Dtyp.mk_named None contract.contract.storage in
+                                Dtyp.Option sub |> Dtyp.mk ~alias
                             in
                             let value =
                                 try (

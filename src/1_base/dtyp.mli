@@ -39,13 +39,14 @@ type named = {
 and dtyp =
 | Leaf of leaf
 
+| Pair of named * named
+| Or of named * named
+| Option of named
+
 | List of t
-| Option of t
 | Set of t
 | Contract of t
 
-| Pair of named * named
-| Or of named * named
 | Map of t * t
 | BigMap of t * t
 | Lambda of t * t

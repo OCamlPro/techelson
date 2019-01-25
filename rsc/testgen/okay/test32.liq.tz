@@ -1,0 +1,19 @@
+parameter (or :t (int %A) (pair %B int (pair (pair bool unit) nat)));
+storage int;
+code { DUP ;
+       DIP { CDR @storage_slash_1 } ;
+       CAR @parameter_slash_2 ;
+       DUP @parameter ;
+       IF_LEFT
+         { RENAME @i_slash_3 }
+         { RENAME @___b___n_slash_4 ;
+           DUP ;
+           CDR ;
+           CAR ;
+           CAR @b ;
+           IF { DUP ; CDR ; CDR @n ; INT } { DUUUP @storage } ;
+           DIP { DROP } } ;
+       DIP { DROP ; DROP } ;
+       RENAME @s ;
+       NIL operation ;
+       PAIR };

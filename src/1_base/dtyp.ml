@@ -58,13 +58,14 @@ type named = {
 and dtyp =
 | Leaf of leaf
 
+| Pair of named * named
+| Or of named * named
+| Option of named
+
 | List of t
-| Option of t
 | Set of t
 | Contract of t
 
-| Pair of named * named
-| Or of named * named
 | Map of t * t
 | BigMap of t * t
 | Lambda of t * t
@@ -163,7 +164,7 @@ let fmt (fmtt : formatter) (typ : t) =
                 | Option sub ->
                     fprintf fmtt "(option%a%a " fmt_alias () fmt_field field;
                     (
-                        [(ignore, sub, None, ignore)],
+                        [ frame_of_named sub ],
                         Fmt.unit_combine (Fmt.cls_paren fmtt) post
                     ) :: stack
 
@@ -240,7 +241,7 @@ module Inspect = struct
 
     let option (dtyp : t) : t =
         match dtyp.typ with
-        | Option sub -> sub
+        | Option sub -> sub.inner
         | _ -> asprintf "expected option type, found %a" fmt dtyp |> Exc.throw
 
     let list (dtyp : t) : t =
@@ -281,6 +282,11 @@ let int : t = mk_leaf Int
 let nat : t = mk_leaf Nat
 let timestamp : t = mk_leaf Timestamp
 
+let annot_check (a_1 : 'a option) (a_2 : 'a option) (bail : unit -> 'b) : 'b =
+    match a_1, a_2 with
+    | Some a_1, Some a_2 when a_1 <> a_2 -> bail ()
+    | _ -> ()
+
 (* # TODO
 
     - stackless
@@ -290,14 +296,12 @@ let rec check (t_1 : t) (t_2 : t) : unit =
         asprintf "types `%a` and `%a` are not compatible" fmt t_1 fmt t_2
         |> Exc.throw
     in
-    (
-        if t_1.alias <> t_2.alias then bail ()
-    );
+    annot_check t_1.alias t_2.alias bail;
+
     match t_1.typ, t_2.typ with
     | Leaf leaf_1, Leaf leaf_2 ->
         if leaf_1 <> leaf_2 then bail ()
 
-    | Option sub_1, Option sub_2
     | List sub_1, List sub_2
     | Set sub_1, Set sub_2
     | Contract sub_1, Contract sub_2 -> check sub_1 sub_2
@@ -307,10 +311,16 @@ let rec check (t_1 : t) (t_2 : t) : unit =
         check k_1 k_2;
         check v_1 v_2
 
+    | Option sub_1, Option sub_2 -> (
+        annot_check sub_1.name sub_2.name bail;
+
+        check sub_1.inner sub_2.inner
+    )
+
     | Pair (lft_1, rgt_1), Pair (lft_2, rgt_2)
     | Or (lft_1, rgt_1), Or (lft_2, rgt_2) -> (
-        if lft_1.name <> lft_2.name
-        || rgt_1.name <> rgt_2.name then bail ();
+        annot_check lft_1.name lft_2.name bail;
+        annot_check rgt_1.name rgt_2.name bail;
 
         check lft_1.inner lft_2.inner;
         check rgt_1.inner rgt_2.inner

@@ -23,28 +23,17 @@ let load_contracts (conf : Conf.t) : Contract.t list =
         fun () -> "while loading contracts from `--contract` arguments"
     ) inner
 
-module Cxt = Test.Naive
+module Cxt = Test.Default
 module Tests = Test.Testcases
 
-let run () : unit =
-    let conf = conf () in
-    log_1 "loading context...@.";
-    let context, errs =
-        Test.Load.context
-            ~contract_files:conf.contracts
-            ~test_files:conf.args
-            ~else_chan:(Some (stdin, Source.Stdin))
-    in
-    log_1 "done loading context@.%a@.@." (Tests.fmt ~full:false) context;
-
-    if errs > 0 then (
-        sprintf "encountered %i error%s while loading context" errs (Fmt.plurify errs)
-        |> Exc.throw
-    );
-
-    Tests.get_tests context |> Lst.fold (
+let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
+    Tests.get_tests cxt |> Lst.fold (
         fun (err_count : int) (test : Testcase.t) ->
-            let cxt = Cxt.init (Tests.get_contracts context) test in
+            if conf.step then (
+                log_0 "@.@.|=====| Running test `%s` |=====|@.@." test.name;
+                input_line stdin |> ignore;
+            );
+            let cxt = Cxt.init (Tests.get_contracts cxt) test in
 
             let rec test_loop (cxt : Cxt.run_test) : unit =
                 log_1 "@.@.|===| Test Step...@.@.%a@." Cxt.Test.fmt cxt;
@@ -120,69 +109,104 @@ let run () : unit =
         function
         | 0 -> ()
         | n ->
-            let test_count = Tests.get_tests context |> List.length in
+            let test_count = Tests.get_tests cxt |> List.length in
             sprintf "%i of the %i testcase%s failed" n test_count (Fmt.plurify test_count)
             |> Exc.throw
+    )
+
+let run_testgen (conf : Conf.t) (gen_conf : Conf.testgen_mode) (cxt : Test.Testcases.t) : unit =
+    let testcases : (Contract.t * (int * Testcase.t) list) list =
+        Tests.get_contracts cxt |> List.fold_left (
+            fun acc contract ->
+                let count : int ref = ref 1 in
+
+                let get_index () : int option =
+                    if !count <= gen_conf.count then (
+                        let res = Some !count in
+                        count := !count + 1;
+                        res
+                    ) else None
+                in
+                
+                let rec loop (acc : (int * Testcase.t) list) : (int * Testcase.t) list =
+                    match get_index () with
+                    | Some index -> (
+                        let name = sprintf "%sTest%i" contract.Contract.name index in
+                        let testcase = Testgen.Test.generate contract name in
+                        (index, testcase) :: acc |> loop
+                    )
+                    | None ->
+                        log_1 "done generating tests for contract %s@." contract.name;
+                        List.rev acc
+                in
+
+                let testcases =
+                    (fun () -> loop [])
+                    |> Exc.chain_err (
+                        fun () -> sprintf "while generating tests for contract %s" contract.name
+                    )
+                in
+
+                (contract, testcases) :: acc
+        ) []
+        |> List.rev
+    in
+
+    match gen_conf.dump with
+    | None ->
+        let testcases =
+            testcases |> List.fold_left (
+                fun acc (_, lst) ->
+                    lst |> List.fold_left (
+                        fun acc (_, testcase) -> testcase :: acc
+                    ) acc
+            ) []
+            |> List.rev
+        in
+        Tests.add_tests testcases cxt
+        |> run_tests conf
+    | Some target -> (
+        if Sys.is_directory target |> not then (
+            sprintf "argument for test generation's `dump` option `%s` is not a directory" target
+            |> Exc.throw
+        );
+        log_1 "dumping testcases to `%s`@." target;
+        let target_of (contract : Contract.t) (test_index : int) : string * formatter =
+            let target = sprintf "%s/%sTest%i.techel" target contract.name test_index in
+            target,
+            target |> open_file_write |> formatter_of_out_channel
+        in
+
+        testcases |> List.iter (
+            fun (contract, list) -> list |> List.iter (
+                fun (index, testcase) ->
+                    let target, fmt = target_of contract index in
+                    log_2 "dumping testcase `%s` for contract `%s` to `%s`@."
+                        testcase.Testcase.name contract.Contract.name target;
+                    fprintf fmt "%a@." Mic.fmt testcase.code
+            )
+        )
+    )
+
+let run () : unit =
+    let conf = conf () in
+    log_1 "loading context...@.";
+    let context, errs =
+        Test.Load.context
+            ~contract_files:conf.contracts
+            ~test_files:conf.args
+    in
+    log_1 "done loading context@.%a@.@." (Tests.fmt ~full:false) context;
+
+    if errs > 0 then (
+        sprintf "encountered %i error%s while loading context" errs (Fmt.plurify errs)
+        |> Exc.throw
     );
 
-(* 
-    let val_gen stuff = Testgen.Values.from stuff |> Mic.mk_seq in
-
-    log_0 "Arith.zero: %i@." Proba.Arith.zero ;
-    log_0 "From int: %a@." Mic.fmt (Dtyp.Int |> Dtyp.mk_leaf |> val_gen) ;
-    log_0 "From int: %a@." Mic.fmt (Dtyp.Int |> Dtyp.mk_leaf |> val_gen) ;
-    log_0 "From int: %a@." Mic.fmt (Dtyp.Int |> Dtyp.mk_leaf |> val_gen) ;
-    log_0 "From int: %a@." Mic.fmt (Dtyp.Int |> Dtyp.mk_leaf |> val_gen) ;
-    log_0 "From int: %a@." Mic.fmt (Dtyp.Int |> Dtyp.mk_leaf |> val_gen) ;
-    log_0 "From int: %a@." Mic.fmt (Dtyp.Int |> Dtyp.mk_leaf |> val_gen) ;
-    log_0 "From int: %a@." Mic.fmt (Dtyp.Int |> Dtyp.mk_leaf |> val_gen) ;
-    log_0 "From int: %a@." Mic.fmt (Dtyp.Int |> Dtyp.mk_leaf |> val_gen) ;
-    log_0 "From int: %a@.@." Mic.fmt (Dtyp.Int |> Dtyp.mk_leaf |> val_gen) ;
-
-    let int = Dtyp.Int |> Dtyp.mk_leaf in
-    let nat = Dtyp.Nat |> Dtyp.mk_leaf in
-    let pair = Dtyp.Pair (int |> Dtyp.mk_named None, nat |> Dtyp.mk_named None) |> Dtyp.mk in
-    let either = Dtyp.Or (pair |> Dtyp.mk_named None, nat |> Dtyp.mk_named None) |> Dtyp.mk in
-
-    log_0 "From %a: %a@." Dtyp.fmt either Mic.fmt (val_gen either);
-    log_0 "From %a: %a@." Dtyp.fmt either Mic.fmt (val_gen either);
-    log_0 "From %a: %a@." Dtyp.fmt either Mic.fmt (val_gen either);
-    log_0 "From %a: %a@.@." Dtyp.fmt either Mic.fmt (val_gen either);
-
-    let option = Dtyp.Option either |> Dtyp.mk in
-
-    log_0 "From %a: %a@." Dtyp.fmt option Mic.fmt (val_gen option);
-    log_0 "From %a: %a@." Dtyp.fmt option Mic.fmt (val_gen option);
-    log_0 "From %a: %a@." Dtyp.fmt option Mic.fmt (val_gen option);
-    log_0 "From %a: %a@.@." Dtyp.fmt option Mic.fmt (val_gen option);
-
-    let list = Dtyp.List option |> Dtyp.mk in
-
-    log_0 "From %a: %a@." Dtyp.fmt list Mic.fmt (val_gen list);
-    log_0 "From %a: %a@." Dtyp.fmt list Mic.fmt (val_gen list);
-    log_0 "From %a: %a@." Dtyp.fmt list Mic.fmt (val_gen list);
-    log_0 "From %a: %a@.@." Dtyp.fmt list Mic.fmt (val_gen list);
-
-    let set = Dtyp.Set option |> Dtyp.mk in
-
-    log_0 "From %a: %a@." Dtyp.fmt set Mic.fmt (val_gen set);
-    log_0 "From %a: %a@." Dtyp.fmt set Mic.fmt (val_gen set);
-    log_0 "From %a: %a@." Dtyp.fmt set Mic.fmt (val_gen set);
-    log_0 "From %a: %a@.@." Dtyp.fmt set Mic.fmt (val_gen set);
-
-    let map = Dtyp.Map (int, option) |> Dtyp.mk in
-
-    log_0 "From %a: %a@." Dtyp.fmt map Mic.fmt (val_gen map);
-    log_0 "From %a: %a@." Dtyp.fmt map Mic.fmt (val_gen map);
-    log_0 "From %a: %a@." Dtyp.fmt map Mic.fmt (val_gen map);
-    log_0 "From %a: %a@.@." Dtyp.fmt map Mic.fmt (val_gen map);
-
-    log_0 "Generating testcases...@.";
-
-    Tests.get_contracts context |> List.iter (
-        fun contract ->
-            let testcase = Testgen.Test.generate contract "test_testgen" in
-            log_0 "@.testcase: @[%a@]@." (Testcase.fmt ~full:true) testcase
-    ); *)
-
-    ()
+    match conf.Conf.mode with
+    | Conf.Inactive -> run_tests conf context
+    | Conf.Testgen testgen_conf ->
+        (fun () -> run_testgen conf testgen_conf context)
+        |> Exc.chain_err (
+            fun () -> "while running test generation"
+        )

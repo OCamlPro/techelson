@@ -51,7 +51,11 @@ let parse
 
         | "option" ->
             typ_arity 1;
-            Dtyp.Option (no_annot dtyps |> List.hd)
+            let sub : Dtyp.named =
+                let dtyp = List.hd dtyps in
+                { inner = fst dtyp ; name = snd dtyp }
+            in
+            Dtyp.Option sub
 
         | "set" ->
             typ_arity 1;

@@ -1,0 +1,32 @@
+parameter (map string mutez);
+storage (map string bool);
+code { DUP ;
+       DIP { CDR @storage_slash_1 } ;
+       CAR @parameter_slash_2 ;
+       DUP @parameter ;
+       MAP { RENAME @_map_arg_slash_7 ;
+             AMOUNT @amount ;
+             LAMBDA
+               (pair (pair string mutez) mutez)
+               bool
+               { RENAME @closure_env_slash_4 ;
+                 PUSH mutez 5000000 ;
+                 DUUP ;
+                 CDR @amount_slash_3 ;
+                 DUUUP ;
+                 DIIIP { DROP } ;
+                 CAR @arg_slash_5 ;
+                 CDR ;
+                 ADD ;
+                 COMPARE ;
+                 GT } ;
+             PAIR @f ;
+             DUUP ;
+             DIP { DUP ; CAR ; SWAP ; CDR } ;
+             DIIIP { DROP } ;
+             PAIR ;
+             EXEC } ;
+       DIP { DROP ; DROP } ;
+       RENAME @m ;
+       NIL operation ;
+       PAIR };

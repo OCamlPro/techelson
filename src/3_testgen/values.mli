@@ -59,5 +59,11 @@ val key : Dtyp.t -> Mic.t
 (** Generates a random key hash from a random key. *)
 val key_hash : Dtyp.t -> Mic.t list
 
+(** Type of contract generators.
+
+    The input datatype is for the parameter.
+*)
+type contract_generator = Dtyp.t -> Mic.t list
+
 (** Generates michelson that constructs a random value for a datatype. *)
-val from : Dtyp.t -> Mic.t list
+val from : contract_generator -> Dtyp.t -> Mic.t list

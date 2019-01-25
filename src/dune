@@ -1,6 +1,7 @@
 (executable
     (name main)
     (libraries
+        zarith
         techelson.base
         techelson.parse
         techelson.testgen

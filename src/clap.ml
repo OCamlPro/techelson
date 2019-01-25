@@ -1,4 +1,4 @@
-(* CLAP stuff. *)
+ (* CLAP stuff. *)
 
 open Base
 open Base.Common
@@ -12,14 +12,32 @@ module Arg = struct
     | Long of string
     (* Value: some string. *)
     | Val of string
+    (* A comma separator. *)
+    | Comma
     (* Separator: everything after this point are values.
     
         Values appearing in this thing cannot be option arguments. *)
     | Sep of string list
+    (* Mode. *)
+    | Mode of string
+
+    let _fmt (fmt : formatter) (self : t) : unit =
+        match self with
+        | Short c -> fprintf fmt "(short '%c')" c
+        | Long s -> fprintf fmt "(long \"%s\")" s
+        | Val s -> fprintf fmt "(val \"%s\")" s
+        | Comma -> fprintf fmt "comma"
+        | Sep _ -> fprintf fmt "(sep ...)"
+        | Mode s -> fprintf fmt "(mode \"%s\")" s
 
     (* Returns the head if it is a value, none otherwise. *)
     let next_value (l : t list) : string option * t list = match l with
     | (Val v) :: tail -> Some v, tail
+    | _ -> None, l
+
+    (* Returns the next value if the list is a comma and a value. *)
+    let next_sep_value (l : t list) : string option * t list = match l with
+    | Comma :: (Val v) :: tail -> Some v, tail
     | _ -> None, l
 
     (* Same as `next_value` but converts the value to an `int`. *)
@@ -44,6 +62,16 @@ module Cla = struct
         (action : Arg.t list -> Conf.t -> Arg.t list)
         : t
     = { short ; long ; action }
+
+    type options = {
+        long_map : (string, Arg.t list -> Conf.t -> Arg.t list) Hashtbl.t ;
+        short_map : (char, Arg.t list -> Conf.t -> Arg.t list) Hashtbl.t ;
+    }
+
+    let empty_options = {
+        short_map = Hashtbl.create ~random:false 101 ;
+        long_map = Hashtbl.create ~random:false 101 ;
+    }
 
     let verb : t =
         mk ['v'] ["verb"] (
@@ -93,26 +121,88 @@ module Cla = struct
                 Exc.throw (
                     "argument `--contract` expects at least one value"
                 )
-            | Some (file), tail ->
-                let (init, tail) = Arg.next_value tail in
+            | Some file, tail ->
+                let (init, tail) = Arg.next_sep_value tail in
                 conf.contracts <- conf.contracts @ [ Conf.mk_contract file init ];
                 tail
         )
 
     let options : t list = [ verb ; quiet ; step ; contract ]
 
-    let add_all
-        (long_map : (string, Arg.t list -> Conf.t -> Arg.t list) Hashtbl.t)
-        (short_map : (char, Arg.t list -> Conf.t -> Arg.t list) Hashtbl.t)
-    = options |> List.iter (
+    let add_all (opts : options) = options |> List.iter (
         fun { short ; long ; action } ->
             short |> List.iter (
-                fun (c : char) -> Hashtbl.add short_map c action
+                fun (c : char) -> Hashtbl.add opts.short_map c action
             );
             long |> List.iter (
-                fun (s : string) -> Hashtbl.add long_map s action
+                fun (s : string) -> Hashtbl.add opts.long_map s action
             );
     )
+
+    (* CLAP modes. *)
+    module Modes = struct
+        (* Testgen options. *)
+        module Testgen = struct
+
+            let test_count : t =
+                mk ['n'] ["count"] (
+                    fun args conf -> match Arg.next_value args with
+                    | None , _ -> Exc.throw (
+                        "argument `--count` expects at least one value"
+                    )
+                    | Some n, tail ->
+                        let count =
+                            (fun () -> int_of_string n)
+                            |> Exc.chain_err (
+                                fun () -> "while parsing the argument for `--count`"
+                            )
+                        in
+                        conf |> Conf.map_testgen_mode (fun conf -> conf.count <- count);
+                        tail
+
+                )
+
+            let dump : t =
+                mk ['d'] ["dump"] (
+                    fun args conf -> match Arg.next_value args with
+                    | None , _ -> Exc.throw (
+                        "argument `--dump` expects at least one value"
+                    )
+                    | Some target, tail ->
+                        conf |> Conf.map_testgen_mode (fun conf -> conf.dump <- Some target);
+                        tail
+
+                )
+
+            let options : t list = [ test_count ; dump ]
+
+            let add_all (opts : options) = options |> List.iter (
+                fun { short ; long ; action } ->
+                    short |> List.iter (
+                        fun (c : char) -> Hashtbl.add opts.short_map c action
+                    );
+                    long |> List.iter (
+                        fun (s : string) -> Hashtbl.add opts.long_map s action
+                    );
+            )
+
+            let name : string = "testgen"
+        end
+
+        let testgen : string * options * Conf.mode =
+            let opts = empty_options in
+            Testgen.add_all opts;
+            Testgen.name, opts, Conf.Testgen Conf.default_testgen_mode
+
+        let all : (string * options * Conf.mode) list = [
+            testgen
+        ]
+
+        let add_all (modes : (string, (Conf.mode * options)) Hashtbl.t) : unit =
+            all |> List.iter (
+                fun (name, options, mode) -> Hashtbl.add modes name (mode, options)
+            )
+    end
 end
 
 
@@ -121,14 +211,17 @@ end
 let args : string list =
     (Array.length Sys.argv) - 1 |> Array.sub Sys.argv 1 |> Array.to_list
 
-(* Map from long options to option handler. *)
-let long_map : (string, Arg.t list -> Conf.t -> Arg.t list) Hashtbl.t =
-    Hashtbl.create ~random:false 101
-(* Map from short options to option handler. *)
-let short_map : (char, Arg.t list -> Conf.t -> Arg.t list) Hashtbl.t =
-    Hashtbl.create ~random:false 101
+(* Options. *)
+let options : Cla.options =
+    let opts = Cla.empty_options in
+    Cla.add_all opts;
+    opts
 
-let _ = Cla.add_all long_map short_map
+(* Option modes. *)
+let modes : (string, (Conf.mode * Cla.options)) Hashtbl.t =
+    let opts = Hashtbl.create ~random:false 101 in
+    Cla.Modes.add_all opts;
+    opts
 
 (* Preprocesses arguments to split arguments.
 
@@ -149,10 +242,21 @@ let split_args (args : string list) : Arg.t list =
     (* Actual short/long splitting. *)
     let rec loop (acc : Arg.t list) : string list -> Arg.t list = function
         | [] -> List.rev acc
-        (* Separator, everything else is a value. *)
+
         | "--" :: tail ->
             [ Arg.Sep tail ] |> List.rev_append acc
+
+        | "," :: tail -> loop (Arg.Comma :: acc) tail
+
         | head :: tail -> (
+            let head, comma_trail =
+                let head_len = String.length head in
+                if head_len > 0 && String.sub head (head_len - 1) 1 = "," then (
+                    String.sub head 0 (head_len - 1), true
+                ) else (
+                    head, false
+                )
+            in
             let acc =
                 if String.length head > 1
                 && String.get head 0 = '-'
@@ -164,24 +268,31 @@ let split_args (args : string list) : Arg.t list =
                     let offset = 1 in
                     let (start, finsh) = (offset, (String.length head - offset)) in
                     String.sub head start finsh |> split_flags acc
+                ) else if Hashtbl.mem modes head then (
+                    Arg.Mode head :: acc
                 ) else (
                     (Arg.Val head) :: acc
                 )
+            in
+            let acc =
+                if comma_trail then Arg.Comma :: acc else acc
             in
             loop acc tail
         )
     in
     loop [] args
 
-
-
 (* Handles a list of arguments. *)
-let handle_args (conf : Conf.t) (args : Arg.t list) : Conf.t =
+let rec handle_args (options : Cla.options) (conf : Conf.t) (args : Arg.t list) : Conf.t =
     let rec loop (args : Arg.t list) : Conf.t =
         match args with
         | [] -> (
             conf.args <- List.rev conf.args;
             conf
+        )
+        (* Comma should be eaten by options. *)
+        | Arg.Comma :: _ -> (
+            Exc.throw "unexpected comma separator"
         )
         (* Value that was not eaten by an option. Add to configuration's args. *)
         | (Arg.Val s) :: tail -> (
@@ -189,7 +300,7 @@ let handle_args (conf : Conf.t) (args : Arg.t list) : Conf.t =
             loop tail
         )
         (* Flag, does not take arguments. *)
-        | (Arg.Short c) :: tail -> (match Hashtbl.find_opt short_map c with
+        | (Arg.Short c) :: tail -> (match Hashtbl.find_opt options.short_map c with
             | Some action ->
                 (* Notice the empty list of arguments (first argument). *)
                 action [] conf |> ignore;
@@ -197,7 +308,7 @@ let handle_args (conf : Conf.t) (args : Arg.t list) : Conf.t =
             | None -> sprintf "unknown flag `-%c`" c |> Exc.throw
         )
         (* Option, expected to take arguments. *)
-        | (Arg.Long s) :: tail -> (match Hashtbl.find_opt long_map s with
+        | (Arg.Long s) :: tail -> (match Hashtbl.find_opt options.long_map s with
             | Some action ->
                 (* Feed tail arguments, get new tail back. *)
                 let tail = action tail conf in
@@ -209,6 +320,14 @@ let handle_args (conf : Conf.t) (args : Arg.t list) : Conf.t =
             conf.args <- List.rev_append conf.args vals;
             conf
         )
+        | (Mode mode) :: tail -> (
+            try (
+                let mode, options = Hashtbl.find modes mode in
+                Conf.set_mode mode conf;
+                handle_args options conf tail
+            ) with
+            | Not_found -> sprintf "unknown mode `%s`" mode |> Exc.throw
+        )
     in
     loop args
 
@@ -216,7 +335,7 @@ let handle_args (conf : Conf.t) (args : Arg.t list) : Conf.t =
 
 (* Runs CLAP on custom arguments. *)
 let run_on (args : string list) : Conf.t =
-    args |> split_args |> handle_args Conf.default
+    args |> split_args |> handle_args options Conf.default
 
 (* Runs CLAP on CLAs. *)
 let run () : Conf.t = run_on args

@@ -499,7 +499,7 @@ let needs_parens (t : t) : bool =
 (* Formats contracts. *)
 let rec fmt_contract (fmtt : formatter) ({ storage ; param ; entry } : contract) : unit =
     fprintf
-        fmtt "@[@[<v 4>{@ storage %a ;@ parameter %a ;@ code @[%a@]@]@,}@]"
+        fmtt "@[@[<v 4>{@ storage %a ;@ parameter %a ;@ code @[%a@] ;@]@,}@]"
         Dtyp.fmt storage Dtyp.fmt param fmt entry
 
 (* Formats constants. *)

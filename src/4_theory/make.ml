@@ -24,9 +24,6 @@ module Theory (
             type t = Int64.t
             type nat = Nat.t
 
-            let rand ?bound:(bound=None) () : t =
-                Rng.int64 ~bound ()
-
             let to_string (t : t) : string =
                 Int64.to_string t
 
@@ -590,6 +587,7 @@ module Theory (
             Key (Str.to_string s |> Key.of_native)
         | Dtyp.Contract param, Contract (_, c) ->
             if c.Mic.param = param then v else bail_msg () |> Exc.throw
+        | Dtyp.Leaf Dtyp.Unit, U -> v
         | _ -> (
             match v with
             | C cmp -> C (Cmp.cast dtyp cmp)
@@ -781,7 +779,7 @@ module Theory (
 
     let abs (v : value) : value * Dtyp.t =
         match v with
-        | C (Cmp.I i) -> C (Cmp.N (Int.abs i)), Dtyp.mk_leaf Dtyp.Int
+        | C (Cmp.I i) -> C (Cmp.N (Int.abs i)), Dtyp.mk_leaf Dtyp.Nat
         | _ -> asprintf "cannot compute absolute value for %a" fmt v |> Exc.throw
 
     let neg (v : value) : value * Dtyp.t =
@@ -924,7 +922,7 @@ module Theory (
             )
             |> Of.option
         in
-        let dtyp = Dtyp.Option dtyp |> Dtyp.mk in
+        let dtyp = Dtyp.Option (Dtyp.mk_named None dtyp) |> Dtyp.mk in
         value, dtyp
 
     let lshift_lft (v_1 : value) (v_2 : value) : value * Dtyp.t =
