@@ -413,7 +413,8 @@ module Stack (S : Sigs.StackBase)
                     in
 
                     let contract =
-                        Mic.mk_contract ~storage:lambda_storage_dtyp ~param:lambda_param_dtyp lambda
+                        Mic.mk_contract
+                            ~storage:lambda_storage_dtyp ~param:lambda_param_dtyp lambda
                     in
 
                     contract
@@ -479,7 +480,14 @@ module Stack (S : Sigs.StackBase)
             let dtyp = Dtyp.Set dtyp |> Dtyp.mk ~alias in
             push ~binding dtyp (Theory.Of.set Theory.Set.empty) self
 
-        let empty_map ?binding:(binding=None) ?alias:(alias=None) (key_dtyp : Dtyp.t) (val_dtyp : Dtyp.t) (self : t) : unit =
+        let empty_map
+            ?binding:(binding=None)
+            ?alias:(alias=None)
+            (key_dtyp : Dtyp.t)
+            (val_dtyp : Dtyp.t)
+            (self : t)
+            : unit
+        =
             let dtyp = Dtyp.Map (key_dtyp, val_dtyp) |> Dtyp.mk ~alias in
             push ~binding dtyp (Theory.Of.map Theory.Map.empty) self
 
@@ -502,7 +510,9 @@ module Stack (S : Sigs.StackBase)
                     in
                     (fun () -> Dtyp.check head_dtyp inner)
                     |> Exc.chain_err (
-                        fun () -> asprintf "head has type `%a`, but tail has type `%a`" Dtyp.fmt head_dtyp Dtyp.fmt tail_dtyp
+                        fun () ->
+                            asprintf "head has type `%a`, but tail has type `%a`"
+                                Dtyp.fmt head_dtyp Dtyp.fmt tail_dtyp
                     );
                     Theory.cons head_value tail_value
             )

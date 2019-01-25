@@ -80,7 +80,9 @@ module Cla = struct
                 tail
             | Some blah, _ ->
                 Exc.throw (
-                    sprintf "expected a truth value `on|true|True|off|no|false|False`, found `%s`" blah
+                    sprintf
+                        "expected a truth value `on|true|True|off|no|false|False`, found `%s`"
+                        blah
                 )
         )
 

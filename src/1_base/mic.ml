@@ -445,7 +445,12 @@ let invisible_get_one (desc : string) (l : 'a list) : 'a =
         sprintf "more than one \"%s\" field found" desc |> Exc.throw
     );
     List.hd l
-let mk_contract_of_lists ~(storage : Dtyp.t list) ~(param : Dtyp.t list) (entry : t list) : contract =
+let mk_contract_of_lists
+    ~(storage : Dtyp.t list)
+    ~(param : Dtyp.t list)
+    (entry : t list)
+    : contract
+=
     {
         storage = invisible_get_one "storage type" storage ;
         param = invisible_get_one "entry parameter" param ;

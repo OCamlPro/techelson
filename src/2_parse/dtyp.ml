@@ -116,8 +116,10 @@ let parse
                             (
                                 fun fmtt (dtyp, annot) ->
                                 match annot with
-                                | None -> Dtyp.fmt fmtt dtyp
-                                | Some annot -> fprintf fmtt "(%a %a)" Dtyp.fmt dtyp Annot.Field.fmt annot
+                                | None ->
+                                    Dtyp.fmt fmtt dtyp
+                                | Some annot ->
+                                    fprintf fmtt "(%a %a)" Dtyp.fmt dtyp Annot.Field.fmt annot
                             )
                         )
                         dtyps

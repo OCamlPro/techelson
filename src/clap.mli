@@ -1,6 +1,7 @@
 (** CLAP stuff.
 
-    Flags such as `-v` can **never** take any arguments, since they're flags. Options such as `--verb` should always take arguments, although this is not mandatory.
+    Flags such as `-v` can **never** take any arguments, since they're flags. Options such as
+    `--verb` should always take arguments, although this is not mandatory.
 *)
 
 (** CLAs, without the first useless string (program name). *)

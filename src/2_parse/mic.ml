@@ -419,7 +419,8 @@ and parse_macro_diup
 =
     let bail () : int =
         [
-            sprintf "token `%s` looks like a %s%c+%c-like macro, but is not" token pref rep finish ;
+            sprintf "token `%s` looks like a %s%c+%c-like macro, but is not"
+                token pref rep finish ;
             sprintf "please refer to \
                 https://tezos.gitlab.io/master/whitedoc/michelson.html#syntactic-conveniences" ;
         ] |> Exc.throws

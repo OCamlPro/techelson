@@ -15,7 +15,11 @@ module Stack : Sigs.StackBase = struct
         binding : Annot.Var.t option ;
     }
 
-    let clone (binding : Annot.Var.t option) ({value ; typ ; _} : frame) : frame = { value ; typ ; binding }
+    let clone
+        (binding : Annot.Var.t option)
+        ({value ; typ ; _} : frame)
+        : frame
+    = { value ; typ ; binding }
 
     let mk_frame (value : Theory.value) (typ : Dtyp.t) (binding : Annot.Var.t option) : frame =
         { value ; typ ; binding }
@@ -37,19 +41,25 @@ module Stack : Sigs.StackBase = struct
     let contract_env (self : t) : Env.t = self.env
 
     let fmt (fmt : formatter) (self : t) : unit =
-        fprintf fmt "@[<v>|==================================================================================================|";
+        fprintf fmt "@[<v>\
+            |================================================\
+            ==================================================|";
         self.stack |> List.rev |> List.iter (
             fprintf fmt "@,| %a |" fmt_frame
         );
 
         if self.dipped <> [] then (
-           fprintf fmt "@,|================================================dipped============================================|";
+           fprintf fmt "@,\
+            |================================================\
+            dipped============================================|";
             self.dipped |> List.iter (
                 fprintf fmt "@,| %a |" fmt_frame
             )
         );
 
-        fprintf fmt "@,|==================================================================================================|";
+        fprintf fmt "@,\
+            |================================================\
+            ==================================================|";
         fprintf fmt "@]"
 
     let empty (env : Env.t) : t = { dipped = [] ; stack = [] ; env }

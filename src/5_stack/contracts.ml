@@ -59,7 +59,8 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
             let live =
                 try Hashtbl.find self.live uid with
                 | Not_found ->
-                    asprintf "cannot update contract at unknown address %a" Theory.Address.fmt address
+                    asprintf "cannot update contract at unknown address %a"
+                        Theory.Address.fmt address
                     |> Exc.throw
             in
             (fun () -> Dtyp.check dtyp live.contract.storage)
@@ -96,7 +97,8 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
             let uid = Theory.Address.uid address in
             if Hashtbl.mem self.live uid then (
                 [
-                    asprintf "trying to create two contracts with address `%a`" Theory.Address.fmt address ;
+                    asprintf "trying to create two contracts with address `%a`"
+                        Theory.Address.fmt address ;
                     asprintf "one called `%s`" contract.name ;
                     asprintf "another one called `%s`" (Hashtbl.find self.live uid).contract.name ;
                 ] |> Exc.throws

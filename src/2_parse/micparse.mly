@@ -132,7 +132,8 @@ instruction :
                     annot |> Base.Common.if_let_some (
                         fun a -> [
                             Format.asprintf
-                                "illegal field annotation `%a` in top-level datatype" Base.Annot.Field.fmt a ;
+                                "illegal field annotation `%a` in top-level datatype"
+                                Base.Annot.Field.fmt a ;
                             Format.asprintf
                                 "while parsing instruction `%s%a`" token Base.Annot.fmt annots
                         ] |> Base.Exc.throws

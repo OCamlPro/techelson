@@ -319,10 +319,12 @@ module TestCxt (
                             Run.Env.Live.transfer tez live;
                             let src = Run.Src.of_address address in
                             let param_dtyp =
-                                contract.param |> Dtyp.mk_named (Some (Annot.Field.of_string "param"))
+                                contract.param
+                                |> Dtyp.mk_named (Some (Annot.Field.of_string "param"))
                             in
                             let storage_dtyp =
-                                contract.storage |> Dtyp.mk_named (Some (Annot.Field.of_string "storage"))
+                                contract.storage
+                                |> Dtyp.mk_named (Some (Annot.Field.of_string "storage"))
                             in
                             let dtyp = Dtyp.Pair (param_dtyp, storage_dtyp) |> Dtyp.mk in
                             let value = Theory.Of.pair param live.storage in

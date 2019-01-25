@@ -217,7 +217,12 @@ module PairHelp = struct
         | [] -> [], []
 
     (* Turns a tree for a pair macro into a list of instructions. *)
-    let macro_pair_tree_to_list (vars : Annot.vars) (fields : Annot.fields) (tree : tree) : Mic.t list =
+    let macro_pair_tree_to_list
+        (vars : Annot.vars)
+        (fields : Annot.fields)
+        (tree : tree)
+        : Mic.t list
+    =
         let pair (stack : 'a list) (fields : Annot.fields) : Mic.t =
             if stack = [] then Mic.mk_leaf ~vars:vars ~fields:fields Mic.Pair
             else Mic.mk_leaf ~fields:fields Mic.Pair
@@ -317,7 +322,12 @@ module PairHelp = struct
     (* Turns a tree for an unpair macro into a list of instructions. *)
     let macro_unpair_tree_to_list (vars : Annot.vars) (tree : tree) : Mic.t list =
         (* Go down the tree and decide what to do. *)
-        let rec go_down (vars : Annot.vars) (stack : un_stack_frame list) (tree : tree) : Mic.t list =
+        let rec go_down
+            (vars : Annot.vars)
+            (stack : un_stack_frame list)
+            (tree : tree)
+            : Mic.t list
+        =
             match tree with
             (* Simple pair deconstructor. *)
             | Pair (LeafA, LeafI) ->
@@ -336,7 +346,12 @@ module PairHelp = struct
             (* Everything else should be illegal. *)
             | _ -> bail_pair ()
         (* Go up the stack, building the instructions as we go. *)
-        and go_up (vars : Annot.vars) (stack : un_stack_frame list) (lst : Mic.t list) : Mic.t list =
+        and go_up
+            (vars : Annot.vars)
+            (stack : un_stack_frame list)
+            (lst : Mic.t list)
+            : Mic.t list
+        =
             match stack with
             (* Going up an `A`: `DIP` instructions and add `UNPAIR` at the beginning. *)
             | (UppDipPref annot) :: stack ->
@@ -431,13 +446,23 @@ module PairHelp = struct
         go_down vars [] ops
 end
 
-let macro_pair (vars : Annot.vars) (fields : Annot.fields) (ops : Mic.Macro.pair_op list) : Mic.t list =
+let macro_pair
+    (vars : Annot.vars)
+    (fields : Annot.fields)
+    (ops : Mic.Macro.pair_op list)
+    : Mic.t list
+=
     PairHelp.macro_pair_to_tree ops |> PairHelp.macro_pair_tree_to_list vars fields
 
 let macro_unpair (vars : Annot.vars) (ops : Mic.Macro.pair_op list) : Mic.t list =
     PairHelp.macro_pair_to_tree ops |> PairHelp.macro_unpair_tree_to_list vars
 
-let macro_cadr (vars : Annot.vars) (fields : Annot.fields) (ops : Mic.Macro.unpair_op list) : Mic.t list =
+let macro_cadr
+    (vars : Annot.vars)
+    (fields : Annot.fields)
+    (ops : Mic.Macro.unpair_op list)
+    : Mic.t list
+=
     let rec loop (acc : Mic.t list) (ops : Mic.Macro.unpair_op list) : Mic.t list =
         match ops with
         | A :: ops -> loop ((Mic.mk_leaf ~vars:vars ~fields:fields Mic.Car) :: acc) ops

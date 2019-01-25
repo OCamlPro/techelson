@@ -288,7 +288,14 @@ module Theory (
             Inner.update e (fun _ -> v) map
         let fold (f : 'acc -> key -> 'a -> 'acc) (acc : 'acc) (map : 'a t) : 'acc =
             Inner.fold (fun k a acc -> f acc k a) map acc
-        let fold_as (f_k : key -> 'k) (f_v : 'a -> 'b) (f : 'acc -> 'k -> 'b -> 'acc) (acc : 'acc) (map : 'a t) : 'acc =
+        let fold_as
+            (f_k : key -> 'k)
+            (f_v : 'a -> 'b)
+            (f : 'acc -> 'k -> 'b -> 'acc)
+            (acc : 'acc)
+            (map : 'a t)
+            : 'acc
+        =
             fold (fun acc k v -> f acc (f_k k) (f_v v)) acc map
         let map (f : key -> 'a -> 'b) (t : 'a t) : 'b t = Inner.mapi f t
         let map_as (f_k : key -> 'k) (f_v : 'a -> 'b) (f : 'k -> 'b -> 'c) (t : 'a t) : 'c t =
@@ -653,13 +660,36 @@ module Theory (
         module Operation = struct
             let create (uid : int) (params : contract_params) (contract : Mic.contract) : value =
                 Operation (uid, Create (params, contract))
-            let create_named (uid : int) (params : contract_params) (contract : Contract.t) : value =
+            let create_named
+                (uid : int)
+                (params : contract_params)
+                (contract : Contract.t)
+                : value
+            =
                 Operation (uid, CreateNamed (params, contract))
-            let init_named (uid : int) (params : contract_params) (input : value) (name : string) : value =
+            let init_named
+                (uid : int)
+                (params : contract_params)
+                (input : value)
+                (name : string)
+                : value
+            =
                 Operation (uid, InitNamed (params, input, name))
-            let transfer (uid : int) (address : Address.t) (contract : Mic.contract) (tez : Tez.t) (param : value) : value =
+            let transfer
+                (uid : int)
+                (address : Address.t)
+                (contract : Mic.contract)
+                (tez : Tez.t)
+                (param : value)
+                : value
+            =
                 Operation (uid, Transfer (address, contract, tez, param))
-            let must_fail (uid : int) (value : value option) (op, op_uid : operation * int) : value =
+            let must_fail
+                (uid : int)
+                (value : value option)
+                (op, op_uid : operation * int)
+                : value
+            =
                 Operation (uid, MustFail (value, op, op_uid))
             let set_delegate (uid : int) (address : Address.t) (delegate : KeyH.t option) : value =
                 Operation (uid, SetDelegate (address, delegate))

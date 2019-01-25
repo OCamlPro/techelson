@@ -37,7 +37,8 @@ module Interpreter (
     | Loop of Mic.t * Mic.t list
     (* Reached the end of the body of a loop.
     
-        First argument is the loop instruction. Second is whatever is left to run after the loop.Base
+        First argument is the loop instruction. Second is whatever is left to run after the
+        loop.Base
     *)
     | Nop of Mic.t * Mic.t list
     (* Reached the end of a block that triggers nothing on exit.
@@ -360,7 +361,9 @@ module Interpreter (
                 | Mic.Leaf Pair ->
                     let binding = Lst.hd mic.vars in
                     let alias = Lst.hd mic.typs in
-                    let (snd, snd_dtyp), (fst, fst_dtyp) = Stack.pop self.stack, Stack.pop self.stack in
+                    let (snd, snd_dtyp), (fst, fst_dtyp) =
+                        Stack.pop self.stack, Stack.pop self.stack
+                    in
                     let value = Theory.Of.pair fst snd in
 
                     let fst_field = Lst.hd mic.fields in
@@ -700,8 +703,10 @@ module Interpreter (
                     let key, key_dtyp = Stack.Pop.cmp self.stack in
                     let value, map_dtyp =
                         match Stack.pop self.stack with
-                        | Theory.Map map, dtyp -> Theory.Map.get key map |> Theory.Of.option, dtyp
-                        | Theory.BigMap map, dtyp -> Theory.BigMap.get key map |> Theory.Of.option, dtyp
+                        | Theory.Map map, dtyp ->
+                            Theory.Map.get key map |> Theory.Of.option, dtyp
+                        | Theory.BigMap map, dtyp ->
+                            Theory.BigMap.get key map |> Theory.Of.option, dtyp
                         | v, d ->
                             asprintf "expected (big) map, found vaule of type %a : %a"
                                 Dtyp.fmt d Theory.fmt v
@@ -717,9 +722,12 @@ module Interpreter (
                     let key, key_dtyp = Stack.Pop.cmp self.stack in
                     let mem, kdtyp =
                         match Stack.pop self.stack with
-                        | Theory.Set set, dtyp -> Theory.Set.mem key set, Dtyp.Inspect.set dtyp
-                        | Theory.Map map, dtyp -> Theory.Map.mem key map, Dtyp.Inspect.map dtyp |> fst
-                        | Theory.BigMap map, dtyp -> Theory.BigMap.mem key map, Dtyp.Inspect.map dtyp |> fst
+                        | Theory.Set set, dtyp ->
+                            Theory.Set.mem key set, Dtyp.Inspect.set dtyp
+                        | Theory.Map map, dtyp ->
+                            Theory.Map.mem key map, Dtyp.Inspect.map dtyp |> fst
+                        | Theory.BigMap map, dtyp ->
+                            Theory.BigMap.mem key map, Dtyp.Inspect.map dtyp |> fst
                         | v, d ->
                             asprintf "expected set or (big) map, found vaule of type %a : %a"
                                 Dtyp.fmt d Theory.fmt v
@@ -994,7 +1002,8 @@ module Interpreter (
                     let value, dtyp =
                         match Env.Live.get address self.env with
                         | None ->
-                            asprintf "there is no contract at address %a" Theory.Address.fmt address
+                            asprintf "there is no contract at address %a"
+                                Theory.Address.fmt address
                             |> Exc.throw
                         | Some contract -> (
                             let dtyp =
@@ -1030,7 +1039,8 @@ module Interpreter (
                     let value =
                         match Env.Live.get address self.env with
                         | None ->
-                            asprintf "there is no contract at address %a" Theory.Address.fmt address
+                            asprintf "there is no contract at address %a"
+                                Theory.Address.fmt address
                             |> Exc.throw
                         | Some contract -> contract.balance |> Theory.Of.tez
                     in

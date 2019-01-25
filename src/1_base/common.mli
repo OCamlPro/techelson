@@ -44,7 +44,12 @@ module Either : sig
     val rgt : 'r -> ('l, 'r) t
 
     (** Formatter. *)
-    val fmt : (formatter -> 'l -> unit) -> (formatter -> 'r -> unit) -> formatter -> ('l, 'r) t -> unit
+    val fmt :
+        (formatter -> 'l -> unit) ->
+        (formatter -> 'r -> unit) ->
+        formatter ->
+        ('l, 'r) t ->
+        unit
 
     (** Map over the left part of a disjunction. *)
     val map_lft : ('l -> 'lft) -> ('l, 'r) t -> ('lft, 'r) t
@@ -53,7 +58,12 @@ module Either : sig
     val map_rgt : ('r -> 'rgt) -> ('l, 'r) t -> ('l, 'rgt) t
 
     (** Transparent formatter. *)
-    val fmt_through : (formatter -> 'l -> unit) -> (formatter -> 'r -> unit) -> formatter -> ('l, 'r) t -> unit
+    val fmt_through :
+        (formatter -> 'l -> unit) ->
+        (formatter -> 'r -> unit) ->
+        formatter ->
+        ('l, 'r) t ->
+        unit
 end
 
 (** List helpers. *)
