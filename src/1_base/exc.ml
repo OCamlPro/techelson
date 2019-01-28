@@ -1,5 +1,11 @@
 open Format
 
+let _ = Printexc.record_backtrace false
+let print_backtrace = ref false
+
+let set_print_backtrace (b : bool) : unit =
+    print_backtrace := b
+
 module Internal = struct
     type t =
     | ApplyOps
@@ -21,7 +27,7 @@ module Protocol = struct
 end
 
 type exc =
-| Error of string list * exn option
+| Error of string list * exn option * Printexc.raw_backtrace
 | Internal of Internal.t
 | Protocol of Protocol.t
 
@@ -42,14 +48,20 @@ let fmt (fmt : formatter) (e : exn) : unit =
     fprintf fmt "@[<v 4>";
     (
         match e with
-        | Exc (Error (trace, opt)) ->
+        | Exc (Error (trace, opt, backtrace)) ->
             fprintf fmt "Error";
             trace |> List.iter (fprintf fmt "@,@[%s@]");
             (
                 match opt with
                 | None -> ()
-                | Some e ->
-                    fprintf fmt "@,@[%s@]" (Printexc.to_string e)
+                | Some e -> (
+                    fprintf fmt "@,@[%s@]" (Printexc.to_string e);
+                    if !print_backtrace then (
+                        Printexc.raw_backtrace_to_string backtrace
+                        |> String.split_on_char '\n'
+                        |> List.iter (fprintf fmt "@,%s")
+                    )
+                )
             );
         | Exc (Internal i) ->
             fprintf fmt "Uncaught internal exception@,%a" Internal.fmt i
@@ -59,8 +71,12 @@ let fmt (fmt : formatter) (e : exn) : unit =
     );
     fprintf fmt "@]"
 
-let throw (s : string) : 'a = Exc (Error ([s], None)) |> raise
-let throws (ss : string list) : 'a = Exc (Error (ss, None)) |> raise
+let get_callstack () = Printexc.get_callstack 666
+
+let throw (s : string) : 'a =
+    Exc (Error ([s], None, get_callstack ())) |> raise
+let throws (ss : string list) : 'a =
+    Exc (Error (ss, None, get_callstack ())) |> raise
 
 let erase_err (blah : unit -> string) (stuff : unit -> 'a) : 'a =
     try stuff () with
@@ -72,8 +88,9 @@ let chain_errs (blah : unit -> string list) (stuff : unit -> 'a) : 'a =
     try stuff () with
     | (Exc (Internal _) as e)
     | (Exc (Protocol _) as e) -> raise e
-    | Exc (Error (trace, opt)) -> Exc (Error (blah () @ trace, opt)) |> raise
-    | e -> Exc (Error (blah (), Some e)) |> raise
+    | Exc (Error (trace, opt, backtrace)) ->
+        Exc (Error (blah () @ trace, opt, backtrace)) |> raise
+    | e -> Exc (Error (blah (), Some e, get_callstack ())) |> raise
 
 let chain_err (blah : unit -> string) (stuff : unit -> 'a) : 'a =
     chain_errs (fun () -> [blah ()]) stuff

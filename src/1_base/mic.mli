@@ -30,6 +30,7 @@ module Macro : sig
     | Cmp of op
     | If of (op * 'ins * 'ins)
     | IfCmp of (op * 'ins * 'ins)
+    | IfSome of 'ins * 'ins
     | Int
     | Fail
     | Assert
@@ -44,7 +45,6 @@ module Macro : sig
     | P of pair_op list
     | Unp of pair_op list
     | CadR of unpair_op list
-    | IfSome of 'ins * 'ins
     | SetCadr of unpair_op list
     | MapCadr of unpair_op list * 'ins
 
@@ -160,7 +160,7 @@ type 'sub ins =
 | Extension of extension
 
 and const =
-| Unit
+| U
 
 | Bool of bool
 | Int of string

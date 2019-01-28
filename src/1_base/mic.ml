@@ -33,6 +33,7 @@ module Macro = struct
     | Cmp of op
     | If of (op * 'ins * 'ins)
     | IfCmp of (op * 'ins * 'ins)
+    | IfSome of 'ins * 'ins
     | Int
     | Fail
     | Assert
@@ -47,7 +48,6 @@ module Macro = struct
     | P of pair_op list
     | Unp of pair_op list
     | CadR of unpair_op list
-    | IfSome of 'ins * 'ins
     | SetCadr of unpair_op list
     | MapCadr of unpair_op list * 'ins
 
@@ -380,7 +380,7 @@ type 'sub ins =
 | Extension of extension
 
 and const =
-| Unit
+| U
 
 | Bool of bool
 | Int of string
@@ -505,7 +505,7 @@ let rec fmt_contract (fmtt : formatter) ({ storage ; param ; entry } : contract)
 (* Formats constants. *)
 and fmt_const (fmtt : formatter) (c : const) : unit =
     match c with
-    | Unit -> fprintf fmtt "Unit"
+    | U -> fprintf fmtt "Unit"
     | Bool b -> fprintf fmtt (if b then "True" else "False")
     | Int n -> fprintf fmtt "%s" n
     | Str s -> fprintf fmtt "\"%s\"" s

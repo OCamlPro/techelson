@@ -1,0 +1,576 @@
+parameter
+    (or :_entries
+      (address %_Liq_entry_add_admin)
+      (or
+        (address %_Liq_entry_rm_admin)
+        (or
+          (pair %_Liq_entry_add_user
+            address
+            (contract :UnitContract
+              unit))
+          (or
+            (unit %_Liq_entry_deposit)
+            (or
+              (unit %_Liq_entry_withdraw)
+              (unit %_Liq_entry_drain))))))
+    ;
+storage
+    (pair :storage
+      (set %admins
+        address)
+      (map %users
+        address
+        (pair
+          mutez
+          (contract :UnitContract
+            unit))))
+    ;
+code
+    {
+      DUP ;
+      DIP
+        {
+          CDR @storage_slash_1 ;
+        }
+        ;
+      CAR @parameter_slash_2 ;
+      LAMBDA @admin_check
+        (pair :storage
+          (set %admins
+            address)
+          (map %users
+            address
+            (pair
+              mutez
+              (contract :UnitContract
+                unit))))
+        (pair
+          (lambda
+            (pair
+              address
+              (pair :storage
+                (set %admins
+                  address)
+                (map %users
+                  address
+                  (pair
+                    mutez
+                    (contract :UnitContract
+                      unit)))))
+            unit)
+          (pair :storage
+            (set %admins
+              address)
+            (map %users
+              address
+              (pair
+                mutez
+                (contract :UnitContract
+                  unit)))))
+        {
+          RENAME @storage_slash_3
+            ;
+          LAMBDA
+            (pair
+              address
+              (pair :storage
+                (set %admins
+                  address)
+                (map %users
+                  address
+                  (pair
+                    mutez
+                    (contract :UnitContract
+                      unit)))))
+            unit
+            {
+              RENAME @closure_env_slash_4
+                ;
+              DUP ;
+              CDR @storage_slash_3 ;
+              CAR %admins ;
+              DUUP ;
+              CAR @a_slash_5 ;
+              MEM ;
+              NOT ;
+              IF
+                {
+                  PUSH
+                    string
+                    "only admins can perform administrative tasks" ;
+                  FAILWITH ;
+                }
+                {
+                  UNIT ;
+                }
+                ;
+              DIP
+                {
+                  DROP ;
+                }
+                ;
+            }
+            ;
+          PAIR ;
+        }
+        ;
+      LAMBDA @data_of
+        (pair :storage
+          (set %admins
+            address)
+          (map %users
+            address
+            (pair
+              mutez
+              (contract :UnitContract
+                unit))))
+        (pair
+          (lambda
+            (pair
+              address
+              (pair :storage
+                (set %admins
+                  address)
+                (map %users
+                  address
+                  (pair
+                    mutez
+                    (contract :UnitContract
+                      unit)))))
+            (pair
+              mutez
+              (contract :UnitContract
+                unit)))
+          (pair :storage
+            (set %admins
+              address)
+            (map %users
+              address
+              (pair
+                mutez
+                (contract :UnitContract
+                  unit)))))
+        {
+          RENAME @storage_slash_7
+            ;
+          LAMBDA
+            (pair
+              address
+              (pair :storage
+                (set %admins
+                  address)
+                (map %users
+                  address
+                  (pair
+                    mutez
+                    (contract :UnitContract
+                      unit)))))
+            (pair
+              mutez
+              (contract :UnitContract
+                unit))
+            {
+              RENAME @closure_env_slash_8
+                ;
+              DUP ;
+              CDR @storage_slash_7 ;
+              CDR %users ;
+              DUUP ;
+              CAR @user_slash_9 ;
+              GET ;
+              IF_NONE
+                {
+                  PUSH
+                    string
+                    "unknown user" ;
+                  FAILWITH ;
+                }
+                {}
+                ;
+              DIP
+                {
+                  DROP ;
+                }
+                ;
+            }
+            ;
+          PAIR ;
+        }
+        ;
+      DUUUP @parameter ;
+      IF_LEFT
+        {
+          RENAME @admin_slash_12
+            ;
+          DUUUUUP @storage ;
+          DUUUUP @admin_check ;
+          DUUP @storage ;
+          EXEC ;
+          SENDER ;
+          DIP
+            {
+              DUP ;
+              CAR ;
+              SWAP ;
+              CDR ;
+            }
+            ;
+          PAIR ;
+          EXEC ;
+          DROP ;
+          DUP @storage ;
+          CDR %users ;
+          DUUP @storage ;
+          CAR %admins ;
+          DUUUUP @admin ;
+          DIP
+            {
+              PUSH
+                bool
+                True ;
+            }
+            ;
+          DIIIIP
+            {
+              DROP ;
+              DROP ;
+            }
+            ;
+          UPDATE ;
+          PAIR @storage %admins %users ;
+          NIL
+            operation
+            ;
+          PAIR ;
+        }
+        {
+          IF_LEFT
+            {
+              RENAME @admin_slash_15
+                ;
+              DUUUUUP @storage ;
+              DUUUUP @admin_check ;
+              DUUP @storage ;
+              EXEC ;
+              SENDER ;
+              DIP
+                {
+                  DUP ;
+                  CAR ;
+                  SWAP ;
+                  CDR ;
+                }
+                ;
+              PAIR ;
+              EXEC ;
+              DROP ;
+              DUP @storage ;
+              CDR %users ;
+              DUUP @storage ;
+              CAR %admins ;
+              DUUUUP @admin ;
+              DIP
+                {
+                  PUSH
+                    bool
+                    False ;
+                }
+                ;
+              DIIIIP
+                {
+                  DROP ;
+                  DROP ;
+                }
+                ;
+              UPDATE ;
+              PAIR @storage %admins %users ;
+              NIL
+                operation
+                ;
+              PAIR ;
+            }
+            {
+              IF_LEFT
+                {
+                  RENAME @_user_c_slash_18
+                    ;
+                  DUUUUUP @storage ;
+                  DUUP ;
+                  CAR @user ;
+                  DUUUUUP @admin_check ;
+                  DUUUP @storage ;
+                  EXEC ;
+                  SENDER ;
+                  DIP
+                    {
+                      DUP ;
+                      CAR ;
+                      SWAP ;
+                      CDR ;
+                    }
+                    ;
+                  PAIR ;
+                  EXEC ;
+                  DROP ;
+                  DUUP @storage ;
+                  CDR %users ;
+                  DUUP @user ;
+                  MEM ;
+                  IF
+                    {
+                      PUSH
+                        string
+                        "cannot add user if user is not new" ;
+                      FAILWITH ;
+                    }
+                    {
+                      UNIT ;
+                    }
+                    ;
+                  DROP ;
+                  DUUP @storage ;
+                  CAR %admins ;
+                  DUUUP @storage ;
+                  DIIIP
+                    {
+                      DROP ;
+                    }
+                    ;
+                  CDR %users ;
+                  DUUUUP ;
+                  DIIIIP
+                    {
+                      DROP ;
+                    }
+                    ;
+                  CDR @c ;
+                  PUSH
+                    mutez
+                    0 ;
+                  PAIR ;
+                  SOME @data ;
+                  DUUUUP ;
+                  DIIIIP
+                    {
+                      DROP ;
+                    }
+                    ;
+                  UPDATE ;
+                  SWAP ;
+                  PAIR @storage %admins %users ;
+                  NIL
+                    operation
+                    ;
+                  PAIR ;
+                }
+                {
+                  IF_LEFT
+                    {
+                      RENAME @__slash_24
+                        ;
+                      DUUUUUP @storage ;
+                      SENDER @user ;
+                      DUUUUP @data_of ;
+                      DUUUP @storage ;
+                      EXEC ;
+                      DUUP @user ;
+                      DIP
+                        {
+                          DUP ;
+                          CAR ;
+                          SWAP ;
+                          CDR ;
+                        }
+                        ;
+                      PAIR ;
+                      EXEC @_money_c ;
+                      DUUUP @storage ;
+                      CAR %admins ;
+                      DUUUUP @storage ;
+                      CDR %users ;
+                      DUUUP ;
+                      CDR @c ;
+                      AMOUNT @amount ;
+                      DUUUUUP ;
+                      DIIIIIP
+                        {
+                          DROP ;
+                        }
+                        ;
+                      DIIIIIIP
+                        {
+                          DROP ;
+                          DROP ;
+                        }
+                        ;
+                      CAR @money ;
+                      ADD ;
+                      PAIR ;
+                      SOME @nu_data ;
+                      DUUUUP ;
+                      DIIIIP
+                        {
+                          DROP ;
+                        }
+                        ;
+                      UPDATE ;
+                      SWAP ;
+                      PAIR %admins %users ;
+                      NIL
+                        operation
+                        ;
+                      PAIR ;
+                    }
+                    {
+                      IF_LEFT
+                        {
+                          RENAME @__slash_32
+                            ;
+                          DUUUUUP @storage ;
+                          SENDER @user ;
+                          DUUUUP @data_of ;
+                          DUUUP @storage ;
+                          EXEC ;
+                          DUUP @user ;
+                          DIP
+                            {
+                              DUP ;
+                              CAR ;
+                              SWAP ;
+                              CDR ;
+                            }
+                            ;
+                          PAIR ;
+                          EXEC @_money_c ;
+                          DUP ;
+                          CAR @money ;
+                          AMOUNT @amount ;
+                          DUUP @money ;
+                          DUUP @amount ;
+                          COMPARE ;
+                          GT ;
+                          IF
+                            {
+                              PUSH
+                                string
+                                "insufficient balance" ;
+                              FAILWITH ;
+                            }
+                            {
+                              DUUUUUP @storage ;
+                              CAR %admins ;
+                              DUUUUUUP @storage ;
+                              CDR %users ;
+                              DUUUUUP ;
+                              CDR @c ;
+                              DUUUUP @amount ;
+                              DUUUUUUP @money ;
+                              SUB ;
+                              PAIR ;
+                              SOME @nu_data ;
+                              DUUUUUUUP @user ;
+                              UPDATE ;
+                              SWAP ;
+                              PAIR %admins %users ;
+                              NIL
+                                operation
+                                ;
+                              PAIR ;
+                            }
+                            ;
+                          DIP
+                            {
+                              DROP ;
+                              DROP ;
+                              DROP ;
+                              DROP ;
+                              DROP ;
+                              DROP ;
+                            }
+                            ;
+                        }
+                        {
+                          RENAME @__slash_40
+                            ;
+                          DUUUUUP @storage ;
+                          SENDER @user ;
+                          DUUUUP @data_of ;
+                          DUUUP @storage ;
+                          EXEC ;
+                          DUUP @user ;
+                          DIP
+                            {
+                              DUP ;
+                              CAR ;
+                              SWAP ;
+                              CDR ;
+                            }
+                            ;
+                          DIIIIIP
+                            {
+                              DROP ;
+                            }
+                            ;
+                          PAIR ;
+                          EXEC @_money_c ;
+                          DUUUP ;
+                          CAR %admins ;
+                          DUUUUP ;
+                          DIIIIP
+                            {
+                              DROP ;
+                            }
+                            ;
+                          CDR %users ;
+                          PUSH
+                            (option
+                              (pair
+                                mutez
+                                (contract :UnitContract
+                                  unit)))
+                            None ;
+                          DUUUUUP ;
+                          DIIIIIP
+                            {
+                              DROP ;
+                            }
+                            ;
+                          UPDATE ;
+                          SWAP ;
+                          PAIR @storage %admins %users ;
+                          NIL
+                            operation
+                            ;
+                          DUUUP ;
+                          CDR @c ;
+                          DUUUUP ;
+                          DIIIIP
+                            {
+                              DROP ;
+                            }
+                            ;
+                          CAR @money ;
+                          UNIT ;
+                          TRANSFER_TOKENS ;
+                          CONS @ops ;
+                          PAIR ;
+                        }
+                        ;
+                    }
+                    ;
+                }
+                ;
+            }
+            ;
+        }
+        ;
+      DIP
+        {
+          DROP ;
+          DROP ;
+          DROP ;
+          DROP ;
+        }
+        ;
+    }
+    ;

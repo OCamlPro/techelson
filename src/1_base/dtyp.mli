@@ -71,6 +71,9 @@ val mk_leaf : ?alias : alias -> leaf -> t
 (** Renames a datatype. *)
 val rename : alias -> t -> t
 
+(** Renames a datatype if the alias is `Some`. *)
+val rename_if_some : alias -> t -> t
+
 (** Formatter for datatypes. *)
 val fmt : formatter -> t -> unit
 

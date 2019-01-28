@@ -101,6 +101,12 @@ let parse
             let keys, vals = List.hd dtyps, List.tl dtyps |> List.hd in
             Dtyp.BigMap (keys, vals)
 
+        | "lambda" ->
+            typ_arity 2;
+            let dtyps = no_annot dtyps in
+            let dom, codom = List.hd dtyps, List.tl dtyps |> List.hd in
+            Dtyp.Lambda (dom, codom)
+
         | _ -> (
             match Dtyp.leaf_of_string token with
             | None -> sprintf "unknown type constructor `%s`" token |> Exc.throw

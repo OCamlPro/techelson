@@ -15,10 +15,25 @@ let of_source (src : Source.t list) : in_channel list * error_count =
     ) ([], 0) src
 
 let contract (name : string) (source : Source.t) (chan : in_channel) : Contract.t =
-    (Lexing.from_channel chan |> Parse.Micparse.just_contract Parse.Miclex.token) name source
+    let lexbuf = Lexing.from_channel chan in
+    try (lexbuf |> Parse.Micparse.just_contract Parse.Miclex.token) name source
+    with e -> (
+        let line = lexbuf.Lexing.lex_curr_p.Lexing.pos_lnum in
+        let token = Lexing.lexeme lexbuf in
+        (fun () -> raise e)
+        |> Exc.chain_err (fun () -> sprintf "on token `%s`, line %i" token line)
+    )
 
 let test (name : string) (source : Source.t) (chan : in_channel) : Testcase.t =
-    let code = (Lexing.from_channel chan |> Parse.Micparse.just_mic Parse.Miclex.token) in
+    let lexbuf = Lexing.from_channel chan in
+    let code =
+        try (Lexing.from_channel chan |> Parse.Micparse.just_mic Parse.Miclex.token)
+        with e ->
+            let line = lexbuf.Lexing.lex_curr_p.Lexing.pos_lnum in
+            let token = Lexing.lexeme lexbuf in
+            (fun () -> raise e)
+            |> Exc.chain_err (fun () -> sprintf "on token `%s`, line %i" token line)
+    in
     Testcase.mk name source code
 
 let load_map

@@ -48,19 +48,19 @@ let rec push_deploy_params (make_storage : unit -> Mic.t) : Mic.t =
         push_bool () |> Mic.comments ["spendable"];
 
         Dtyp.Option (Dtyp.KeyH |> Dtyp.mk_leaf |> Dtyp.mk_named None) |> Dtyp.mk
-        |> Values.from generate_contract |> Mic.mk_seq
+        |> Values.from generate_contract generate_address |> Mic.mk_seq
         |> Mic.comments ["delegate"] ;
 
         Dtyp.KeyH |> Dtyp.mk_leaf
-        |> Values.from generate_contract |> Mic.mk_seq
+        |> Values.from generate_contract generate_address |> Mic.mk_seq
         |> Mic.comments ["manager"] ;
     ]
     |> Mic.mk_seq
     |> Mic.comments [ "creating contract creation parameters" ]
 
-and generate_contract (param : Dtyp.t) : Mic.t list =
+and generate_address (param : Dtyp.t) : Mic.t list =
     let storage = Dtyp.unit in
-    let unit = Mic.Unit in
+    let unit = Mic.U in
     let mic =
         [
             Mic.Drop |> Mic.mk_leaf |> Mic.comments ["discarding inputs"] ;
@@ -77,14 +77,18 @@ and generate_contract (param : Dtyp.t) : Mic.t list =
     deploy_params ::
     (Mic.CreateContract (Either.Lft (Some contract)) |> Mic.mk) ::
     (push_apply ()) ::
-    (get_contract param "test-generated anonymous contract") ::
     []
+
+and generate_contract (param : Dtyp.t) : Mic.t list =
+    (generate_address param) @ [
+        (get_contract param "test-generated anonymous contract")
+    ]
 
 let generate (contract : Contract.t) (name : string) : Testcase.t =
     (* Creates a storage value. *)
     let make_storage () : Mic.t =
         (* log_0 "making storage for %a@." Dtyp.fmt contract.storage; *)
-        Values.from generate_contract contract.storage
+        Values.from generate_contract generate_address contract.storage
         |> Mic.mk_seq
         |> Mic.comments [ sprintf "creating storage for contract `%s`" contract.name ]
     in
@@ -119,7 +123,7 @@ let generate (contract : Contract.t) (name : string) : Testcase.t =
     in
 
     (* Creates a param value. *)
-    let make_param () : Mic.t = Values.from generate_contract contract.entry_param |> Mic.mk_seq in
+    let make_param () : Mic.t = Values.from generate_contract generate_address contract.entry_param |> Mic.mk_seq in
 
     (* Pushes a transfer. The address must be on top of the stack (it will be dupped). *)
     let push_transfer () : Mic.t =

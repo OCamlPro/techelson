@@ -2,7 +2,7 @@ open Base
 open Common
 
 module Const = struct
-    let unit : Mic.const = Mic.Unit
+    let unit : Mic.const = Mic.U
     let bool () : Mic.const =
         Mic.Bool (Rng.bool ())
     let int () : Mic.const =
@@ -114,8 +114,14 @@ let build_coll
     if Rng.Coll.empty () then stack else loop stack
 
 type contract_generator = Dtyp.t -> Mic.t list
+type address_generator = Dtyp.t -> Mic.t list
 
-let from (generate_contract : contract_generator) (dtyp : Dtyp.t) : Mic.t list =
+let from
+    (generate_contract : contract_generator)
+    (generate_address : address_generator)
+    (dtyp : Dtyp.t)
+    : Mic.t list
+=
     let rec go_down (stack : stack) (current : (Dtyp.t, Mic.t list) Either.t) : Mic.t list =
         (* log_4 "go down %a@." Dtyp.fmt dtyp; *)
         match current with
@@ -135,6 +141,12 @@ let from (generate_contract : contract_generator) (dtyp : Dtyp.t) : Mic.t list =
             | Dtyp.Leaf KeyH -> go_up stack (key_hash dtyp)
 
             | Dtyp.Contract param -> generate_contract param |> go_up stack
+
+            | Dtyp.Leaf Address ->
+                Dtyp.Unit |> Dtyp.mk_leaf |> generate_address |> go_up stack
+
+            | Dtyp.Leaf Signature ->
+                go_up stack [Mic.Push (dtyp, Const.string ()) |> Mic.mk]
 
             | Dtyp.Pair (lft, rgt) ->
                 let mic_pref = [] in
@@ -253,9 +265,7 @@ let from (generate_contract : contract_generator) (dtyp : Dtyp.t) : Mic.t list =
             )
 
             | Dtyp.Lambda _
-            | Dtyp.Leaf Address
-            | Dtyp.Leaf Operation
-            | Dtyp.Leaf Signature ->
+            | Dtyp.Leaf Operation ->
                 asprintf "cannot generate random values of type %a" Dtyp.fmt dtyp
                 |> Exc.throw
         )

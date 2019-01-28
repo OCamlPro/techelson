@@ -69,3 +69,39 @@ let fmt (fmt : formatter) (t : t) : unit =
     fmt_typs fmt t.typs;
     fmt_vars fmt t.vars;
     fmt_fields fmt t.fields
+
+let to_dtyp_annots (self : t) : Typ.t option * Field.t option =
+    let t_annot =
+        match self.typs with
+        | [] -> None
+        | [annot] -> Some annot
+        | _ -> (
+            asprintf "expected zero or one type annotation, found %i" (List.length self.typs)
+            |> Exc.throw
+        )
+    in
+    let f_annot =
+        match self.fields with
+        | [] -> None
+        | [annot] -> Some annot
+        | _ -> (
+            asprintf "expected zero or one field annotation, found %i" (List.length self.fields)
+            |> Exc.throw
+        )
+    in
+    if self.vars <> [] then (
+        asprintf "expected no variable annotation, found %i" (List.length self.vars)
+        |> Exc.throw
+    );
+
+    t_annot, f_annot
+
+let rev (self : t) : t =
+    { typs = List.rev self.typs ; vars = List.rev self.vars ; fields = List.rev self.fields }
+
+let cons_typ (annot : Typ.t) (self : t) : t =
+    { self with typs = annot :: self.typs }
+let cons_var (annot : Var.t) (self : t) : t =
+    { self with vars = annot :: self.vars }
+let cons_field (annot : Field.t) (self : t) : t =
+    { self with fields = annot :: self.fields }

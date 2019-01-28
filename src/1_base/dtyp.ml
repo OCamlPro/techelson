@@ -83,6 +83,10 @@ let mk_named (name : Annot.Field.t option) (inner : t) : named =
 let mk_leaf ?alias:(alias = None) (leaf : leaf) : t = { typ = Leaf leaf ; alias }
 
 let rename (alias : alias) ({ typ ; _ } : t) : t = { typ ; alias }
+let rename_if_some (nu_alias : alias) ({ typ ; alias } : t) : t =
+    match nu_alias with
+    | None -> { typ ; alias }
+    | Some _ -> { typ ; alias = nu_alias }
 
 let fmt (fmtt : formatter) (typ : t) =
     (* Forms the stack frame for types with annotated subtypes. *)

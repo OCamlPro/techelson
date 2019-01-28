@@ -633,7 +633,7 @@ module Theory (
         let const (c : Mic.const) : value =
             let rec go_down (stack : (value -> value) list) (c : Mic.const) : value =
                 match c with
-                | Unit -> U
+                | U -> U
 
                 | Bool b -> C (Cmp.B b) |> go_up stack
                 | Int i -> C (Cmp.I (Cmp.Int.of_string i)) |> go_up stack

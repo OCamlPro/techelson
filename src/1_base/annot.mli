@@ -101,3 +101,18 @@ val empty : t
 
 (** Formats some annotations. *)
 val fmt : formatter -> t -> unit
+
+(** Converts some annotations into annotations for a datatype. *)
+val to_dtyp_annots : t -> Typ.t option * Field.t option
+
+(** Reverses all the annotations. *)
+val rev : t -> t
+
+(** Prepends a type annotation. *)
+val cons_typ : Typ.t -> t -> t
+
+(** Prepends a var annotation. *)
+val cons_var : Var.t -> t -> t
+
+(** Prepends a field annotation. *)
+val cons_field : Field.t -> t -> t

@@ -758,8 +758,11 @@ module Interpreter (
                 (* # Lambdas. *)
 
                 | Mic.Leaf Exec ->
-                    let _, _, mic = Stack.Pop.lambda self.stack in
+                    let arg, arg_dtyp = Stack.pop self.stack in
+                    let dom, _codom, mic = Stack.Pop.lambda self.stack in
+                    Dtyp.check dom arg_dtyp;
                     push_block (Nop (mic, self.next)) self;
+                    Stack.push dom arg self.stack;
                     self.next <- [mic]
 
                 | Mic.Lambda (dom, codom, mic) ->

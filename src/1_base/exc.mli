@@ -2,6 +2,9 @@
 
 open Format
 
+(** If true, then the backtrace will be included when raising exceptions. *)
+val set_print_backtrace : bool -> unit
+
 (** Internal exception encode special behavior.
 
     These exception should always be caught internally.
@@ -37,7 +40,7 @@ end
 
 (** Aggregates all theory-agnostic errors. *)
 type exc =
-| Error of string list * exn option
+| Error of string list * exn option * Printexc.raw_backtrace
 (** Thrown when something bad happens internally. *)
 | Internal of Internal.t
 (** Internal exception that encodes special behavior. *)
