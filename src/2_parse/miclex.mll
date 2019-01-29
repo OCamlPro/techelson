@@ -3,13 +3,6 @@
 {
     open Micparse
 
-    let found_newline ({ Lexing.lex_curr_p ; _ } as lexbuf) =
-        lexbuf.Lexing.lex_curr_p <- {
-            lex_curr_p with
-            pos_lnum = lex_curr_p.Lexing.pos_lnum + 1;
-            pos_bol = lex_curr_p.Lexing.pos_cnum;
-        }
-
     let mk_hashtbl init =
         let tbl = List.length init |> Hashtbl.create in
         init |> List.iter (fun (k, v) -> Hashtbl.add tbl k v) ;
@@ -29,7 +22,7 @@
         "key", T_KEY ;
         "key_hash", T_KEYH ;
         "signature", T_SIG ;
-        "timestapm", T_TSTAMP ;
+        "timestamp", T_TSTAMP ;
         "pair", T_PAIR ;
         "or", T_OR ;
         "option", T_OPTION ;
@@ -93,11 +86,13 @@
         "CHECK_SIGNATURE", I_CHECK_SIGNATURE ;
         "RENAME", I_RENAME ;
 
-        "HASH", I_HASH Base.Mic.B58Check ;
+        "HASH_KEY", I_HASH Base.Mic.B58Check ;
         "BLAKE2B", I_HASH Base.Mic.Blake2B ;
         "SHA256", I_HASH Base.Mic.Sha256 ;
         "SHA512", I_HASH Base.Mic.Sha512 ;
 
+        "INT", I_INT ;
+        "NAT", I_NAT ;
         "CAST", I_CAST ;
         "EMPTY_SET", I_EMPTY_SET ;
         "EMPTY_MAP", I_EMPTY_MAP ;
@@ -124,6 +119,7 @@
         "ASSERT_LEFT", I_M_ASSERT_LEFT ;
         "ASSERT_RIGHT", I_M_ASSERT_RIGHT ;
         "IF_SOME", I_M_IF_SOME ;
+        "FAIL", I_M_FAIL ;
 
         "ASSERT_EQ", I_M_ASSERT_ Base.Mic.Macro.Eq ;
         "ASSERT_NEQ", I_M_ASSERT_ Base.Mic.Macro.Neq ;
@@ -165,6 +161,7 @@
         "APPLY_OPERATIONS", I_APPLY_OPERATIONS ;
         "PRINT_STACK", I_PRINT_STACK ;
         "MUST_FAIL", I_MUST_FAIL ;
+        "STEP", I_STEP ;
 
         (* Constants. *)
         "Unit", C_UNIT ;
@@ -185,13 +182,14 @@
 let lf = '\010'
 let lf_cr = ['\010' '\013']
 let dos_newline = "\013\010"
+let newline = (lf|lf_cr|dos_newline)
 let whitespace = [' ' '\009' '\012']
 
 rule token = parse
 | whitespace { token lexbuf }
-| lf | lf_cr | dos_newline { found_newline lexbuf ; token lexbuf }
+| newline { Lexing.new_line lexbuf ; token lexbuf }
 
-| "#" [^'\n']* "\n" { found_newline lexbuf ; token lexbuf }
+| "#" [^'\n']* "\n" { Lexing.new_line lexbuf ; token lexbuf }
 
 | '{' { OCURL }
 | '}' { CCURL }
@@ -232,7 +230,7 @@ rule token = parse
 | 'P' (['A' 'I' 'P']['A' 'I' 'P']['A' 'I' 'P']+ as str) 'R' {
     I_M_PAIR str
 }
-| "UNP" (['A' 'I' 'P']['A' 'I' 'P']['A' 'I' 'P']+ as str) 'R' {
+| "UNP" (['A' 'I' 'P']['A' 'I' 'P']+ as str) 'R' {
     I_M_UNPAIR str
 }
 | 'C' (['A' 'D']+ as str) 'R' {
@@ -248,7 +246,7 @@ rule token = parse
 (* Keywords. *)
 | ['A'-'Z' 'a'-'z']['A'-'Z' 'a'-'z' '_' '0'-'9']* as str {
     try Hashtbl.find keyword_table str with
-    | Not_found -> IDENT str
+    | Not_found -> Format.sprintf "unknown identifier %s" str |> Base.Exc.throw
 }
 
 

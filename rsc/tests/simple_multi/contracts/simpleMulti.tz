@@ -1,29 +1,42 @@
 parameter
     (or :_entries
-      (address %_Liq_entry_add_admin)
+      (pair %_Liq_entry_add_admin
+        string
+        (pair
+          string
+          address))
       (or
-        (address %_Liq_entry_rm_admin)
+        (pair %_Liq_entry_rm_admin
+          string
+          string)
         (or
           (pair %_Liq_entry_add_user
-            address
-            (contract :UnitContract
-              unit))
+            string
+            (pair
+              string
+              (pair
+                address
+                (contract :UnitContract
+                  unit))))
           (or
-            (unit %_Liq_entry_deposit)
+            (string %_Liq_entry_deposit)
             (or
-              (unit %_Liq_entry_withdraw)
-              (unit %_Liq_entry_drain))))))
+              (string %_Liq_entry_withdraw)
+              (string %_Liq_entry_drain))))))
     ;
 storage
     (pair :storage
-      (set %admins
+      (map %admins
+        string
         address)
       (map %users
-        address
+        string
         (pair
-          mutez
-          (contract :UnitContract
-            unit))))
+          address
+          (pair
+            mutez
+            (contract :UnitContract
+              unit)))))
     ;
 code
     {
@@ -36,79 +49,203 @@ code
       CAR @parameter_slash_2 ;
       LAMBDA @admin_check
         (pair :storage
-          (set %admins
+          (map %admins
+            string
             address)
           (map %users
-            address
+            string
             (pair
-              mutez
-              (contract :UnitContract
-                unit))))
-        (pair
-          (lambda
-            (pair
-              address
-              (pair :storage
-                (set %admins
-                  address)
-                (map %users
-                  address
-                  (pair
-                    mutez
-                    (contract :UnitContract
-                      unit)))))
-            unit)
-          (pair :storage
-            (set %admins
-              address)
-            (map %users
               address
               (pair
                 mutez
                 (contract :UnitContract
                   unit)))))
+        (pair
+          (lambda
+            (pair
+              string
+              (pair :storage
+                (map %admins
+                  string
+                  address)
+                (map %users
+                  string
+                  (pair
+                    address
+                    (pair
+                      mutez
+                      (contract :UnitContract
+                        unit))))))
+            (pair
+              (lambda
+                (pair
+                  address
+                  (pair
+                    string
+                    (pair :storage
+                      (map %admins
+                        string
+                        address)
+                      (map %users
+                        string
+                        (pair
+                          address
+                          (pair
+                            mutez
+                            (contract :UnitContract
+                              unit)))))))
+                unit)
+              (pair
+                string
+                (pair :storage
+                  (map %admins
+                    string
+                    address)
+                  (map %users
+                    string
+                    (pair
+                      address
+                      (pair
+                        mutez
+                        (contract :UnitContract
+                          unit))))))))
+          (pair :storage
+            (map %admins
+              string
+              address)
+            (map %users
+              string
+              (pair
+                address
+                (pair
+                  mutez
+                  (contract :UnitContract
+                    unit))))))
         {
           RENAME @storage_slash_3
             ;
           LAMBDA
             (pair
-              address
+              string
               (pair :storage
-                (set %admins
+                (map %admins
+                  string
                   address)
                 (map %users
+                  string
+                  (pair
+                    address
+                    (pair
+                      mutez
+                      (contract :UnitContract
+                        unit))))))
+            (pair
+              (lambda
+                (pair
                   address
                   (pair
-                    mutez
-                    (contract :UnitContract
-                      unit)))))
-            unit
+                    string
+                    (pair :storage
+                      (map %admins
+                        string
+                        address)
+                      (map %users
+                        string
+                        (pair
+                          address
+                          (pair
+                            mutez
+                            (contract :UnitContract
+                              unit)))))))
+                unit)
+              (pair
+                string
+                (pair :storage
+                  (map %admins
+                    string
+                    address)
+                  (map %users
+                    string
+                    (pair
+                      address
+                      (pair
+                        mutez
+                        (contract :UnitContract
+                          unit)))))))
             {
               RENAME @closure_env_slash_4
                 ;
               DUP ;
               CDR @storage_slash_3 ;
-              CAR %admins ;
-              DUUP ;
-              CAR @a_slash_5 ;
-              MEM ;
-              NOT ;
-              IF
-                {
-                  PUSH
+              SWAP ;
+              CAR @name_slash_5 ;
+              PAIR ;
+              LAMBDA
+                (pair
+                  address
+                  (pair
                     string
-                    "only admins can perform administrative tasks" ;
-                  FAILWITH ;
-                }
+                    (pair :storage
+                      (map %admins
+                        string
+                        address)
+                      (map %users
+                        string
+                        (pair
+                          address
+                          (pair
+                            mutez
+                            (contract :UnitContract
+                              unit)))))))
+                unit
                 {
-                  UNIT ;
+                  RENAME @closure_env_slash_6
+                    ;
+                  DUP ;
+                  CDDR @storage_slash_3 ;
+                  CAR %admins ;
+                  DUUP ;
+                  CDAR @name_slash_5 ;
+                  GET ;
+                  IF_NONE
+                    {
+                      PUSH
+                        string
+                        "only admins can perform administrative tasks" ;
+                      FAILWITH ;
+                    }
+                    {
+                      DUUP ;
+                      CAR @a_slash_7 ;
+                      DUUP @address ;
+                      COMPARE ;
+                      NEQ ;
+                      IF
+                        {
+                          PUSH
+                            string
+                            "illegal access to admin account" ;
+                          FAILWITH ;
+                        }
+                        {
+                          UNIT ;
+                        }
+                        ;
+                      DIP
+                        {
+                          DROP ;
+                        }
+                        ;
+                    }
+                    ;
+                  DIP
+                    {
+                      DROP ;
+                    }
+                    ;
                 }
                 ;
-              DIP
-                {
-                  DROP ;
-                }
-                ;
+              PAIR ;
             }
             ;
           PAIR ;
@@ -116,82 +253,217 @@ code
         ;
       LAMBDA @data_of
         (pair :storage
-          (set %admins
+          (map %admins
+            string
             address)
           (map %users
-            address
+            string
             (pair
-              mutez
-              (contract :UnitContract
-                unit))))
-        (pair
-          (lambda
-            (pair
-              address
-              (pair :storage
-                (set %admins
-                  address)
-                (map %users
-                  address
-                  (pair
-                    mutez
-                    (contract :UnitContract
-                      unit)))))
-            (pair
-              mutez
-              (contract :UnitContract
-                unit)))
-          (pair :storage
-            (set %admins
-              address)
-            (map %users
               address
               (pair
                 mutez
                 (contract :UnitContract
                   unit)))))
+        (pair
+          (lambda
+            (pair
+              string
+              (pair :storage
+                (map %admins
+                  string
+                  address)
+                (map %users
+                  string
+                  (pair
+                    address
+                    (pair
+                      mutez
+                      (contract :UnitContract
+                        unit))))))
+            (pair
+              (lambda
+                (pair
+                  address
+                  (pair
+                    string
+                    (pair :storage
+                      (map %admins
+                        string
+                        address)
+                      (map %users
+                        string
+                        (pair
+                          address
+                          (pair
+                            mutez
+                            (contract :UnitContract
+                              unit)))))))
+                (pair
+                  mutez
+                  (contract :UnitContract
+                    unit)))
+              (pair
+                string
+                (pair :storage
+                  (map %admins
+                    string
+                    address)
+                  (map %users
+                    string
+                    (pair
+                      address
+                      (pair
+                        mutez
+                        (contract :UnitContract
+                          unit))))))))
+          (pair :storage
+            (map %admins
+              string
+              address)
+            (map %users
+              string
+              (pair
+                address
+                (pair
+                  mutez
+                  (contract :UnitContract
+                    unit))))))
         {
-          RENAME @storage_slash_7
+          RENAME @storage_slash_10
             ;
           LAMBDA
             (pair
-              address
+              string
               (pair :storage
-                (set %admins
+                (map %admins
+                  string
                   address)
                 (map %users
+                  string
+                  (pair
+                    address
+                    (pair
+                      mutez
+                      (contract :UnitContract
+                        unit))))))
+            (pair
+              (lambda
+                (pair
                   address
                   (pair
-                    mutez
-                    (contract :UnitContract
-                      unit)))))
-            (pair
-              mutez
-              (contract :UnitContract
-                unit))
+                    string
+                    (pair :storage
+                      (map %admins
+                        string
+                        address)
+                      (map %users
+                        string
+                        (pair
+                          address
+                          (pair
+                            mutez
+                            (contract :UnitContract
+                              unit)))))))
+                (pair
+                  mutez
+                  (contract :UnitContract
+                    unit)))
+              (pair
+                string
+                (pair :storage
+                  (map %admins
+                    string
+                    address)
+                  (map %users
+                    string
+                    (pair
+                      address
+                      (pair
+                        mutez
+                        (contract :UnitContract
+                          unit)))))))
             {
-              RENAME @closure_env_slash_8
+              RENAME @closure_env_slash_11
                 ;
               DUP ;
-              CDR @storage_slash_7 ;
-              CDR %users ;
-              DUUP ;
-              CAR @user_slash_9 ;
-              GET ;
-              IF_NONE
-                {
-                  PUSH
+              CDR @storage_slash_10 ;
+              SWAP ;
+              CAR @name_slash_12 ;
+              PAIR ;
+              LAMBDA
+                (pair
+                  address
+                  (pair
                     string
-                    "unknown user" ;
-                  FAILWITH ;
-                }
-                {}
-                ;
-              DIP
+                    (pair :storage
+                      (map %admins
+                        string
+                        address)
+                      (map %users
+                        string
+                        (pair
+                          address
+                          (pair
+                            mutez
+                            (contract :UnitContract
+                              unit)))))))
+                (pair
+                  mutez
+                  (contract :UnitContract
+                    unit))
                 {
-                  DROP ;
+                  RENAME @closure_env_slash_13
+                    ;
+                  DUP ;
+                  CDDR @storage_slash_10 ;
+                  CDR %users ;
+                  DUUP ;
+                  CDAR @name_slash_12 ;
+                  GET ;
+                  IF_NONE
+                    {
+                      PUSH
+                        string
+                        "unknown user" ;
+                      FAILWITH ;
+                    }
+                    {
+                      DUP ;
+                      CAR @address ;
+                      DUUUP ;
+                      CAR @user_slash_14 ;
+                      COMPARE ;
+                      NEQ ;
+                      IF
+                        {
+                          PUSH
+                            string
+                            "illegal access to account" ;
+                          FAILWITH ;
+                        }
+                        {
+                          DUP ;
+                          CDDR @c ;
+                          DUUP ;
+                          CDAR @tez ;
+                          PAIR ;
+                        }
+                        ;
+                      DIP
+                        {
+                          DROP ;
+                        }
+                        ;
+                    }
+                    ;
+                  DIP
+                    {
+                      DROP ;
+                    }
+                    ;
                 }
                 ;
+              PAIR ;
             }
             ;
           PAIR ;
@@ -200,11 +472,23 @@ code
       DUUUP @parameter ;
       IF_LEFT
         {
-          RENAME @admin_slash_12
+          RENAME @_admin_name_user_name_user_address_slash_20
             ;
           DUUUUUP @storage ;
           DUUUUP @admin_check ;
           DUUP @storage ;
+          EXEC ;
+          DUUUP ;
+          CAR @admin_name ;
+          DIP
+            {
+              DUP ;
+              CAR ;
+              SWAP ;
+              CDR ;
+            }
+            ;
+          PAIR ;
           EXEC ;
           SENDER ;
           DIP
@@ -220,22 +504,18 @@ code
           DROP ;
           DUP @storage ;
           CDR %users ;
-          DUUP @storage ;
+          SWAP ;
           CAR %admins ;
-          DUUUUP @admin ;
-          DIP
-            {
-              PUSH
-                bool
-                True ;
-            }
-            ;
+          DUUUP ;
+          CDDR @user_address ;
+          SOME ;
+          DUUUUP ;
           DIIIIP
             {
               DROP ;
-              DROP ;
             }
             ;
+          CDAR @user_name ;
           UPDATE ;
           PAIR @storage %admins %users ;
           NIL
@@ -246,11 +526,23 @@ code
         {
           IF_LEFT
             {
-              RENAME @admin_slash_15
+              RENAME @_admin_name_user_name_slash_26
                 ;
               DUUUUUP @storage ;
               DUUUUP @admin_check ;
               DUUP @storage ;
+              EXEC ;
+              DUUUP ;
+              CAR @admin_name ;
+              DIP
+                {
+                  DUP ;
+                  CAR ;
+                  SWAP ;
+                  CDR ;
+                }
+                ;
+              PAIR ;
               EXEC ;
               SENDER ;
               DIP
@@ -266,22 +558,19 @@ code
               DROP ;
               DUP @storage ;
               CDR %users ;
-              DUUP @storage ;
+              SWAP ;
               CAR %admins ;
-              DUUUUP @admin ;
-              DIP
-                {
-                  PUSH
-                    bool
-                    False ;
-                }
-                ;
+              PUSH
+                (option
+                  address)
+                None ;
+              DUUUUP ;
               DIIIIP
                 {
                   DROP ;
-                  DROP ;
                 }
                 ;
+              CDR @user_name ;
               UPDATE ;
               PAIR @storage %admins %users ;
               NIL
@@ -292,13 +581,25 @@ code
             {
               IF_LEFT
                 {
-                  RENAME @_user_c_slash_18
+                  RENAME @_admin_name_user_name_user_c_slash_31
                     ;
                   DUUUUUP @storage ;
                   DUUP ;
-                  CAR @user ;
+                  CDAR @user_name ;
                   DUUUUUP @admin_check ;
                   DUUUP @storage ;
+                  EXEC ;
+                  DUUUUP ;
+                  CAR @admin_name ;
+                  DIP
+                    {
+                      DUP ;
+                      CAR ;
+                      SWAP ;
+                      CDR ;
+                    }
+                    ;
+                  PAIR ;
                   EXEC ;
                   SENDER ;
                   DIP
@@ -314,13 +615,13 @@ code
                   DROP ;
                   DUUP @storage ;
                   CDR %users ;
-                  DUUP @user ;
+                  DUUP @user_name ;
                   MEM ;
                   IF
                     {
                       PUSH
                         string
-                        "cannot add user if user is not new" ;
+                        "username already taken" ;
                       FAILWITH ;
                     }
                     {
@@ -338,15 +639,18 @@ code
                     ;
                   CDR %users ;
                   DUUUUP ;
-                  DIIIIP
+                  CDDDR @c ;
+                  PUSH
+                    mutez
+                    0 ;
+                  PAIR ;
+                  DUUUUUP ;
+                  DIIIIIP
                     {
                       DROP ;
                     }
                     ;
-                  CDR @c ;
-                  PUSH
-                    mutez
-                    0 ;
+                  CDDAR @user ;
                   PAIR ;
                   SOME @data ;
                   DUUUUP ;
@@ -366,12 +670,23 @@ code
                 {
                   IF_LEFT
                     {
-                      RENAME @__slash_24
+                      RENAME @name_slash_39
                         ;
                       DUUUUUP @storage ;
                       SENDER @user ;
                       DUUUUP @data_of ;
                       DUUUP @storage ;
+                      EXEC ;
+                      DUUUUP @name ;
+                      DIP
+                        {
+                          DUP ;
+                          CAR ;
+                          SWAP ;
+                          CDR ;
+                        }
+                        ;
+                      PAIR ;
                       EXEC ;
                       DUUP @user ;
                       DIP
@@ -400,11 +715,17 @@ code
                       DIIIIIIP
                         {
                           DROP ;
-                          DROP ;
                         }
                         ;
                       CAR @money ;
                       ADD ;
+                      PAIR ;
+                      DUUUUP ;
+                      DIIIIP
+                        {
+                          DROP ;
+                        }
+                        ;
                       PAIR ;
                       SOME @nu_data ;
                       DUUUUP ;
@@ -424,12 +745,23 @@ code
                     {
                       IF_LEFT
                         {
-                          RENAME @__slash_32
+                          RENAME @name_slash_47
                             ;
                           DUUUUUP @storage ;
                           SENDER @user ;
                           DUUUUP @data_of ;
                           DUUUP @storage ;
+                          EXEC ;
+                          DUUUUP @name ;
+                          DIP
+                            {
+                              DUP ;
+                              CAR ;
+                              SWAP ;
+                              CDR ;
+                            }
+                            ;
+                          PAIR ;
                           EXEC ;
                           DUUP @user ;
                           DIP
@@ -467,8 +799,10 @@ code
                               DUUUUUUP @money ;
                               SUB ;
                               PAIR ;
-                              SOME @nu_data ;
                               DUUUUUUUP @user ;
+                              PAIR ;
+                              SOME @nu_data ;
+                              DUUUUUUUUUP @name ;
                               UPDATE ;
                               SWAP ;
                               PAIR %admins %users ;
@@ -490,14 +824,13 @@ code
                             ;
                         }
                         {
-                          RENAME @__slash_40
+                          RENAME @name_slash_55
                             ;
                           DUUUUUP @storage ;
-                          SENDER @user ;
-                          DUUUUP @data_of ;
-                          DUUUP @storage ;
+                          DUUUP @data_of ;
+                          DUUP @storage ;
                           EXEC ;
-                          DUUP @user ;
+                          DUUUP @name ;
                           DIP
                             {
                               DUP ;
@@ -506,17 +839,23 @@ code
                               CDR ;
                             }
                             ;
-                          DIIIIIP
+                          PAIR ;
+                          EXEC ;
+                          SENDER @user ;
+                          DIP
                             {
-                              DROP ;
+                              DUP ;
+                              CAR ;
+                              SWAP ;
+                              CDR ;
                             }
                             ;
                           PAIR ;
                           EXEC @_money_c ;
-                          DUUUP ;
+                          DUUP @storage ;
                           CAR %admins ;
-                          DUUUUP ;
-                          DIIIIP
+                          DUUUP @storage ;
+                          DIIIP
                             {
                               DROP ;
                             }
@@ -525,9 +864,11 @@ code
                           PUSH
                             (option
                               (pair
-                                mutez
-                                (contract :UnitContract
-                                  unit)))
+                                address
+                                (pair
+                                  mutez
+                                  (contract :UnitContract
+                                    unit))))
                             None ;
                           DUUUUUP ;
                           DIIIIIP

@@ -38,7 +38,7 @@
                 sprintf "illegal character '%c' found in `(UN)P[AIP]+R` macro" c
                 |> Exc.throw
         );
-        List.rev !ops
+        Mic.Macro.P :: List.rev !ops
 
     (** Converts a `[AD]+` string in a list of unpair operations. *)
     let ad_to_ops (s : string) : Mic.Macro.unpair_op list =
@@ -54,7 +54,6 @@
         List.rev !ops
 %}
 
-%token <string> IDENT
 %token <Base.Annot.Typ.t> COLANNOT
 %token <Base.Annot.Var.t> ATANNOT
 %token <Base.Annot.Field.t> PERANNOT
@@ -84,10 +83,11 @@
     I_BALANCE I_SOURCE I_SENDER I_SELF I_AMOUNT I_IMPLICIT_ACCOUNT I_STEPS_TO_QUOTA I_NOW I_PACK
     I_UNPACK I_SLICE I_CHECK_SIGNATURE I_RENAME
 
-    I_CAST I_EMPTY_SET I_EMPTY_MAP I_NONE I_LEFT I_RIGHT I_NIL I_CONTRACT I_IF I_LOOP I_LOOP_LEFT
-    I_DIP I_PUSH I_LAMBDA I_ITER I_IF_NONE I_IF_LEFT I_IF_RIGHT I_IF_CONS I_CREATE_CONTRACT
+    I_INT I_NAT I_CAST I_EMPTY_SET I_EMPTY_MAP I_NONE I_LEFT I_RIGHT I_NIL I_CONTRACT I_IF I_LOOP
+    I_LOOP_LEFT I_DIP I_PUSH I_LAMBDA I_ITER I_IF_NONE I_IF_LEFT I_IF_RIGHT I_IF_CONS
+    I_CREATE_CONTRACT
 
-    I_STORAGE_OF I_BALANCE_OF I_APPLY_OPERATIONS I_PRINT_STACK I_MUST_FAIL
+    I_STORAGE_OF I_BALANCE_OF I_APPLY_OPERATIONS I_PRINT_STACK I_MUST_FAIL I_STEP
 %token <Base.Mic.hash_fun> I_HASH
 
 (* Tokens for macros. *)
@@ -297,7 +297,7 @@ instruction_macro_code_2 :
     }
 
 create_contract_arg :
-    | ident = IDENT { Either.Rgt ident }
+    | ident = C_STR { Either.Rgt ident }
     | OCURL ; c = contract ; CCURL { Either.Lft (Some c) }
     | { Either.Lft None }
 
@@ -353,11 +353,16 @@ instruction_leaf :
     | I_SLICE { Mic.Leaf Mic.Slice }
     | I_CHECK_SIGNATURE { Mic.Leaf Mic.CheckSignature }
     | I_RENAME { Mic.Leaf Mic.Rename }
+    | I_INT { Mic.Cast (Dtyp.Int |> Dtyp.mk_leaf) }
+    | I_NAT { Mic.Cast (Dtyp.Nat |> Dtyp.mk_leaf) }
 
     | I_APPLY_OPERATIONS { Mic.Extension Mic.ApplyOps }
     | I_BALANCE_OF { Mic.Extension Mic.BalanceOf }
     | I_MUST_FAIL { Mic.Extension Mic.MustFail }
     | I_PRINT_STACK { Mic.Extension Mic.PrintStack }
+    | I_STEP
+    ; blah = C_STR { Mic.Extension (Mic.Step (Some blah)) }
+    | I_STEP { Mic.Extension (Mic.Step None) }
 
     | hash = I_HASH { Mic.Leaf (Mic.Hash hash) }
 

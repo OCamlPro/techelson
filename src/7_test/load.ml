@@ -16,7 +16,7 @@ let of_source (src : Source.t list) : in_channel list * error_count =
 
 let contract (name : string) (source : Source.t) (chan : in_channel) : Contract.t =
     let lexbuf = Lexing.from_channel chan in
-    try (lexbuf |> Parse.Micparse.just_contract Parse.Miclex.token) name source
+    try Parse.Micparse.just_contract Parse.Miclex.token lexbuf name source
     with e -> (
         let line = lexbuf.Lexing.lex_curr_p.Lexing.pos_lnum in
         let token = Lexing.lexeme lexbuf in
@@ -27,7 +27,7 @@ let contract (name : string) (source : Source.t) (chan : in_channel) : Contract.
 let test (name : string) (source : Source.t) (chan : in_channel) : Testcase.t =
     let lexbuf = Lexing.from_channel chan in
     let code =
-        try (Lexing.from_channel chan |> Parse.Micparse.just_mic Parse.Miclex.token)
+        try Parse.Micparse.just_mic Parse.Miclex.token lexbuf
         with e ->
             let line = lexbuf.Lexing.lex_curr_p.Lexing.pos_lnum in
             let token = Lexing.lexeme lexbuf in

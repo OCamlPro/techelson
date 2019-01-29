@@ -91,17 +91,10 @@ let rename_if_some (nu_alias : alias) ({ typ ; alias } : t) : t =
 let fmt (fmtt : formatter) (typ : t) =
     (* Forms the stack frame for types with annotated subtypes. *)
     let frame_of_named (named : named) : (Fmt.sep * t * Annot.Field.t option * Fmt.sep) =
-        match named.name with
-        | Some name ->
-            (fun () -> fprintf fmtt "@ ("),
-            named.inner,
-            Some name,
-            (fun () -> fprintf fmtt ")")
-        | None ->
-            (fun () -> fprintf fmtt "@ "),
-            named.inner,
-            None,
-            ignore
+        (fun () -> fprintf fmtt "@ "),
+        named.inner,
+        named.name,
+        ignore
     in
 
     (* Loop with a manual stack.
@@ -146,9 +139,8 @@ let fmt (fmtt : formatter) (typ : t) =
             let stack = match to_do with
                 | Leaf leaf ->
                     let alias_pre, alias_post =
-                        match alias with
-                        | None -> "", ""
-                        | Some _ -> "(", ")"
+                        if alias = None && field = None
+                        then ("", "") else "(", ")"
                     in
                     fprintf fmtt "%s" alias_pre;
                     fmt_leaf fmtt leaf;

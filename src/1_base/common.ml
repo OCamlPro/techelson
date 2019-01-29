@@ -298,11 +298,26 @@ module Rng = struct
     let int64 ?bound:(bound=None) () : int64 =
         wrap unsafe_int64 bound
 
-    let unsafe_char () : char =
-        unsafe_pos_int (Some 256)
-        |> Char.chr
+    let rec unsafe_char () : char =
+        let index = unsafe_pos_int (Some 95) in
+        let char = index + 32 |> Char.chr in
+        if char = '\\' || char = '"' then unsafe_char () else char
     let char () : char =
         wrap unsafe_char ()
+
+    let unsafe_key_char () : char =
+        (* Number or letter? *)
+        if unsafe_bool () then (
+            (* Number. *)
+            let char = unsafe_pos_int (Some 10) in
+            char + 48 |> Char.chr
+        ) else (
+            (* Letter. *)
+            let char = unsafe_pos_int (Some 6) in
+            char + 97 |> Char.chr
+        )
+    let key_char () : char =
+        wrap unsafe_key_char ()
 
     module Arith = struct
         let unsafe_zero () : bool =
@@ -345,6 +360,13 @@ module Rng = struct
         )
     let string () : string =
         wrap unsafe_string ()
+
+    let unsafe_key () : string =
+        unsafe_build_coll "" (
+            fun s -> unsafe_key_char () |> sprintf "%s%c" s
+        )
+    let key () : string =
+        wrap unsafe_key ()
 
     let unsafe_big_nat () : string =
         if Arith.unsafe_zero () then "0" else (

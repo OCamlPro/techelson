@@ -14,7 +14,7 @@ module Const = struct
     let mutez () : Mic.const =
         Mic.Int (Rng.int64 () |> Int64.to_string)
     let key () : Mic.const =
-        Mic.Str (Rng.string ())
+        Mic.Str (Rng.key ())
 
     let lft (inner : Mic.const) : Mic.const = Mic.Lft inner
     let rgt (inner : Mic.const) : Mic.const = Mic.Rgt inner

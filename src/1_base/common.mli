@@ -250,8 +250,14 @@ module Rng : sig
     (** Generates a character. *)
     val char : unit -> char
 
+    (** Generates a character in `[0-9 a-f]`. *)
+    val key_char : unit -> char
+
     (** Generates a string. *)
     val string : unit -> string
+
+    (** Generates a key in `[0-9 a-f]+`. *)
+    val key : unit -> string
 
     (** Generates a string representing a bigint. *)
     val big_int : unit -> string

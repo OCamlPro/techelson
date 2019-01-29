@@ -61,6 +61,12 @@ module type TestCxt = sig
     (** Underlying theory. *)
     module Theory = Run.Theory
 
+    (** Events. *)
+    type event = Run.event
+
+    (** Test events. *)
+    type test_event = RunTest.test_event
+
     (** State that runs the testcase. *)
     type run_test
 
@@ -75,13 +81,14 @@ module type TestCxt = sig
 
     (** Contains all the operations related to `run_test` *)
     module Test : sig
-        (** Runs a test until it's over or some operations need to be applied.
-
-            Returns `None` iff the test is over. *)
-        val run : run_test -> apply_ops option
+        (** Runs a test until it's over or some operations need to be applied. *)
+        val run : run_test -> Run.event list * apply_ops option
 
         (** The test interpreter. *)
         val interpreter : run_test -> RunTest.t
+
+        (** The test stack. *)
+        val stack : run_test -> Run.Stack.t
 
         (** The contract environment. *)
         val contract_env : run_test -> Env.t
@@ -119,13 +126,16 @@ module type TestCxt = sig
     (** Contains the operations related to `transfer`. *)
     module Transfer : sig
         (** Runs a transfer to completion. *)
-        val transfer_run : transfer -> apply_ops
+        val run : transfer -> (Run.event, apply_ops) Either.t
 
         (** Performs a single step in a transfer run. *)
-        val transfer_step : transfer -> apply_ops option
+        val step : transfer -> (Run.event, apply_ops) Either.t option
 
         (** Transfer interpreter. *)
         val interpreter : transfer -> Run.t
+
+        (** Transfer stack. *)
+        val stack : transfer -> Run.Stack.t
 
         (** Operations awaiting treatment. *)
         val operations : transfer -> Env.operation list

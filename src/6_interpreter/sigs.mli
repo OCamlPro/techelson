@@ -59,6 +59,24 @@ module type Interpreter = sig
     (** Operation source module. *)
     module Src : SigSrc with module Theory = Theory
 
+    (** Events that can happen when running an interpreter. *)
+    type event =
+    | Done
+    (** The interpreter is done running. *)
+    | Step of string option
+    (** Asked to stop interpretation. *)
+    | Failure of Theory.value * Dtyp.t
+    (** A testcase asked to apply some operations. *)
+    | PrintStack
+    (** The stack should be printed. *)
+    | Print of (formatter -> unit)
+    (** Something to print. *)
+    | Warn of (formatter -> unit)
+    (** A warning that something was weird. *)
+
+    (** Event formatter. *)
+    val fmt_event : formatter -> event -> unit
+
     (** Type of interpreters. *)
     type t
 
@@ -83,17 +101,18 @@ module type Interpreter = sig
     (** Performs an interpretation step, return true if there are no more instructions to run.
 
         A step is not the same as "running a single instruction". A step can be, for instance,
-        entering a sequence, un-dipping, exiting a block *etc*.
+        entering a sequence.
     *)
-    val step : t -> bool
+    val step : t -> event option
 
-    (** Runs `step` until it return true or an exception is raised.
+    (** Runs `step` until it returns true or an exception is raised.
 
-        This is one of the rare places where exceptions do not encode errors. When running a test
-        case, this function can throw an `ApplyOpsExc` exception, meaning the interpreter ran into
-        the extended `APPLY_OPERATIONS` instruction. (This instruction is only legal in testcases.)
+        This is one of the rare places where exceptions do not necessarily encode errors. When
+        running a test case, this function can throw an `ApplyOpsExc` exception, meaning the
+        interpreter ran into the extended `APPLY_OPERATIONS` instruction. (This instruction is only
+        legal in testcases.)
     *)
-    val run : t -> unit
+    val run : t -> event
 
     (** Returns the last instruction run, if any.
 
@@ -135,6 +154,19 @@ module type TestInterpreter = sig
     (** Source module. *)
     module Src = Run.Src
 
+    (** Type of normal events. *)
+    type event = Run.event
+
+    (** Type of test events. *)
+    type test_event =
+    | Normal of event
+    (** Run resulted in a failure. *)
+    | ApplyOps of Env.operation list
+    (** Some operations should be applied. *)
+
+    (** Test event formatter. *)
+    val fmt_test_event : formatter -> test_event -> unit
+
     (** Type of test interpreters. *)
     type t
 
@@ -144,14 +176,11 @@ module type TestInterpreter = sig
     (** Constructor. *)
     val mk : Src.t -> Testcase.t -> Env.t -> t
 
-    (** Performs a step.
+    (** Performs a step. *)
+    val step : t -> test_event option
 
-        The notion of step here is very different for that of an `Interpreter`. A step for the
-        **test** interpreter consists in running the instructions in the test until an extended
-        instruction (such as `APPLY_OPERATIONS`) asks us to do something, or there are no more
-        instructions in the test.
-    *)
-    val step : t -> Env.operation list option
+    (** Runs until the next event. *)
+    val run : t -> test_event
 
     (** True if the test has not more instruction to run. *)
     val is_done : t -> bool
@@ -159,24 +188,9 @@ module type TestInterpreter = sig
     (** Underlying regular interpreter. *)
     val interp : t -> Run.t
 
+    (** Underlying stack. *)
+    val stack : t -> Run.Stack.t
+
     (** Balance of the test interpreter. *)
     val balance : t -> Theory.Tez.t
-end
-
-(** A context runs the testcase instructions, deals with operations, and runs contracts.
-
-    This is what the main functor returns.
-*)
-module type Cxt = sig
-    (** Underlying theory. *)
-    module Theory : Theo.Sigs.Theory
-
-    (** Underlying contract interpreter. *)
-    module Run : Interpreter with module Theory = Theory
-
-    (** Underlying test interpreter. *)
-    module TestRun : TestInterpreter with module Run = Run
-
-    (** Type of contexts. *)
-    type t
 end

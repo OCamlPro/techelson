@@ -11,6 +11,9 @@ module TestCxt (
     module Env = Run.Env
     module Theory = Run.Theory
 
+    type event = Run.event
+    type test_event = RunTest.test_event
+
     (** Expected outcome of operations. *)
     type outcome =
     | Success of Env.operation
@@ -112,25 +115,40 @@ module TestCxt (
         { test ; obsolete = false }
 
     module Test = struct
-        let run (self : run_test) : apply_ops option =
+        let run (self : run_test) : Run.event list * apply_ops option =
             if self.obsolete then (
                 Exc.throw "trying to call `run` on an obsolete `run_test` value"
             );
-            match RunTest.step self.test with
-            | Some (op :: test_ops) -> (
-                self.obsolete <- true ;
-                Some {
-                    test = self.test ;
-                    ops = [op] ;
-                    outcome = Success op ;
-                    test_ops ;
-                    obsolete = false ;
-                }
-            )
-            | Some []
-            | None -> None
+            let rec loop (acc : Run.event list) : Run.event list * apply_ops option =
+                let event = RunTest.run self.test in
+                match event with
+                | RunTest.ApplyOps [] ->
+                    (Run.Warn (fun fmt -> fprintf fmt "skipping application of zero operations"))
+                    :: acc
+                    |> List.rev,
+                    None
+                | RunTest.ApplyOps (op :: test_ops) ->
+                    self.obsolete <- true;
+                    let next_state =
+                        Some {
+                            test = self.test ;
+                            ops = [op] ;
+                            outcome = Success op ;
+                            test_ops ;
+                            obsolete = false ;
+                        }
+                    in
+                    List.rev acc, next_state
+                | RunTest.Normal event -> (
+                    match event with
+                    | Run.Done | Run.Step _ | Failure _ -> event :: acc |> List.rev, None
+                    | Run.PrintStack | Run.Print _ | Run.Warn _ -> event :: acc |> loop
+                )
+            in
+            loop []
 
         let interpreter (self : run_test) : RunTest.t = self.test
+        let stack (self : run_test) : Run.Stack.t = RunTest.stack self.test
         let contract_env (self : run_test) : Env.t = RunTest.contract_env self.test
 
         let fmt (fmt : formatter) (self : run_test) : unit =
@@ -410,32 +428,36 @@ module TestCxt (
     end
 
     module Transfer = struct
-        let transfer_step (self : transfer) : apply_ops option =
-            let is_done = Run.step self.transfer in
-            if not is_done then (
-                None
-            ) else (
-                self.obsolete <- true;
-                Some {
-                    test = self.test ;
-                    ops = self.ops ;
-                    test_ops = self.test_ops ;
-                    outcome = self.outcome ;
-                    obsolete = false
-                }
+        let step (self : transfer) : (Run.event, apply_ops) Either.t option =
+            Run.step self.transfer |> Opt.map (
+                function
+                | Run.Done -> (
+                    self.obsolete <- true;
+                    Either.Rgt {
+                        test = self.test ;
+                        ops = self.ops ;
+                        test_ops = self.test_ops ;
+                        outcome = self.outcome ;
+                        obsolete = false
+                    }
+                )
+                | event -> Either.Lft event
             )
 
-        let transfer_run (self : transfer) : apply_ops =
-            let rec loop () : apply_ops =
-                match transfer_step self with
+        let run (self : transfer) : (Run.event, apply_ops) Either.t =
+            let rec loop () =
+                match step self with
                 | None -> loop ()
-                | Some ops ->
-                    self.obsolete <- true;
-                    ops
+                | Some res -> res |> Either.map_rgt (
+                    fun next_state ->
+                        self.obsolete <- true;
+                        next_state
+                )
             in
             loop ()
 
         let interpreter (self : transfer) : Run.t = self.transfer
+        let stack (self : transfer) : Run.Stack.t = Run.stack self.transfer
 
         let operations (self : transfer) : Env.operation list = self.ops
 

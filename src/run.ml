@@ -26,6 +26,45 @@ let load_contracts (conf : Conf.t) : Contract.t list =
 module Cxt = Test.Default
 module Tests = Test.Testcases
 
+(* Returns true if the event is `Done`. *)
+let handle_event (stack : Cxt.Run.Stack.t) (event : Cxt.event) : bool =
+    match event with
+    | Cxt.Run.Done -> true
+    | Cxt.Run.Step opt -> (
+        unwrap_or "no information" opt
+        |> log_0 "stopping [%s], press enter to keep going@.";
+        input_line stdin |> ignore;
+        false
+    )
+    | Cxt.Run.PrintStack -> (
+        log_0 "stack:@.%a@." Cxt.Run.Stack.fmt stack;
+        false
+    )
+    | Cxt.Run.Print fmt -> (
+        log_0 "@.> %a@." (fun f () -> fmt f) ();
+        false
+    )
+    | Cxt.Run.Warn fmt -> (
+        log_0 "@.WARNING: %a@." (fun f () -> fmt f) ();
+        false
+    )
+    | Cxt.Run.Failure (value, dtyp) -> (
+        asprintf "on value %a : %a" Cxt.Theory.fmt value Dtyp.fmt dtyp
+        |> Exc.Throw.failure
+    )
+(* Returns true if the last event is `Done`. *)
+let rec handle_events (stack : Cxt.Run.Stack.t) (events : Cxt.event list) : bool =
+    match events with
+    | [] -> false
+    | event :: events ->
+        let is_done = handle_event stack event in
+        if is_done then (
+            if events <> [] then Exc.throws [
+                "inconsistent internal state" ;
+                "witnessed event `Done` but there are still event to process"
+            ] else true
+        ) else handle_events stack events
+
 let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
     Tests.get_tests cxt |> Lst.fold (
         fun (err_count : int) (test : Testcase.t) ->
@@ -40,9 +79,16 @@ let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
                 if conf.step then (
                     input_line stdin |> ignore;
                 );
-                match Cxt.Test.run cxt with
+                let events, next_state = Cxt.Test.run cxt in
+                let is_done = handle_events (Cxt.Test.stack cxt) events in
+                match next_state with
+                | Some _ when is_done -> Exc.throws [
+                    "inconsistent internal state" ;
+                    "test code is done but there are still operations to process" ;
+                ]
                 | Some ops -> ops_loop ops
-                | None -> log_1 "@.@.done running test `%s`@." test.name
+                | None when is_done -> log_1 "@.@.done running test `%s`@." test.name
+                | None -> test_loop cxt
 
             and ops_loop (cxt : Cxt.apply_ops) : unit =
                 log_1 "@.@.|===| Applying Operation...@.@.%a@." Cxt.Ops.fmt cxt;
@@ -83,17 +129,36 @@ let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
                         )
                         );
                         
-                        match Cxt.Transfer.transfer_step cxt with
+                        match Cxt.Transfer.step cxt with
                         | None ->
                             input_line stdin |> ignore;
                             loop ()
-                        | Some ops -> ops_loop ops
+                        | Some (Either.Lft event) ->
+                            let is_done = handle_event (Cxt.Transfer.stack cxt) event in
+                            if is_done then (
+                                Exc.throws [
+                                    "internal inconsistent state" ;
+                                    "transfer is done but retrieved no operation list \
+                                    (not even empty)" ;
+                                ]
+                            )
+                        | Some (Either.Rgt ops) -> ops_loop ops
                     in
                     loop ()
                 ) else (
                     log_1 "@.@.|===| Contract Transfer...@.@.%a@." Cxt.Transfer.fmt cxt;
-                    Cxt.Transfer.transfer_run cxt
-                    |> ops_loop
+                    match Cxt.Transfer.run cxt with
+                    | Either.Rgt ops -> ops_loop ops
+                    | Either.Lft event ->
+                        let is_done = handle_event (Cxt.Transfer.stack cxt) event in
+                        if is_done then (
+                            Exc.throws [
+                                "internal inconsistent state" ;
+                                "transfer is done but retrieved no operation list \
+                                (not even empty)" ;
+                            ]
+                        );
+                        transfer_loop cxt
                 )
             in
 
