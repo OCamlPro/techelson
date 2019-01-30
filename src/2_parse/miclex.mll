@@ -108,6 +108,7 @@
         "PUSH", I_PUSH ;
         "LAMBDA", I_LAMBDA ;
         "ITER", I_ITER ;
+        "MAP", I_MAP ;
         "IF_NONE", I_IF_NONE ;
         "IF_LEFT", I_IF_LEFT ;
         "IF_RIGHT", I_IF_RIGHT ;

@@ -51,6 +51,8 @@ module TestCxt (
     }
 
     type transfer = {
+        contract : Env.live ;
+        (** Live contract running the transfer. *)
         outcome : outcome ;
         (** Expected outcome of the transfer. *)
         test : RunTest.t ;
@@ -138,11 +140,12 @@ module TestCxt (
                             obsolete = false ;
                         }
                     in
-                    List.rev acc, next_state
+                    List.rev acc |> List.rev, next_state
                 | RunTest.Normal event -> (
                     match event with
-                    | Run.Done | Run.Step _ | Failure _ -> event :: acc |> List.rev, None
-                    | Run.PrintStack | Run.Print _ | Run.Warn _ -> event :: acc |> loop
+                    | Run.Done | Run.Step _ | Failure _ | Run.PrintStack ->
+                        event :: acc |> List.rev, None
+                    | Run.Print _ | Run.Warn _ -> event :: acc |> loop
                 )
             in
             loop []
@@ -352,6 +355,7 @@ module TestCxt (
                                 ] [ live.contract.entry ]
                             in
                             Either.Lft {
+                                contract = live ;
                                 transfer ;
                                 outcome = self.outcome ;
                                 ops = self.ops ;
@@ -432,10 +436,13 @@ module TestCxt (
             Run.step self.transfer |> Opt.map (
                 function
                 | Run.Done -> (
+                    let ops, nu_storage, storage_dtyp = Run.terminate self.transfer in
+                    let env = RunTest.contract_env self.test in
+                    Env.Live.update_storage env nu_storage storage_dtyp self.contract;
                     self.obsolete <- true;
                     Either.Rgt {
                         test = self.test ;
-                        ops = self.ops ;
+                        ops = ops @ self.ops ;
                         test_ops = self.test_ops ;
                         outcome = self.outcome ;
                         obsolete = false

@@ -276,6 +276,7 @@ module Theory (
         )
         type 'a t = 'a Inner.t
         type key = Cmp.t
+
         let empty = Inner.empty
         let mem = Inner.mem
         let get (k : key) (map : 'a t) : 'a option =
@@ -301,6 +302,9 @@ module Theory (
             ) t
         let size (t : 'a t) : Cmp.Nat.t =
             Inner.cardinal t |> sprintf "%i" |> Cmp.Nat.of_string
+
+        let bindings (self : 'a t) : (key * 'a) list = Inner.bindings self
+
         let fmt (fmt_a : formatter -> 'a -> unit) (fmt : formatter) (map : 'a t) : unit =
             fprintf fmt "@[@[<hv 2>{";
             fold (
@@ -356,6 +360,9 @@ module Theory (
         let is_nil lst = lst = []
         let cons hd tl = hd :: tl
         let nil = []
+
+        let of_list (l : 'a list) : 'a t = l
+        let to_list (l : 'a t) : 'a list = l
 
         let fmt (fmt_a : formatter -> 'a -> unit) (fmt : formatter) (lst : 'a t) : unit =
             fprintf fmt "@[@[<hv 2>[";
@@ -695,15 +702,30 @@ module Theory (
     end
 
     module Inspect = struct
+        let cmp (v : value) : Cmp.t =
+            match v with
+            | C cmp -> cmp
+            | _ -> asprintf "expected a comparable value, found `%a`" fmt v |> Exc.throw
+
         let key (v : value) : Key.t =
             match v with
             | Key k -> k
             | _ -> asprintf "expected a key, found `%a`" fmt v |> Exc.throw
 
+        let pair (v : value) : value * value =
+            match v with
+            | Pair (v_1, v_2) -> v_1, v_2
+            | _ -> asprintf "expected a pair, found `%a`" fmt v |> Exc.throw
+
         let list (v : value) : value Lst.t =
             match v with
             | Lst l -> l
             | _ -> asprintf "expected a list value, found `%a`" fmt v |> Exc.throw
+
+        let map (v : value) : value Map.t =
+            match v with
+            | Map map -> map
+            | _ -> asprintf "expected a map value, found `%a`" fmt v |> Exc.throw
     end
 
     let cons (head : value) (tail : value) : value =

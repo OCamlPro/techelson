@@ -373,6 +373,7 @@ type 'sub ins =
 | Push of Dtyp.t * const
 | Lambda of Dtyp.t * Dtyp.t * 'sub
 | Iter of 'sub
+| Map of Dtyp.t * 'sub
 | IfNone of 'sub * 'sub
 | IfLeft of 'sub * 'sub
 | IfRight of 'sub * 'sub
@@ -428,6 +429,14 @@ let mk_str_const (s : string) : const =
         )
     )
 
+let nu_mk ?annot:(annot=None) ?comments:(comments=[]) (ins : t ins) : t =
+    let vars, fields, typs =
+        match annot with
+        | None -> [], [], []
+        | Some annot -> annot.Annot.vars, annot.Annot.fields, annot.Annot.typs
+    in
+    { vars ; fields ; typs ; ins ; comments }
+
 let mk
     ?vars:(vars=[])
     ?fields:(fields=[])
@@ -458,6 +467,9 @@ let mk_contract_of_lists
         param = invisible_get_one "entry parameter" param ;
         entry = invisible_get_one "entry code" entry
     }
+
+let nu_mk_leaf ?annot:(annot=None) ?comments:(comments=[]) (leaf : leaf) : t =
+    Leaf leaf |> nu_mk ~annot ~comments
 
 let mk_leaf
     ?vars:(vars=[])
@@ -641,6 +653,11 @@ and fmt (fmtt : formatter) (t : t) : unit =
                 | Iter t ->
                     assert (vars = []);
                     fprintf fmtt "ITER ";
+                    ([ignore, t, true], ignore) :: tail
+
+                | Map (_, t) ->
+                    assert (vars = []);
+                    fprintf fmtt "MAP ";
                     ([ignore, t, true], ignore) :: tail
 
                 | Push (dtyp, c) ->

@@ -84,7 +84,7 @@
     I_UNPACK I_SLICE I_CHECK_SIGNATURE I_RENAME
 
     I_INT I_NAT I_CAST I_EMPTY_SET I_EMPTY_MAP I_NONE I_LEFT I_RIGHT I_NIL I_CONTRACT I_IF I_LOOP
-    I_LOOP_LEFT I_DIP I_PUSH I_LAMBDA I_ITER I_IF_NONE I_IF_LEFT I_IF_RIGHT I_IF_CONS
+    I_LOOP_LEFT I_DIP I_PUSH I_LAMBDA I_ITER I_MAP I_IF_NONE I_IF_LEFT I_IF_RIGHT I_IF_CONS
     I_CREATE_CONTRACT
 
     I_STORAGE_OF I_BALANCE_OF I_APPLY_OPERATIONS I_PRINT_STACK I_MUST_FAIL I_STEP
@@ -420,6 +420,9 @@ instruction_code :
     }
     | I_ITER {
         fun (code : Mic.t) -> Mic.Iter code
+    }
+    | I_MAP {
+        fun (code : Mic.t) -> Mic.Map (Dtyp.mk_var (), code)
     }
 
 instruction_code_2 :

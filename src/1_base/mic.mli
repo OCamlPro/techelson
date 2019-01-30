@@ -152,6 +152,12 @@ type 'sub ins =
 | Push of Dtyp.t * const
 | Lambda of Dtyp.t * Dtyp.t * 'sub
 | Iter of 'sub
+| Map of Dtyp.t * 'sub
+(** Map over maps.
+
+    - type of the codomain of the lambda
+    - lambda to apply
+*)
 | IfNone of 'sub * 'sub
 | IfLeft of 'sub * 'sub
 | IfRight of 'sub * 'sub
@@ -214,6 +220,9 @@ val mk :
     t ins ->
     t
 
+(** Creates an instruction. *)
+val nu_mk : ?annot : Annot.t option -> ?comments : string list -> t ins -> t
+
 (** Creates a contract. *)
 val mk_contract : storage : Dtyp.t -> param : Dtyp.t -> t -> contract
 
@@ -229,6 +238,9 @@ val mk_leaf :
     ?typs: Annot.typs ->
     leaf ->
     t
+
+(** Creates an instruction from a leaf. *)
+val nu_mk_leaf : ?annot : Annot.t option -> ?comments : string list -> leaf -> t
 
 (** Creates a sequence instruction. *)
 val mk_seq : t list -> t

@@ -2,6 +2,17 @@
 
 open Common
 
+type tvar = int
+
+let fmt_tvar (fmt : formatter) (self : tvar) : unit =
+    fprintf fmt "'t_%i" self
+
+let tvar_counter : int ref = ref 0
+let fresh_tvar () : tvar =
+    let res = !tvar_counter in
+    tvar_counter := 1 + !tvar_counter;
+    res
+
 type leaf =
 | Str
 | Nat
@@ -16,6 +27,7 @@ type leaf =
 | KeyH
 | Signature
 | Timestamp
+| Var of tvar
 
 let fmt_leaf (fmt : formatter) (typ : leaf) = match typ with
 | Str -> fprintf fmt "string"
@@ -31,6 +43,7 @@ let fmt_leaf (fmt : formatter) (typ : leaf) = match typ with
 | KeyH -> fprintf fmt "key_hash"
 | Signature -> fprintf fmt "signature"
 | Timestamp -> fprintf fmt "timestamp"
+| Var v -> fmt_tvar fmt v
 
 let leaf_of_string (s : string) : leaf option = match s with
 | "string" -> Some Str
@@ -81,6 +94,15 @@ let mk_named (name : Annot.Field.t option) (inner : t) : named =
     { inner ; name }
 
 let mk_leaf ?alias:(alias = None) (leaf : leaf) : t = { typ = Leaf leaf ; alias }
+
+let mk_var ?alias:(alias = None) () : t =
+    Var (fresh_tvar ()) |> mk_leaf ~alias
+
+let is_comparable (dtyp : t) : bool =
+    match dtyp.typ with
+    | Leaf Int | Leaf Nat | Leaf Str | Leaf Bytes | Leaf Mutez | Leaf Bool
+    | Leaf KeyH | Leaf Timestamp -> true
+    | _ -> false
 
 let rename (alias : alias) ({ typ ; _ } : t) : t = { typ ; alias }
 let rename_if_some (nu_alias : alias) ({ typ ; alias } : t) : t =
@@ -203,7 +225,7 @@ let fmt (fmtt : formatter) (typ : t) =
 
                     (
                         [ (ignore, k, None, ignore) ; (Fmt.sep_spc fmtt, v, None, ignore) ],
-                        Fmt.unit_combine (Fmt.cls_of fmtt "@]@,)@]") post
+                        Fmt.unit_combine (fun () -> fprintf fmtt "@]@,)@]") post
                     ) :: stack
 
                 | BigMap (k, v) ->
@@ -270,6 +292,10 @@ module Inspect = struct
             let value = mk_named None value in
             Pair (key, value) |> mk
         | _ -> asprintf "expected collection type, found %a" fmt dtyp |> Exc.throw
+    let lambda (dtyp : t) : t * t =
+        match dtyp.typ with
+        | Lambda (dom, codom) -> dom, codom
+        | _ -> asprintf "expected lambda, found %a" fmt dtyp |> Exc.throw
 
 end
 
@@ -277,62 +303,3 @@ let unit : t = mk_leaf Unit
 let int : t = mk_leaf Int
 let nat : t = mk_leaf Nat
 let timestamp : t = mk_leaf Timestamp
-
-let annot_check (a_1 : 'a option) (a_2 : 'a option) (bail : unit -> 'b) : 'b =
-    match a_1, a_2 with
-    | Some a_1, Some a_2 when a_1 <> a_2 -> bail ()
-    | _ -> ()
-
-(* # TODO
-
-    - stackless
-*)
-let rec check (t_1 : t) (t_2 : t) : unit =
-    let bail () =
-        asprintf "types `%a` and `%a` are not compatible" fmt t_1 fmt t_2
-        |> Exc.throw
-    in
-    annot_check t_1.alias t_2.alias bail;
-
-    match t_1.typ, t_2.typ with
-    | Leaf leaf_1, Leaf leaf_2 ->
-        if leaf_1 <> leaf_2 then bail ()
-
-    | List sub_1, List sub_2
-    | Set sub_1, Set sub_2
-    | Contract sub_1, Contract sub_2 -> check sub_1 sub_2
-
-    | Map (k_1, v_1), Map (k_2, v_2)
-    | BigMap (k_1, v_1), BigMap (k_2, v_2) ->
-        check k_1 k_2;
-        check v_1 v_2
-
-    | Option sub_1, Option sub_2 -> (
-        annot_check sub_1.name sub_2.name bail;
-
-        check sub_1.inner sub_2.inner
-    )
-
-    | Pair (lft_1, rgt_1), Pair (lft_2, rgt_2)
-    | Or (lft_1, rgt_1), Or (lft_2, rgt_2) -> (
-        annot_check lft_1.name lft_2.name bail;
-        annot_check rgt_1.name rgt_2.name bail;
-
-        check lft_1.inner lft_2.inner;
-        check rgt_1.inner rgt_2.inner
-    )
-    | Lambda (dom_1, codom_1), Lambda (dom_2, codom_2) -> (
-        check dom_1 dom_2;
-        check codom_1 codom_2
-    )
-
-    | Leaf _, _
-    | Option _, _
-    | List _, _
-    | Set _, _
-    | Contract _, _
-    | Map _, _
-    | BigMap _, _
-    | Pair _, _
-    | Or _, _
-    | Lambda _, _ -> bail ()

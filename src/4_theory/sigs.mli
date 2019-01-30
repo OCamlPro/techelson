@@ -570,6 +570,9 @@ module type Theory = sig
         (** Size of a map. *)
         val size : 'a t -> Nat.t
 
+        (** Bindings of a map as a list. *)
+        val bindings : 'a t -> (key * 'a) list
+
         (** Map formatter. *)
         val fmt : (formatter -> 'a -> unit) -> formatter -> 'a t -> unit
     end
@@ -661,6 +664,12 @@ module type Theory = sig
 
         (** The empty list. *)
         val nil : 'a t
+
+        (** Constructor from an actual list. *)
+        val of_list : 'a list -> 'a t
+
+        (** Turns a list in an actual list. *)
+        val to_list : 'a t -> 'a list
 
         (** Prepend over lists. *)
         val cons : 'a -> 'a t -> 'a t
@@ -912,11 +921,20 @@ module type Theory = sig
 
     (** Deconstructors. *)
     module Inspect : sig
+        (** Deconstructs a comparable value. *)
+        val cmp : value -> Cmp.t
+
         (** Deconstructs a list of values. *)
         val list : value -> value Lst.t
 
+        (** Deconstructs a pair. *)
+        val pair : value -> value * value
+
         (** Deconstructs a key. *)
         val key : value -> Key.t
+
+        (** Deconstructs a map. *)
+        val map : value -> value Map.t
     end
 
     (** Comparison between values.

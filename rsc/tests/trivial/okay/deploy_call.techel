@@ -62,13 +62,14 @@
     # Check storage.
     STORAGE_OF int ;
     IF_NONE {
-        PUSH string "failed to retrieve storage for \"Add\"" ;
+        PUSH string "failed to retrieve storage for 'Add'" ;
         FAILWITH
     } {} ;
 
     PUSH int 42 ;
     SUB ;
     IFNEQ {
-        PUSH string "storage of \"Add\" is not 42"
+        PUSH string "storage of 'Add' is not 42";
+        FAILWITH
     } {}
 }

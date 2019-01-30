@@ -2,6 +2,15 @@
 
 open Common
 
+(** Type of type variables. *)
+type tvar = int
+
+(** Formats type variables. *)
+val fmt_tvar : formatter -> tvar -> unit
+
+(** Generates a fresh type variable. *)
+val fresh_tvar : unit -> tvar
+
 (** Nullary datatypes. *)
 type leaf =
 | Str
@@ -17,6 +26,7 @@ type leaf =
 | KeyH
 | Signature
 | Timestamp
+| Var of tvar
 
 (** Formatter for nullary datatypes. *)
 val fmt_leaf : formatter -> leaf -> unit
@@ -68,6 +78,12 @@ val mk_named : Annot.Field.t option -> t -> named
 (** Named datatype constructor from a leaf. *)
 val mk_leaf : ?alias : alias -> leaf -> t
 
+(** Creates a fresh type variable. *)
+val mk_var : ?alias : alias -> unit -> t
+
+(** True if the type is comparable. *)
+val is_comparable : t -> bool
+
 (** Renames a datatype. *)
 val rename : alias -> t -> t
 
@@ -111,7 +127,7 @@ module Inspect : sig
 
     (** Retrieves the type of the elements taken by an iterator over some collection. *)
     val iter_elm : t -> t
-end
 
-(** Checks that two types are compatible. *)
-val check : t -> t -> unit
+    (** Retrieves the two type parameters of a lambda. *)
+    val lambda : t -> t * t
+end

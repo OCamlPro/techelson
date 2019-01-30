@@ -137,6 +137,7 @@ let from
             | Dtyp.Leaf Key -> go_up stack [key dtyp]
             | Dtyp.Leaf Mutez -> go_up stack [mutez dtyp]
             | Dtyp.Leaf Timestamp -> go_up stack [timestamp dtyp]
+            | Dtyp.Leaf Var _ -> Exc.throw "cannot generate values for type parameter"
 
             | Dtyp.Leaf KeyH -> go_up stack (key_hash dtyp)
 

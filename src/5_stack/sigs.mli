@@ -87,6 +87,9 @@ module type ContractEnv = sig
     (** Retrieves a contract from its name. *)
     val get : string -> t -> Contract.t
 
+    (** Type checks two types. *)
+    val unify : t -> Dtyp.t -> Dtyp.t -> Dtyp.t
+
     (** Operations dealing with live contracts. *)
     module Live : sig
         (** Creates a live contract. *)
@@ -116,6 +119,9 @@ module type ContractEnv = sig
             The new balance is **not** added to the old one, it's a purely destructive update.
         *)
         val update : Theory.Tez.t -> Theory.value * Dtyp.t -> Theory.Address.t -> t -> unit
+
+        (** Updates the storage of a live contract. *)
+        val update_storage : t -> Theory.value -> Dtyp.t -> live -> unit
 
         (** Sets the delegate of a live contract.
 
@@ -153,6 +159,9 @@ module type StackBase = sig
 
     (** Pops something from the stack. *)
     val pop : t -> Theory.value * Dtyp.t
+
+    (** Type checks two types. *)
+    val unify : t -> Dtyp.t -> Dtyp.t -> Dtyp.t
 
     (** Clears the stack completely.
     

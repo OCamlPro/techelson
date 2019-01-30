@@ -114,6 +114,12 @@ module type Interpreter = sig
     *)
     val run : t -> event
 
+    (** Terminates a run.
+
+        Retrieves the operation list, the new storage, and the type of the new storage.
+    *)
+    val terminate : t -> Env.operation list * Theory.value * Dtyp.t
+
     (** Returns the last instruction run, if any.
 
         This does not necessarily correspond to the last `step`, as steps describe more things than

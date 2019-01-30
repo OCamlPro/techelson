@@ -63,6 +63,38 @@ module Interpreter (
         First argument is the instruction that caused the block to start. `SEQ` for instance.
     *)
     | Iter of Dtyp.t * Theory.value list * Mic.t * Mic.t list
+    (* Read end of the body of an iteration.
+
+        # Arguments
+
+        - type of the elements
+        - values left to iterate over
+        - body of the iteration
+        - instructions following the iteration
+    *)
+    | Map of
+        Dtyp.t *
+        Theory.value list *
+        Mic.t *
+        Theory.value *
+        (Theory.value -> Theory.value -> Theory.value) *
+        Theory.value list *
+        Dtyp.t *
+        (Theory.value list -> Theory.value * Dtyp.t) *
+        Mic.t list
+    (* End of the body of a map.
+
+        # Arguments
+
+        - type of the elements we're mapping over
+        - values left to map over
+        - lambda to apply
+        - value being treated
+        - values created so far
+        - type of the new values
+        - final treatment that builds the resulting collection
+        - instructions following the map
+    *)
 
     type t = {
         mutable stack : Stack.t ;
@@ -74,6 +106,9 @@ module Interpreter (
         amount : Theory.Tez.t ;
         env : Env.t ;
     }
+
+    let unify (self : t) (dtyp_1 : Dtyp.t) (dtyp_2 : Dtyp.t) : Dtyp.t =
+        Env.unify self.env dtyp_1 dtyp_2
 
     let balance (self : t) : Theory.Tez.t = self.balance
 
@@ -134,6 +169,21 @@ module Interpreter (
                     | [] -> loop acc blocks
                     | hd :: _ -> acc, Some hd
                 )
+                | Map (_, value :: _, body, _, _, _, _, _, _) :: _ -> (
+                    let acc =
+                        (
+                            asprintf "continueing map, next : %a, code : %a"
+                                Theory.fmt value Mic.fmt body
+                        ) :: acc
+                    in
+                    acc, Some body
+                )
+                | Map (_, [], body, _, _, _, _, _, next) :: blocks -> (
+                    let acc = (asprintf "exiting map %a" Mic.fmt body) :: acc in
+                    match next with
+                    | [] -> loop acc blocks
+                    | hd :: _ -> acc, Some hd
+                )
             in
             let pre_ops, ins = loop [] self.blocks in
             List.rev pre_ops, ins
@@ -172,6 +222,48 @@ module Interpreter (
             | Some (Iter (_, [], _, next)) -> (
                 self.next <- next;
                 fetch_next self
+            )
+
+            (* Map with some elements to process.
+
+                - retrieve the element that was treated
+                - if there is an element to handle, push it and execute body.
+            *)
+            | Some (
+                Map (
+                    elm_dtyp,
+                    elms,
+                    body,
+                    current,
+                    handle_new_value,
+                    res_elms,
+                    nu_elm_dtyp,
+                    finally,
+                    next
+                )
+            ) -> (
+                let value, dtyp = Stack.pop self.stack in
+                unify self nu_elm_dtyp dtyp |> ignore;
+                let value = handle_new_value current value in
+                let res_elms = (value :: res_elms) in
+
+                match elms with
+                | [] -> (
+                    (* No more elements to handle, push new value. *)
+                    let value, dtyp = finally res_elms in
+                    Stack.push dtyp value self.stack;
+                    self.next <- next;
+                    fetch_next self
+                )
+                | value :: elms -> (
+                    (* More elements to handle, run body. *)
+                    push_block (Map (
+                        elm_dtyp, elms, body, value,
+                        handle_new_value, res_elms, nu_elm_dtyp, finally, next
+                    )) self;
+                    Stack.push elm_dtyp value self.stack;
+                    Some body
+                )
             )
             | None -> None
         )
@@ -300,6 +392,7 @@ module Interpreter (
 
                     | Mic.If (mic_then, mic_else) -> (
                         let cond, _ = Stack.Pop.bool self.stack in
+                        log_0 "cond: %b@." cond;
                         (* Remember whatever next instructions there is. *)
                         push_block (Nop (mic, self.next)) self;
                         (* Which branch are we in? *)
@@ -574,11 +667,11 @@ module Interpreter (
                             match Stack.pop self.stack with
                             | Theory.C (Theory.Cmp.S s_1), dtyp_1 ->
                                 let s_2, dtyp_2 = Stack.Pop.str self.stack in
-                                Dtyp.check dtyp_1 dtyp_2;
+                                Env.unify self.env dtyp_1 dtyp_2 |> ignore;
                                 Theory.Str.concat s_1 s_2 |> Theory.Of.str, dtyp_1
                             | Theory.C (Theory.Cmp.By by_1), dtyp_1 ->
                                 let by_2, dtyp_2 = Stack.Pop.bytes self.stack in
-                                Dtyp.check dtyp_1 dtyp_2;
+                                Env.unify self.env dtyp_1 dtyp_2 |> ignore;
                                 Theory.Bytes.concat by_1 by_2 |> Theory.Of.bytes, dtyp_2
                             | v, d ->
                                 asprintf "expected string or bytes, found %a of type %a"
@@ -613,6 +706,7 @@ module Interpreter (
                         let binding = Lst.hd mic.vars in
                         let value, _ = Stack.pop self.stack in
                         let value = Theory.is_not_zero value in
+                        log_0 "value : %a" Theory.fmt value ;
                         let dtyp = Dtyp.Bool |> Dtyp.mk_leaf in
 
                         Stack.push ~binding dtyp value self.stack;
@@ -724,7 +818,7 @@ module Interpreter (
                                         (* Type check. *)
                                         let _ =
                                             let edtyp = Dtyp.Inspect.set set_dtyp in
-                                            Dtyp.check edtyp key_dtyp
+                                            Env.unify self.env edtyp key_dtyp |> ignore
                                         in
                                         Theory.Set.update key add set
                                         |> Theory.Of.set
@@ -745,8 +839,8 @@ module Interpreter (
                                         (* Type check. *)
                                         let _ =
                                             let kdtyp, vdtyp = Dtyp.Inspect.map map_dtyp in
-                                            Dtyp.check kdtyp key_dtyp ;
-                                            Dtyp.check vdtyp val_dtyp
+                                            Env.unify self.env kdtyp key_dtyp |> ignore ;
+                                            Env.unify self.env vdtyp val_dtyp |> ignore
                                         in
                                         Theory.Map.update key v map
                                         |> Theory.Of.map
@@ -755,8 +849,8 @@ module Interpreter (
                                         (* Type check. *)
                                         let _ =
                                             let kdtyp, vdtyp = Dtyp.Inspect.map big_map_dtyp in
-                                            Dtyp.check kdtyp key_dtyp ;
-                                            Dtyp.check vdtyp val_dtyp
+                                            Env.unify self.env kdtyp key_dtyp |> ignore ;
+                                            Env.unify self.env vdtyp val_dtyp |> ignore
                                         in
                                         Theory.BigMap.update key v big_map
                                         |> Theory.Of.big_map
@@ -792,7 +886,7 @@ module Interpreter (
                                 |> Exc.throw
                         in
                         let kdtyp, value_dtyp = Dtyp.Inspect.map map_dtyp in
-                        Dtyp.check kdtyp key_dtyp;
+                        Env.unify self.env kdtyp key_dtyp |> ignore;
 
                         Stack.push ~binding value_dtyp value self.stack;
                         None
@@ -814,7 +908,7 @@ module Interpreter (
                                 |> Exc.throw
                         in
                         let dtyp = Dtyp.mk_leaf Dtyp.Bool in
-                        Dtyp.check kdtyp key_dtyp;
+                        Env.unify self.env kdtyp key_dtyp |> ignore;
                         let mem = Theory.Of.bool mem in
 
                         Stack.push ~binding dtyp mem self.stack;
@@ -830,13 +924,131 @@ module Interpreter (
                         self.next <- [];
                         None
                     )
+                    | Mic.Map (codom, body) -> (
+                        let value, dtyp = Stack.pop self.stack in
+
+                        (* What are we mappping over? *)
+                        match dtyp.typ with
+                        (* Mapping over a list. *)
+                        | List sub -> (
+                            let elms = Theory.Inspect.list value |> Theory.Lst.to_list in
+                            match elms with
+                            | value :: elms -> (
+                                (* List is not empty, let's do this. *)
+                                let elm_dtyp = sub in
+                                let nu_elm_dtyp = codom in
+                                let block =
+                                    Map (
+                                        elm_dtyp,
+                                        elms,
+                                        body,
+                                        value,
+                                        (fun _ nu_value -> nu_value),
+                                        [],
+                                        nu_elm_dtyp,
+                                        (
+                                            fun elms ->
+                                                let value =
+                                                    Theory.Lst.of_list elms
+                                                    |> Theory.Of.list
+                                                in
+                                                let dtyp = Dtyp.List nu_elm_dtyp |> Dtyp.mk in
+                                                value, dtyp
+                                        ),
+                                        self.next
+                                    )
+                                in
+                                push_block block self;
+                                Stack.push elm_dtyp value self.stack;
+                                self.next <- [body];
+                                None
+                            )
+                            | [] -> (
+                                (* List is empty, push an empty list of the right type. *)
+                                let value = Theory.Lst.nil |> Theory.Of.list in
+                                let dtyp = Dtyp.List codom |> Dtyp.mk in
+                                Stack.push dtyp value self.stack;
+                                None
+                            )
+                        )
+
+                        (* Mapping over a map. *)
+                        | Map (keys, vals) -> (
+                            let bindings =
+                                Theory.Inspect.map value
+                                |> Theory.Map.bindings
+                                |> List.map (
+                                    fun (key, value) ->
+                                        Theory.Of.pair (Theory.Of.cmp key) value
+                                )
+                            in
+                            match bindings with
+                            | value :: elms -> (
+                                (* Map is not empty, let's do this. *)
+                                let elm_dtyp =
+                                    Dtyp.Pair (
+                                        keys |> Dtyp.mk_named None, vals |> Dtyp.mk_named None
+                                    )
+                                    |> Dtyp.mk
+                                in
+                                let nu_elm_dtyp = codom in
+                                let block =
+                                    Map (
+                                        elm_dtyp,
+                                        elms,
+                                        body,
+                                        value,
+                                        (
+                                            fun pair nu_value ->
+                                                let key, _ = Theory.Inspect.pair pair in
+                                                Theory.Of.pair key nu_value
+                                        ),
+                                        [],
+                                        nu_elm_dtyp,
+                                        (
+                                            fun values ->
+                                                let map =
+                                                    values |> List.fold_left (
+                                                        fun map pair ->
+                                                            let key, value =
+                                                                Theory.Inspect.pair pair
+                                                            in
+                                                            let key = Theory.Inspect.cmp key in
+                                                            Theory.Map.update key (Some value) map
+                                                    ) Theory.Map.empty
+                                                in
+                                                let dtyp =
+                                                    Dtyp.Map (keys, codom) |> Dtyp.mk
+                                                in
+                                                Theory.Of.map map, dtyp
+                                        ),
+                                        self.next
+                                    )
+                                in
+                                push_block block self;
+                                Stack.push elm_dtyp value self.stack;
+                                self.next <- [body];
+                                None
+                            )
+                            | [] -> (
+                                (* Map is empty, push an empty map of the right type. *)
+                                let map = Theory.Map.empty |> Theory.Of.map in
+                                let dtyp = Dtyp.Map (keys, codom) |> Dtyp.mk in
+                                Stack.push dtyp map self.stack;
+                                None
+                            )
+                        )
+                        | _ ->
+                            asprintf "cannot map over values of type %a" Dtyp.fmt dtyp
+                            |> Exc.throw
+                    )
 
                     (* # Lambdas. *)
 
                     | Mic.Leaf Exec ->
                         let arg, arg_dtyp = Stack.pop self.stack in
                         let dom, _codom, mic = Stack.Pop.lambda self.stack in
-                        Dtyp.check dom arg_dtyp;
+                        Env.unify self.env dom arg_dtyp |> ignore;
                         push_block (Nop (mic, self.next)) self;
                         Stack.push dom arg self.stack;
                         self.next <- [mic];
@@ -913,7 +1125,7 @@ module Interpreter (
                             | Some contract -> (
                                 let contract = Contract.to_mic contract.contract in
                                 try (
-                                    Dtyp.check dtyp contract.param;
+                                    Env.unify self.env dtyp contract.param |> ignore;
                                     Some (Theory.Of.contract address contract)
                                     |> Theory.Of.option
                                 ) with
@@ -976,10 +1188,11 @@ module Interpreter (
 
                         (* Type check. *)
                         (
-                            (fun () -> Dtyp.check contract.storage storage_val_dtyp)
+                            Env.(fun () -> unify self.env contract.storage storage_val_dtyp)
                             |> Exc.chain_err (
                                 fun () -> "storage value does not typecheck"
                             )
+                            |> ignore
                         );
 
                         (* Push address. *)
@@ -1021,10 +1234,11 @@ module Interpreter (
 
                         (* Type check. *)
                         (
-                            (fun () -> Dtyp.check contract.storage storage_val_dtyp)
+                            Env.(fun () -> unify self.env contract.storage storage_val_dtyp)
                             |> Exc.chain_err (
                                 fun () -> "storage value does not typecheck"
                             )
+                            |> ignore
                         );
 
                         (* Push address. *)
@@ -1034,8 +1248,7 @@ module Interpreter (
                         let dtyp = Dtyp.Operation |> Dtyp.mk_leaf in
                         let uid = Env.get_uid self.env in
                         let operation =
-                            Contract.to_mic contract
-                            |> Theory.Of.Operation.create uid params
+                            Theory.Of.Operation.create_named uid params contract
                         in
                         Stack.push ~binding dtyp operation self.stack;
                         None
@@ -1068,7 +1281,7 @@ module Interpreter (
                         let param, param_dtyp = Stack.pop self.stack in
                         let tez = Stack.Pop.tez self.stack |> fst in
                         let address, contract = Stack.Pop.contract self.stack in
-                        Dtyp.check contract.param param_dtyp;
+                        Env.unify self.env contract.param param_dtyp |> ignore;
                         let address =
                             match address with
                             | Some a -> a
@@ -1114,7 +1327,9 @@ module Interpreter (
                                 in
                                 let value =
                                     try (
-                                        Dtyp.check storage_dtyp contract.contract.storage;
+                                        Env.unify self.env
+                                            storage_dtyp contract.contract.storage
+                                        |> ignore;
                                         Some contract.storage |> Theory.Of.option
                                     ) with
                                     | _ -> Theory.Of.option None
@@ -1173,7 +1388,7 @@ module Interpreter (
 
                     (* # Unimplemented stuff. *)
 
-                    | _ -> asprintf "unsupported instruction @[%a@]" Mic.fmt mic |> Exc.throw
+                    | _ -> Exc.throw "unsupported instruction"
                 )
             )
         in
@@ -1191,6 +1406,9 @@ module Interpreter (
         match step self with
         | None -> run self
         | Some event -> event
+
+    let terminate (self : t) : Env.operation list * Theory.value * Dtyp.t =
+        Stack.Pop.contract_res self.stack
 
     let init
         (src : Src.t)

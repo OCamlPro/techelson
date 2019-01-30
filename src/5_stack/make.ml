@@ -61,6 +61,9 @@ module StackBase (T : Theo.Sigs.Theory) : Sigs.StackBase with
             ==================================================|";
         fprintf fmt "@]"
 
+    let unify (self : t) (t_1 : Dtyp.t) (t_2 : Dtyp.t) : Dtyp.t =
+        Env.unify self.env t_1 t_2
+
     let empty (env : Env.t) : t = { dipped = [] ; stack = [] ; env }
     let is_empty ({ dipped ; stack ; _ } : t) : bool = dipped = [] && stack = []
     let push ?binding:(binding=None) (dtyp : Dtyp.t) (value : Theory.value) (self : t) : unit =
@@ -202,7 +205,7 @@ module Stack (S : Sigs.StackBase)
                 ), dtyp -> Some kh, Dtyp.Inspect.option dtyp
                 | Theory.Option None, dtyp -> (
                     let dtyp = Dtyp.Inspect.option dtyp in
-                    Dtyp.check (Dtyp.mk_leaf Dtyp.KeyH) dtyp;
+                    let dtyp = unify self (Dtyp.mk_leaf Dtyp.KeyH) dtyp in
                     None, dtyp
                 )
                 | v, dtyp ->
@@ -509,9 +512,12 @@ module Stack (S : Sigs.StackBase)
                     (* Type-checking. *)
                     let lambda_storage_dtyp, lambda_param_dtyp =
                         (fun () ->
-                            Dtyp.check lambda_dom_storage lambda_codom_storage;
+                            let lambda_dom_storage =
+                                unify self lambda_dom_storage lambda_codom_storage
+                            in
                             let lambda_codom_op = Dtyp.Inspect.list lambda_codom_ops in
-                            Dtyp.check (Dtyp.mk_leaf Dtyp.Operation) lambda_codom_op;
+                            unify self (Dtyp.mk_leaf Dtyp.Operation) lambda_codom_op
+                            |> ignore;
                             lambda_dom_storage, lambda_dom_param
                         )
                         |> Exc.chain_errs (
@@ -534,7 +540,8 @@ module Stack (S : Sigs.StackBase)
                 let storage =
                     (fun () ->
                         let storage, dtyp = pop self in
-                        Dtyp.check contract.storage dtyp;
+                        unify self contract.storage dtyp
+                        |> ignore;
                         storage
                     )
                     |> Exc.chain_err (
@@ -619,7 +626,7 @@ module Stack (S : Sigs.StackBase)
                             fun () -> "while type-checking `CONS`"
                         )
                     in
-                    (fun () -> Dtyp.check head_dtyp inner)
+                    (fun () -> unify self head_dtyp inner |> ignore)
                     |> Exc.chain_err (
                         fun () ->
                             asprintf "head has type `%a`, but tail has type `%a`"

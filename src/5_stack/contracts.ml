@@ -17,6 +17,7 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
         mutable live : (int, live) Hashtbl.t ;
         mutable next_op_uid : int ;
         mutable expired_uids : IntSet.t ;
+        mutable typ_cxt : DtypCheck.t
     }
 
     let empty () : t = {
@@ -24,6 +25,7 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
         live = Hashtbl.create 47 ;
         next_op_uid = 0 ;
         expired_uids = IntSet.empty () ;
+        typ_cxt = DtypCheck.empty () ;
     }
 
     let clone (self : t) : t = {
@@ -47,6 +49,9 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
             fun () -> sprintf "could not find contract `%s`" name
         )
 
+    let unify (self : t) (t_1 : Dtyp.t) (t_2 : Dtyp.t) : Dtyp.t =
+        DtypCheck.unify self.typ_cxt t_1 t_2
+
     module Live = struct
         let update
             (balance : Theory.Tez.t)
@@ -55,6 +60,7 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
             (self : t)
             : unit
         =
+            log_0 "ping@.";
             let uid = Theory.Address.uid address in
             let live =
                 try Hashtbl.find self.live uid with
@@ -63,13 +69,25 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
                         Theory.Address.fmt address
                     |> Exc.throw
             in
-            (fun () -> Dtyp.check dtyp live.contract.storage)
+            (fun () -> unify self dtyp live.contract.storage |> ignore)
             |> Exc.chain_err (
                 fun () -> asprintf "while updating storage at %a" Theory.Address.fmt address
             );
             live.balance <- balance;
             live.storage <- storage;
             ()
+
+        let update_storage
+            (self : t)
+            (storage : Theory.value)
+            (storage_dtyp : Dtyp.t)
+            (live : live)
+            : unit
+        =
+            unify self live.contract.storage storage_dtyp
+            |> ignore;
+            live.storage <- storage
+
 
         let fmt (fmt: formatter) (self : t) : unit =
             fprintf fmt "@[<v>";
