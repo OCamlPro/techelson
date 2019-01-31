@@ -40,7 +40,7 @@ module Stack : Sigs.StackBase = struct
 
     let contract_env (self : t) : Env.t = self.env
 
-    let unify (self : t) (t_1 : Dtyp.t) (t_2 : Dtyp.t) : Dtyp.t =
+    let unify (self : t) (t_1 : Dtyp.t) (t_2 : Dtyp.t) : unit =
         Env.unify self.env t_1 t_2
 
     let fmt (fmt : formatter) (self : t) : unit =

@@ -14,20 +14,46 @@ module Interpreter (
 
     module Src = struct
         module Theory = Theory
+
+        type transfer_info = {
+            address : Theory.Address.t ;
+            sender : Theory.Address.t ;
+            source : Theory.Address.t ;
+        }
+        let fmt_transfer_info (fmt : formatter) (self : transfer_info) : unit =
+            fprintf fmt "{ address: %a, sender: %a, source: %a}"
+                Theory.Address.fmt self.address
+                Theory.Address.fmt self.sender
+                Theory.Address.fmt self.source
+
+        type test_info = {
+            test : Testcase.t ;
+            mutable address : Theory.Address.t ;
+        }
+        let fmt_test_info (fmt : formatter) (self : test_info) : unit =
+            fprintf fmt "{ test: %s, address: %a }"
+                self.test.name Theory.Address.fmt self.address
+
         type t =
-        | Test of Testcase.t
-        | Contract of Theory.Address.t
+        | Test of test_info
+        | Contract of transfer_info
 
 
         let fmt (fmt : formatter) (src : t) : unit =
             match src with
-            | Test tc -> fprintf fmt "(test %s)" tc.name
-            | Contract address -> fprintf fmt "(contract @%a)" Theory.Address.fmt address
+            | Test test -> fprintf fmt "Test %a" fmt_test_info test
+            | Contract transfer -> fprintf fmt "Contract %a" fmt_transfer_info transfer
 
         let of_test (test : Testcase.t) : t =
-            Test test
-        let of_address (address : Theory.Address.t) : t =
-            Contract address
+            let binding = Some (Annot.Var.of_string test.name) in
+            let address = Theory.Address.fresh binding in
+            Test { test ; address }
+        let of_address
+            ~(address : Theory.Address.t)
+            ~(sender : Theory.Address.t)
+            ~(source : Theory.Address.t)
+            : t =
+            Contract { address ; sender ; source }
     end
 
     type event =
@@ -107,7 +133,7 @@ module Interpreter (
         env : Env.t ;
     }
 
-    let unify (self : t) (dtyp_1 : Dtyp.t) (dtyp_2 : Dtyp.t) : Dtyp.t =
+    let unify (self : t) (dtyp_1 : Dtyp.t) (dtyp_2 : Dtyp.t) : unit =
         Env.unify self.env dtyp_1 dtyp_2
 
     let balance (self : t) : Theory.Tez.t = self.balance
@@ -243,7 +269,7 @@ module Interpreter (
                 )
             ) -> (
                 let value, dtyp = Stack.pop self.stack in
-                unify self nu_elm_dtyp dtyp |> ignore;
+                unify self nu_elm_dtyp dtyp;
                 let value = handle_new_value current value in
                 let res_elms = (value :: res_elms) in
 
@@ -667,11 +693,11 @@ module Interpreter (
                             match Stack.pop self.stack with
                             | Theory.C (Theory.Cmp.S s_1), dtyp_1 ->
                                 let s_2, dtyp_2 = Stack.Pop.str self.stack in
-                                Env.unify self.env dtyp_1 dtyp_2 |> ignore;
+                                Env.unify self.env dtyp_1 dtyp_2;
                                 Theory.Str.concat s_1 s_2 |> Theory.Of.str, dtyp_1
                             | Theory.C (Theory.Cmp.By by_1), dtyp_1 ->
                                 let by_2, dtyp_2 = Stack.Pop.bytes self.stack in
-                                Env.unify self.env dtyp_1 dtyp_2 |> ignore;
+                                Env.unify self.env dtyp_1 dtyp_2;
                                 Theory.Bytes.concat by_1 by_2 |> Theory.Of.bytes, dtyp_2
                             | v, d ->
                                 asprintf "expected string or bytes, found %a of type %a"
@@ -818,7 +844,7 @@ module Interpreter (
                                         (* Type check. *)
                                         let _ =
                                             let edtyp = Dtyp.Inspect.set set_dtyp in
-                                            Env.unify self.env edtyp key_dtyp |> ignore
+                                            Env.unify self.env edtyp key_dtyp
                                         in
                                         Theory.Set.update key add set
                                         |> Theory.Of.set
@@ -839,8 +865,8 @@ module Interpreter (
                                         (* Type check. *)
                                         let _ =
                                             let kdtyp, vdtyp = Dtyp.Inspect.map map_dtyp in
-                                            Env.unify self.env kdtyp key_dtyp |> ignore ;
-                                            Env.unify self.env vdtyp val_dtyp |> ignore
+                                            Env.unify self.env kdtyp key_dtyp ;
+                                            Env.unify self.env vdtyp val_dtyp
                                         in
                                         Theory.Map.update key v map
                                         |> Theory.Of.map
@@ -849,8 +875,8 @@ module Interpreter (
                                         (* Type check. *)
                                         let _ =
                                             let kdtyp, vdtyp = Dtyp.Inspect.map big_map_dtyp in
-                                            Env.unify self.env kdtyp key_dtyp |> ignore ;
-                                            Env.unify self.env vdtyp val_dtyp |> ignore
+                                            Env.unify self.env kdtyp key_dtyp ;
+                                            Env.unify self.env vdtyp val_dtyp
                                         in
                                         Theory.BigMap.update key v big_map
                                         |> Theory.Of.big_map
@@ -886,7 +912,7 @@ module Interpreter (
                                 |> Exc.throw
                         in
                         let kdtyp, value_dtyp = Dtyp.Inspect.map map_dtyp in
-                        Env.unify self.env kdtyp key_dtyp |> ignore;
+                        Env.unify self.env kdtyp key_dtyp;
 
                         Stack.push ~binding value_dtyp value self.stack;
                         None
@@ -908,7 +934,7 @@ module Interpreter (
                                 |> Exc.throw
                         in
                         let dtyp = Dtyp.mk_leaf Dtyp.Bool in
-                        Env.unify self.env kdtyp key_dtyp |> ignore;
+                        Env.unify self.env kdtyp key_dtyp;
                         let mem = Theory.Of.bool mem in
 
                         Stack.push ~binding dtyp mem self.stack;
@@ -1048,7 +1074,7 @@ module Interpreter (
                     | Mic.Leaf Exec ->
                         let arg, arg_dtyp = Stack.pop self.stack in
                         let dom, _codom, mic = Stack.Pop.lambda self.stack in
-                        Env.unify self.env dom arg_dtyp |> ignore;
+                        Env.unify self.env dom arg_dtyp;
                         push_block (Nop (mic, self.next)) self;
                         Stack.push dom arg self.stack;
                         self.next <- [mic];
@@ -1125,7 +1151,7 @@ module Interpreter (
                             | Some contract -> (
                                 let contract = Contract.to_mic contract.contract in
                                 try (
-                                    Env.unify self.env dtyp contract.param |> ignore;
+                                    Env.unify self.env dtyp contract.param;
                                     Some (Theory.Of.contract address contract)
                                     |> Theory.Of.option
                                 ) with
@@ -1147,7 +1173,7 @@ module Interpreter (
                             match self.src with
                             | Src.Test _ ->
                                 "instruction `SELF` is illegal in testcases" |> Exc.throw
-                            | Src.Contract address -> (
+                            | Src.Contract { address ; _ } -> (
                                 match Env.Live.get address self.env with
                                 | None -> bail ()
                                 | Some contract -> (
@@ -1192,7 +1218,6 @@ module Interpreter (
                             |> Exc.chain_err (
                                 fun () -> "storage value does not typecheck"
                             )
-                            |> ignore
                         );
 
                         (* Push address. *)
@@ -1260,7 +1285,7 @@ module Interpreter (
 
                         let address =
                             match self.src with
-                            | Src.Contract address -> address
+                            | Src.Contract { address ; _ } -> address
                             | Src.Test _ ->
                                 Exc.throw "cannot use `SET_DELEGATE` in a testcase"
                         in
@@ -1279,9 +1304,9 @@ module Interpreter (
                     | Mic.Leaf TransferTokens ->
                         let binding = Lst.hd mic.vars in
                         let param, param_dtyp = Stack.pop self.stack in
-                        let tez = Stack.Pop.tez self.stack |> fst in
+                        let amount = Stack.Pop.tez self.stack |> fst in
                         let address, contract = Stack.Pop.contract self.stack in
-                        Env.unify self.env contract.param param_dtyp |> ignore;
+                        Env.unify self.env contract.param param_dtyp;
                         let address =
                             match address with
                             | Some a -> a
@@ -1289,7 +1314,18 @@ module Interpreter (
                         in
                         let uid = Env.get_uid self.env in
                         let operation =
-                            Theory.Of.Operation.transfer uid address contract tez param
+                            let source, sender =
+                                match self.src with
+                                | Src.Test { address ; _ } -> address, address
+                                | Src.Contract { source ; address ; _ } -> source, address
+                            in
+                            let info : Theory.transfer_info =
+                                {
+                                    source ; sender ; target = address ;
+                                    contract ; amount ; param ;
+                                }
+                            in
+                            Theory.Of.Operation.transfer uid info
                         in
                         let dtyp = Dtyp.Operation |> Dtyp.mk_leaf in
 
@@ -1328,8 +1364,7 @@ module Interpreter (
                                 let value =
                                     try (
                                         Env.unify self.env
-                                            storage_dtyp contract.contract.storage
-                                        |> ignore;
+                                            storage_dtyp contract.contract.storage;
                                         Some contract.storage |> Theory.Of.option
                                     ) with
                                     | _ -> Theory.Of.option None
@@ -1464,6 +1499,8 @@ module TestInterpreter (
         tc : Testcase.t ;
         src : Src.t ;
     }
+
+    let testcase (self : t) : Testcase.t = self.tc
 
     let contract_env (self : t) : Env.t = self.interp |> Run.contract_env
 

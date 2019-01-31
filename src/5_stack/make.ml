@@ -61,7 +61,7 @@ module StackBase (T : Theo.Sigs.Theory) : Sigs.StackBase with
             ==================================================|";
         fprintf fmt "@]"
 
-    let unify (self : t) (t_1 : Dtyp.t) (t_2 : Dtyp.t) : Dtyp.t =
+    let unify (self : t) (t_1 : Dtyp.t) (t_2 : Dtyp.t) : unit =
         Env.unify self.env t_1 t_2
 
     let empty (env : Env.t) : t = { dipped = [] ; stack = [] ; env }
@@ -205,7 +205,7 @@ module Stack (S : Sigs.StackBase)
                 ), dtyp -> Some kh, Dtyp.Inspect.option dtyp
                 | Theory.Option None, dtyp -> (
                     let dtyp = Dtyp.Inspect.option dtyp in
-                    let dtyp = unify self (Dtyp.mk_leaf Dtyp.KeyH) dtyp in
+                    unify self (Dtyp.mk_leaf Dtyp.KeyH) dtyp;
                     None, dtyp
                 )
                 | v, dtyp ->
@@ -512,9 +512,7 @@ module Stack (S : Sigs.StackBase)
                     (* Type-checking. *)
                     let lambda_storage_dtyp, lambda_param_dtyp =
                         (fun () ->
-                            let lambda_dom_storage =
-                                unify self lambda_dom_storage lambda_codom_storage
-                            in
+                            unify self lambda_dom_storage lambda_codom_storage;
                             let lambda_codom_op = Dtyp.Inspect.list lambda_codom_ops in
                             unify self (Dtyp.mk_leaf Dtyp.Operation) lambda_codom_op
                             |> ignore;

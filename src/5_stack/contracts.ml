@@ -49,7 +49,7 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
             fun () -> sprintf "could not find contract `%s`" name
         )
 
-    let unify (self : t) (t_1 : Dtyp.t) (t_2 : Dtyp.t) : Dtyp.t =
+    let unify (self : t) (t_1 : Dtyp.t) (t_2 : Dtyp.t) : unit =
         DtypCheck.unify self.typ_cxt t_1 t_2
 
     module Live = struct
@@ -133,6 +133,12 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
 
         let transfer (tez : Theory.Tez.t) (live : live) : unit =
             live.balance <- Theory.Tez.add live.balance tez
+
+        let collect ~(tgt : string) (tez : Theory.Tez.t) (live : live) : unit =
+            if Theory.Tez.compare live.balance tez >= 0 then
+                live.balance <- Theory.Tez.sub tez live.balance
+            else
+                Exc.Throw.too_poor ~src:live.contract.name ~tgt ~amount:(Theory.Tez.to_native tez)
 
         let set_delegate (delegate : Theory.KeyH.t option) (self : live) : unit =
             Theory.set_delegate delegate self.params

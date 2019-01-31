@@ -21,11 +21,32 @@ module type SigSrc = sig
     (** Underlying theory. *)
     module Theory : Theo.Sigs.Theory
 
+    (** Transfer information. *)
+    type transfer_info = {
+        address : Theory.Address.t ;
+        (** Address of the contract running the transfer. *)
+        sender : Theory.Address.t ;
+        (** Sender of the current transfer. *)
+        source : Theory.Address.t ;
+        (** Source of the current transfer. *)
+    }
+
+    (** Test case information. *)
+    type test_info = private {
+        test : Testcase.t ;
+        (** Actual test case that's running. *)
+        mutable address : Theory.Address.t ;
+        (** Address of the test case.
+
+            Can be changed with `CHANGE_SOURCE` to control the source of the transfers.
+        *)
+    }
+
     (** Representation of a source. *)
     type t =
-    | Test of Testcase.t
+    | Test of test_info
     (** Operation was initiated by the testcase. *)
-    | Contract of Theory.Address.t
+    | Contract of transfer_info
     (** Operation was initiated by a contract while running the testcase. *)
 
     (** Formats an operation source. *)
@@ -35,7 +56,11 @@ module type SigSrc = sig
     val of_test : Testcase.t -> t
 
     (** Generates the source associated with an address. *)
-    val of_address : Theory.Address.t -> t
+    val of_address :
+        address : Theory.Address.t ->
+        sender : Theory.Address.t ->
+        source : Theory.Address.t ->
+        t
 end
 
 (** Signature of an interpreter.
@@ -181,6 +206,9 @@ module type TestInterpreter = sig
 
     (** Constructor. *)
     val mk : Src.t -> Testcase.t -> Env.t -> t
+
+    (** Testcase accessor. *)
+    val testcase : t -> Testcase.t
 
     (** Performs a step. *)
     val step : t -> test_event option

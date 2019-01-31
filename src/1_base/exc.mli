@@ -28,6 +28,11 @@ module Protocol : sig
     type t =
     | Failure of string
     (** Ran into the `FAILWITH` instruction. *)
+    | TooPoor of string * string * Int64.t
+    (** Insufficient amount to process transaction.
+
+        First string is the name of the sender, second is the name of the target.
+    *)
     | Tezos of string
     (** Something went wrong in the protocol.
 
@@ -63,6 +68,9 @@ module Throw : sig
 
     (** Raises a tezos protocol error. *)
     val tezos : string -> 'a
+
+    (** Raises an insufficient amount error. *)
+    val too_poor : src : string -> tgt : string -> amount : Int64.t -> 'a
 end
 
 (** Raises an exception from a single trace frame. *)

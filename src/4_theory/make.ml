@@ -47,7 +47,7 @@ module Theory (
                     fun () -> sprintf "cannot convert string `%s` to tezos" s
                 )
             let of_native (n : Int64.t) : t = n
-            let to_native (t : t) : int = Int64.to_int t
+            let to_native (t : t) : Int64.t = t
 
             let add (t_1 : t) (t_2 : t) : t =
                 Int64.add t_1 t_2
@@ -407,12 +407,21 @@ module Theory (
         value : value ;
     }
 
+    and transfer_info = {
+        source : Address.t ;
+        sender : Address.t ;
+        target : Address.t ;
+        contract : Mic.contract ;
+        amount : Tez.t ;
+        param : value ;
+    }
+
     and operation =
     | MustFail of value option * operation * int
     | Create of contract_params * Mic.contract
     | CreateNamed of contract_params * Contract.t
     | InitNamed of contract_params * value * string
-    | Transfer of Address.t * Mic.contract * Tez.t * value
+    | Transfer of transfer_info
     | SetDelegate of Address.t * KeyH.t option
 
     let mk_contract_params
@@ -457,9 +466,9 @@ module Theory (
         | InitNamed (params, value, name) ->
             fprintf fmtt "@[<hv 4>CREATE[uid:%i] %a %a %s@]"
                 uid fmt_contract_params params fmt value name
-        | Transfer (address, _, tez, value) ->
+        | Transfer { target ; amount ; param ; _ } ->
             fprintf fmtt "@[<hv 4>TRANSFER[uid:%i] %a %a %a@]"
-                uid Address.fmt address Tez.fmt tez fmt value
+                uid Address.fmt target Tez.fmt amount fmt param
         | SetDelegate (address, delegate) ->
             fprintf fmtt "@[<hv 4>SET_DELEGATE[uid:%i] %a %a@]"
                 uid Address.fmt address (Opt.fmt KeyH.fmt) delegate
@@ -680,15 +689,9 @@ module Theory (
                 : value
             =
                 Operation (uid, InitNamed (params, input, name))
-            let transfer
-                (uid : int)
-                (address : Address.t)
-                (contract : Mic.contract)
-                (tez : Tez.t)
-                (param : value)
-                : value
+            let transfer (uid : int) (info : transfer_info) : value
             =
-                Operation (uid, Transfer (address, contract, tez, param))
+                Operation (uid, Transfer info)
             let must_fail
                 (uid : int)
                 (value : value option)

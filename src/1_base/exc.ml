@@ -18,12 +18,16 @@ end
 module Protocol = struct
     type t =
     | Failure of string
+    | TooPoor of string * string * Int64.t
     | Tezos of string
 
     let fmt (fmt : formatter) (self : t) : unit =
         match self with
         | Failure blah -> fprintf fmt "Failure on value %s" blah
         | Tezos blah -> fprintf fmt "%s" blah
+        | TooPoor (src, tgt, mutez) ->
+            fprintf fmt "insufficient balance to process transaction from %s to %s of %s mutez"
+                src tgt (Int64.to_string mutez)
 end
 
 type exc =
@@ -42,6 +46,14 @@ module Throw = struct
 
     let tezos (s : string) : 'a =
         Exc (Protocol (Protocol.Tezos s)) |> raise
+
+    let too_poor
+        ~(src : string)
+        ~(tgt : string)
+        ~(amount : Int64.t)
+        : 'a
+    =
+        Exc (Protocol (Protocol.TooPoor (src, tgt, amount))) |> raise
 end
 
 let fmt (fmt : formatter) (e : exn) : unit =

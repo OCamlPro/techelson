@@ -13,4 +13,4 @@ val empty : unit -> t
 
     The first type cannot contain type variables.
 *)
-val unify : t -> Dtyp.t -> Dtyp.t -> Dtyp.t
+val unify : t -> Dtyp.t -> Dtyp.t -> unit

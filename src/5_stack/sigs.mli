@@ -88,7 +88,7 @@ module type ContractEnv = sig
     val get : string -> t -> Contract.t
 
     (** Type checks two types. *)
-    val unify : t -> Dtyp.t -> Dtyp.t -> Dtyp.t
+    val unify : t -> Dtyp.t -> Dtyp.t -> unit
 
     (** Operations dealing with live contracts. *)
     module Live : sig
@@ -106,6 +106,9 @@ module type ContractEnv = sig
 
         (** Transfers some money to a live contract. *)
         val transfer : Theory.Tez.t -> live -> unit
+
+        (** Collects some money from a live contract. *)
+        val collect : tgt : string -> Theory.Tez.t -> live -> unit
 
         (** Updates a live contract.
 
@@ -161,7 +164,7 @@ module type StackBase = sig
     val pop : t -> Theory.value * Dtyp.t
 
     (** Type checks two types. *)
-    val unify : t -> Dtyp.t -> Dtyp.t -> Dtyp.t
+    val unify : t -> Dtyp.t -> Dtyp.t -> unit
 
     (** Clears the stack completely.
     

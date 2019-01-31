@@ -329,16 +329,24 @@ module TestCxt (
                     )
 
                     | Either.Lft (
-                        Theory.Transfer (address, contract, tez, param)
+                        Theory.Transfer {
+                            source ; sender ; target ; contract ; amount ; param
+                        }
                     ) -> (
-                        match Run.Env.Live.get address contract_env with
+                        match Run.Env.Live.get target contract_env with
                         | None ->
                             asprintf "address %a has no contract attached"
-                                Theory.Address.fmt address
+                                Theory.Address.fmt target
                             |> Exc.throw
                         | Some live ->
-                            Run.Env.Live.transfer tez live;
-                            let src = Run.Src.of_address address in
+                            (
+                                match Run.Env.Live.get sender contract_env with
+                                | Some live ->
+                                    Run.Env.Live.collect ~tgt:live.contract.name amount live
+                                | None -> ()
+                            );
+                            Run.Env.Live.transfer amount live;
+                            let src = Run.Src.of_address ~source ~sender ~address:target in
                             let param_dtyp =
                                 contract.param
                                 |> Dtyp.mk_named (Some (Annot.Field.of_string "param"))
@@ -350,7 +358,7 @@ module TestCxt (
                             let dtyp = Dtyp.Pair (param_dtyp, storage_dtyp) |> Dtyp.mk in
                             let value = Theory.Of.pair param live.storage in
                             let transfer =
-                                Run.init src ~balance:live.balance ~amount:tez contract_env [
+                                Run.init src ~balance:live.balance ~amount contract_env [
                                     (value, dtyp, Some (Annot.Var.of_string "input"))
                                 ] [ live.contract.entry ]
                             in
