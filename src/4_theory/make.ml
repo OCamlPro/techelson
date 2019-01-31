@@ -560,7 +560,9 @@ module Theory (
 
             | Contract (address, contract) -> (
                 match address with
-                | Some a -> Address.fmt fmt a
+                | Some a ->
+                    Address.fmt fmt a;
+                    go_up stack
                 | None -> (
                     fprintf fmt "{ storage : @[%a@] ; param : @[%a@] ; code : @[%a@] ; }"
                         Dtyp.fmt contract.Mic.storage

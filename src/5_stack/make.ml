@@ -24,12 +24,13 @@ module StackBase (T : Theo.Sigs.Theory) : Sigs.StackBase with
         { value ; typ ; binding }
     
     let fmt_frame (fmt : formatter) (frame : frame) : unit =
-        fprintf fmt "@[<h>%-11s| %-57s | %-23s@]"
-            (
-                match frame.binding with
-                | None -> ""
-                | Some annot -> asprintf "%a " Annot.Var.fmt annot
-            ) (asprintf "%a" Theory.fmt frame.value) (asprintf "%a" Dtyp.fmt frame.typ)
+        (
+            match frame.binding with
+            | None -> ()
+            | Some annot -> fprintf fmt "| %96s |@," (asprintf "%a" Annot.Var.fmt annot)
+        );
+        fprintf fmt "| %-96s |@,| %-96s |"
+            (asprintf "%a" Theory.fmt frame.value) (asprintf "%a" Dtyp.fmt frame.typ)
 
     type t = {
         mutable dipped : frame list ;
@@ -43,17 +44,33 @@ module StackBase (T : Theo.Sigs.Theory) : Sigs.StackBase with
         fprintf fmt "@[<v>\
             |================================================\
             ==================================================|";
-        self.stack |> List.rev |> List.iter (
-            fprintf fmt "@,| %a |" fmt_frame
-        );
+        self.stack |> List.rev |> List.fold_left (
+            fun is_first frame ->
+                if not is_first then (
+                    fprintf fmt "@,\
+                        |------------------------------------------------\
+                        --------------------------------------------------|\
+                    "
+                );
+                fprintf fmt "@,%a" fmt_frame frame;
+                false
+        ) true |> ignore;
 
         if self.dipped <> [] then (
            fprintf fmt "@,\
             |================================================\
             dipped============================================|";
-            self.dipped |> List.iter (
-                fprintf fmt "@,| %a |" fmt_frame
-            )
+            self.dipped |> List.fold_left (
+                fun is_first frame ->
+                    if not is_first then (
+                        fprintf fmt "@,\
+                            |------------------------------------------------\
+                            --------------------------------------------------|\
+                        "
+                    );
+                    fprintf fmt "@,%a" fmt_frame frame;
+                    false
+            ) true |> ignore;
         );
 
         fprintf fmt "@,\

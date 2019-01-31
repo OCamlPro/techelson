@@ -340,6 +340,7 @@ type extension =
 | PrintStack
 | MustFail
 | Step of string option
+| SetSource
 
 let fmt_extension
     ?annots:(annots = fun (_ : formatter) () -> ())
@@ -354,6 +355,7 @@ let fmt_extension
     | PrintStack -> fprintf fmt  "PRINT_STACK"
     | MustFail -> fprintf fmt "MUST_FAIL"
     | Step opt -> unwrap_or "<none>" opt |> fprintf fmt "STEP %s"
+    | SetSource -> fprintf fmt "SET_SOURCE"
 
 type 'sub ins =
 | Leaf of leaf

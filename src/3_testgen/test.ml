@@ -2,7 +2,7 @@ open Base
 open Common
 
 (* Pushes a print stack. *)
-let print_stack () : Mic.t =
+let _print_stack () : Mic.t =
     Mic.Extension Mic.PrintStack |> Mic.mk
 
 (* Pushes some money. *)
@@ -64,8 +64,8 @@ and generate_address (param : Dtyp.t) : Mic.t list =
     let mic =
         [
             Mic.Drop |> Mic.mk_leaf |> Mic.comments ["discarding inputs"] ;
-            Mic.Nil (Dtyp.Operation |> Dtyp.mk_leaf) |> Mic.mk ;
             Mic.Push (storage, unit) |> Mic.mk ;
+            Mic.Nil (Dtyp.Operation |> Dtyp.mk_leaf) |> Mic.mk ;
             Mic.Pair |> Mic.mk_leaf ;
         ]
         |> Mic.mk_seq
@@ -141,7 +141,6 @@ let generate (contract : Contract.t) (name : string) : Testcase.t =
     let rec generate_transfers (acc : Mic.t list) : Mic.t list =
         let acc =
             push_transfer ()
-            :: print_stack ()
             :: push_apply ()
             :: acc
         in
@@ -150,7 +149,6 @@ let generate (contract : Contract.t) (name : string) : Testcase.t =
 
     (
         push_deploy ()
-        :: print_stack ()
         :: push_apply ()
 
         :: generate_transfers []

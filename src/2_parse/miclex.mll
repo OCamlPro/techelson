@@ -190,7 +190,11 @@ rule token = parse
 | whitespace { token lexbuf }
 | newline { Lexing.new_line lexbuf ; token lexbuf }
 
-| "#" [^'\n']* "\n" { Lexing.new_line lexbuf ; token lexbuf }
+(* Whitespace comment to allow extensions in comments. *)
+| "#>" { token lexbuf }
+
+| "#" [^'>'] [^'\n']* "\n" { Lexing.new_line lexbuf ; token lexbuf }
+| "#" "\n" { Lexing.new_line lexbuf ; token lexbuf }
 
 | '{' { OCURL }
 | '}' { CCURL }

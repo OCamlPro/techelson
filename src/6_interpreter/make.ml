@@ -1142,6 +1142,30 @@ module Interpreter (
                         Stack.push ~binding dtyp value self.stack;
                         None
 
+                    | Mic.Leaf Sender -> (
+                        match self.src with
+                        | Src.Contract { sender ; _ } ->
+                            let binding = Lst.hd mic.vars in
+                            let value = sender |> Theory.Of.address in
+                            let dtyp = Dtyp.Address |> Dtyp.mk_leaf in
+
+                            Stack.push ~binding dtyp value self.stack;
+                            None
+                        | Src.Test _ -> Exc.throw "illegal `SENDER` instruction in testcase"
+                    )
+
+                    | Mic.Leaf Source -> (
+                        match self.src with
+                        | Src.Contract { source ; _ } ->
+                            let binding = Lst.hd mic.vars in
+                            let value = source |> Theory.Of.address in
+                            let dtyp = Dtyp.Address |> Dtyp.mk_leaf in
+
+                            Stack.push ~binding dtyp value self.stack;
+                            None
+                        | Src.Test _ -> Exc.throw "illegal `SOURCE` instruction in testcase"
+                    )
+
                     | Mic.Contract dtyp -> (
                         let binding = Lst.hd mic.vars in
                         let address = Stack.Pop.address self.stack |> fst in
@@ -1408,6 +1432,18 @@ module Interpreter (
 
                         Stack.push dtyp value self.stack;
                         None
+
+                    | Mic.Extension Mic.SetSource -> (
+                        let address = Stack.Pop.address self.stack |> fst in
+                        (
+                            match self.src with
+                            | Test test -> test.address <- address
+                            | Contract _ ->
+                                Exc.throw
+                                    "illegal `SET_SOURCE` instruction found in contract transfer"
+                        );
+                        None
+                    )
 
                     (* Events. *)
 

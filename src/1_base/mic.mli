@@ -126,6 +126,7 @@ type extension =
 | PrintStack
 | MustFail
 | Step of string option
+| SetSource
 
 val fmt_extension :
     ?annots : (formatter -> unit -> unit) ->

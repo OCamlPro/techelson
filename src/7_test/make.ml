@@ -92,7 +92,7 @@ module TestCxt (
         fprintf fmt "@]"
     
     let fmt_operations (fmt : formatter) (ops : Env.operation list) : unit =
-        fprintf fmt "operations    : @[";
+        fprintf fmt "operations: @[";
         if ops = [] then (
             fprintf fmt "none"
         ) else (
@@ -169,7 +169,7 @@ module TestCxt (
         let operations (self : apply_ops) : Env.operation list = self.ops
 
         let fmt (fmt : formatter) (self : apply_ops) : unit =
-            fprintf fmt "@[<v>state   : apply_ops@,outcome : %a@,"
+            fprintf fmt "@[<v>state: apply_ops@,outcome: %a@,"
                 fmt_outcome self.outcome;
             fprintf fmt "@[<v>%a@,%a@,test %a@]"
                 fmt_contracts (contract_env self)
@@ -375,9 +375,6 @@ module TestCxt (
                 in
 
                 let res = loop next in
-
-                log_0 "resolving outcome@.%a@.@."
-                    fmt self;
 
                 match res, self.outcome with
 

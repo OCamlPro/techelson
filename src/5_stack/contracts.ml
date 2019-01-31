@@ -136,7 +136,7 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
 
         let collect ~(tgt : string) (tez : Theory.Tez.t) (live : live) : unit =
             if Theory.Tez.compare live.balance tez >= 0 then
-                live.balance <- Theory.Tez.sub tez live.balance
+                live.balance <- Theory.Tez.sub live.balance tez
             else
                 Exc.Throw.too_poor ~src:live.contract.name ~tgt ~amount:(Theory.Tez.to_native tez)
 
