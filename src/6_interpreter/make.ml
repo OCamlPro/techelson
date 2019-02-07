@@ -1543,23 +1543,35 @@ module TestInterpreter (
     let interp (self : t) : Run.t = self.interp
     let stack (self : t) : Run.Stack.t = Run.stack self.interp
     let mk (src : Src.t) (tc : Testcase.t) (contracts : Env.t) : t =
-        let many_tez = Theory.Tez.of_native Int64.max_int in
+        let many_tez =
+            Int64.zero
+            |> Int64.succ
+            |> Int64.succ
+            |> Int64.div Int64.max_int
+            |> Theory.Tez.of_native
+        in
         let interp = I.init src ~balance:many_tez ~amount:many_tez contracts [] [ tc.code ] in
         { interp ; tc ; src }
 
     let step (self : t) : test_event option =
         try Run.step self.interp |> Opt.map (fun event -> Normal event) with
-        | Exc.Exc (Exc.Internal Exc.Internal.ApplyOps) ->
-            let ops = Run.Stack.Pop.operation_list (Run.stack self.interp) |> fst in
-            Some (ApplyOps ops)
-        | e -> raise e
+        | e -> (
+            match Exc.get_internal e with
+            | Some Exc.Internal.ApplyOps ->
+                let ops = Run.Stack.Pop.operation_list (Run.stack self.interp) |> fst in
+                Some (ApplyOps ops)
+            | _ -> raise e
+        )
 
     let run (self : t) : test_event =
         try Normal (Run.run self.interp) with
-        | Exc.Exc (Exc.Internal Exc.Internal.ApplyOps) ->
-            let ops = Run.Stack.Pop.operation_list (Run.stack self.interp) |> fst in
-            ApplyOps ops
-        | e -> raise e
+        | e -> (
+            match Exc.get_internal e with
+            | Some Exc.Internal.ApplyOps ->
+                let ops = Run.Stack.Pop.operation_list (Run.stack self.interp) |> fst in
+                ApplyOps ops
+            | _ -> raise e
+        )
     
     let balance (self : t) : Theory.Tez.t = Run.balance self.interp
 end

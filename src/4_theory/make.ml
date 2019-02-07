@@ -50,7 +50,14 @@ module Theory (
             let to_native (t : t) : Int64.t = t
 
             let add (t_1 : t) (t_2 : t) : t =
-                Int64.add t_1 t_2
+                let overflow_if_gt_zero = Int64.sub Int64.max_int t_1 |> Int64.compare t_2 in
+                if overflow_if_gt_zero <= 0 then
+                    Int64.add t_1 t_2
+                else (
+                    asprintf "while adding %a and %a" fmt t_1 fmt t_2
+                    |> Exc.Throw.mutez_overflow
+                )
+
             let sub (t_1 : t) (t_2 : t) : t =
                 if t_1 < t_2 then (
                     sprintf

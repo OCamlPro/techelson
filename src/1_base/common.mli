@@ -211,6 +211,9 @@ val catch_exn : (unit -> 'a) -> ('a, exn) Either.t
 (** Catches protocol errors. *)
 val catch_protocol_exn : (unit -> 'a) -> ('a, Exc.Protocol.t) Either.t
 
+(** Catches internal errors. *)
+val catch_internal_exn : (unit -> 'a) -> ('a, Exc.Internal.t) Either.t
+
 (** Logs something at some log level.
 
     Actually output if the configuration's log level is `>=` the level. *)

@@ -19,12 +19,14 @@ module Protocol = struct
     type t =
     | Failure of string
     | TooPoor of string * string * Int64.t
+    | MutezOvrflw of string
     | Tezos of string
 
     let fmt (fmt : formatter) (self : t) : unit =
         match self with
         | Failure blah -> fprintf fmt "Failure on value %s" blah
         | Tezos blah -> fprintf fmt "%s" blah
+        | MutezOvrflw blah -> fprintf fmt "mutez operation overflow: %s" blah
         | TooPoor (src, tgt, mutez) ->
             fprintf fmt "insufficient balance to process transaction from %s to %s of %s mutez"
                 src tgt (Int64.to_string mutez)
@@ -54,6 +56,9 @@ module Throw = struct
         : 'a
     =
         Exc (Protocol (Protocol.TooPoor (src, tgt, amount))) |> raise
+
+    let mutez_overflow (blah : string) : 'a =
+        Exc (Protocol (Protocol.MutezOvrflw blah)) |> raise
 end
 
 let fmt (fmt : formatter) (e : exn) : unit =
@@ -98,8 +103,6 @@ let erase_err (blah : unit -> string) (stuff : unit -> 'a) : 'a =
 
 let chain_errs (blah : unit -> string list) (stuff : unit -> 'a) : 'a =
     try stuff () with
-    | (Exc (Internal _) as e)
-    | (Exc (Protocol _) as e) -> raise e
     | Exc (Error (trace, opt, backtrace)) ->
         Exc (Error (blah () @ trace, opt, backtrace)) |> raise
     | e -> Exc (Error (blah (), Some e, get_callstack ())) |> raise
@@ -120,3 +123,17 @@ let catch_fail (stuff : unit -> 'a) : 'a =
 
 let unreachable () : 'a = throw "entered unreachable code, please notify the developers"
 let unimplemented () : 'a = throw "triggered unimplemented feature"
+
+let rec get_protocol (e : exn) : Protocol.t option =
+    match e with
+    | Exc ((Protocol e)) -> Some e
+    | Exc (Internal _) -> None
+    | Exc (Error (_, Some e, _)) -> get_protocol e
+    | _ -> None
+
+let rec get_internal (e : exn) : Internal.t option =
+    match e with
+    | Exc ((Protocol _)) -> None
+    | Exc (Internal e) -> Some e
+    | Exc (Error (_, Some e, _)) -> get_internal e
+    | _ -> None

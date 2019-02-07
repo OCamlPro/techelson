@@ -241,10 +241,19 @@ let catch_exn (f : unit -> 'a) : ('a, exn) Either.t =
 
 let catch_protocol_exn (f : unit -> 'a) : ('a, Exc.Protocol.t) Either.t =
     try f () |> Either.lft with
-    | Exc.Exc (Exc.Protocol p) -> Either.rgt p
-    | e ->
-        log_0 "@.@.%s@.@." (Printexc.to_string e);
-        raise e
+    | e -> (
+        match Exc.get_protocol e with
+        | Some e -> Either.rgt e
+        | None -> raise e
+    )
+
+let catch_internal_exn (f : unit -> 'a) : ('a, Exc.Internal.t) Either.t =
+    try f () |> Either.lft with
+    | e -> (
+        match Exc.get_internal e with
+        | Some e -> Either.rgt e
+        | None -> raise e
+    )
 
 module Rng = struct
     let state : Random.State.t ref = (

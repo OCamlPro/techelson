@@ -77,6 +77,12 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
             live.storage <- storage;
             ()
 
+        let fmt (fmt : formatter) (live : live) : unit =
+            fprintf fmt "%s (%a) %a"
+                live.contract.name
+                Theory.Tez.fmt live.balance
+                Theory.Address.fmt live.address
+
         let update_storage
             (self : t)
             (storage : Theory.value)
@@ -87,22 +93,6 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
             unify self live.contract.storage storage_dtyp
             |> ignore;
             live.storage <- storage
-
-
-        let fmt (fmt: formatter) (self : t) : unit =
-            fprintf fmt "@[<v>";
-            Hashtbl.fold (
-                fun _ live is_first ->
-                    if not is_first then (
-                        fprintf fmt "@ "
-                    );
-                    fprintf fmt "%s %a"
-                        live.contract.name
-                        Theory.Address.fmt live.address;
-                    false
-            ) self.live true
-            |> ignore;
-            fprintf fmt "@]"
 
         let count (self : t) : int = Hashtbl.length self.live
 
@@ -131,8 +121,13 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
             try Some (Hashtbl.find self.live (Theory.Address.uid address)) with
             | Not_found -> None
 
-        let transfer (tez : Theory.Tez.t) (live : live) : unit =
-            live.balance <- Theory.Tez.add live.balance tez
+        let transfer ~(src : string) (tez : Theory.Tez.t) (live : live) : unit =
+            (fun () -> live.balance <- Theory.Tez.add live.balance tez)
+            |> Exc.chain_err (
+                fun () ->
+                    asprintf "while transfering %a from %s to live contract %a"
+                        Theory.Tez.fmt tez src fmt live
+            )
 
         let collect ~(tgt : string) (tez : Theory.Tez.t) (live : live) : unit =
             if Theory.Tez.compare live.balance tez >= 0 then
@@ -143,6 +138,20 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
         let set_delegate (delegate : Theory.KeyH.t option) (self : live) : unit =
             Theory.set_delegate delegate self.params
     end
+
+
+    let fmt (fmt: formatter) (self : t) : unit =
+        fprintf fmt "@[<v>";
+        Hashtbl.fold (
+            fun _ live is_first ->
+                if not is_first then (
+                    fprintf fmt "@ "
+                );
+                Live.fmt fmt live;
+                false
+        ) self.live true
+        |> ignore;
+        fprintf fmt "@]"
 
     type operation = {
         operation : Theory.operation ;

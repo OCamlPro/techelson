@@ -87,7 +87,7 @@ module TestCxt (
         if Run.Env.Live.count env = 0 then (
             fprintf fmt "none"
         ) else (
-            fprintf fmt "%a" Run.Env.Live.fmt env
+            fprintf fmt "%a" Run.Env.fmt env
         );
         fprintf fmt "@]"
     
@@ -333,44 +333,49 @@ module TestCxt (
                             source ; sender ; target ; contract ; amount ; param
                         }
                     ) -> (
-                        match Run.Env.Live.get target contract_env with
-                        | None ->
-                            asprintf "address %a has no contract attached"
-                                Theory.Address.fmt target
-                            |> Exc.throw
-                        | Some live ->
-                            (
-                                match Run.Env.Live.get sender contract_env with
-                                | Some live ->
-                                    Run.Env.Live.collect ~tgt:live.contract.name amount live
-                                | None -> ()
-                            );
-                            Run.Env.Live.transfer amount live;
-                            let src = Run.Src.of_address ~source ~sender ~address:target in
-                            let param_dtyp =
-                                contract.param
-                                |> Dtyp.mk_named (Some (Annot.Field.of_string "param"))
-                            in
-                            let storage_dtyp =
-                                contract.storage
-                                |> Dtyp.mk_named (Some (Annot.Field.of_string "storage"))
-                            in
-                            let dtyp = Dtyp.Pair (param_dtyp, storage_dtyp) |> Dtyp.mk in
-                            let value = Theory.Of.pair param live.storage in
-                            let transfer =
-                                Run.init src ~balance:live.balance ~amount contract_env [
-                                    (value, dtyp, Some (Annot.Var.of_string "input"))
-                                ] [ live.contract.entry ]
-                            in
-                            Either.Lft {
-                                contract = live ;
-                                transfer ;
-                                outcome = self.outcome ;
-                                ops = self.ops ;
-                                test_ops = self.test_ops ;
-                                test = self.test ;
-                                obsolete = false ;
-                            }
+                        let tgt =
+                            match Run.Env.Live.get target contract_env with
+                            | None ->
+                                asprintf "address %a has no contract attached"
+                                    Theory.Address.fmt target
+                                |> Exc.throw
+                            | Some live -> live
+                        in
+                        let src : string =
+                            match Run.Env.Live.get sender contract_env with
+                            | Some src ->
+                                Run.Env.Live.collect ~tgt:tgt.contract.name amount src;
+                                src.contract.name
+                            | None -> "testcase"
+                        in
+
+                        Run.Env.Live.transfer ~src amount tgt;
+
+                        let src = Run.Src.of_address ~source ~sender ~address:target in
+                        let param_dtyp =
+                            contract.param
+                            |> Dtyp.mk_named (Some (Annot.Field.of_string "param"))
+                        in
+                        let storage_dtyp =
+                            contract.storage
+                            |> Dtyp.mk_named (Some (Annot.Field.of_string "storage"))
+                        in
+                        let dtyp = Dtyp.Pair (param_dtyp, storage_dtyp) |> Dtyp.mk in
+                        let value = Theory.Of.pair param tgt.storage in
+                        let transfer =
+                            Run.init src ~balance:tgt.balance ~amount contract_env [
+                                (value, dtyp, Some (Annot.Var.of_string "input"))
+                            ] [ tgt.contract.entry ]
+                        in
+                        Either.Lft {
+                            contract = tgt ;
+                            transfer ;
+                            outcome = self.outcome ;
+                            ops = self.ops ;
+                            test_ops = self.test_ops ;
+                            test = self.test ;
+                            obsolete = false ;
+                        }
                     )
                 in
 

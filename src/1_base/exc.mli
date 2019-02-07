@@ -31,7 +31,12 @@ module Protocol : sig
     | TooPoor of string * string * Int64.t
     (** Insufficient amount to process transaction.
 
-        First string is the name of the sender, second is the name of the target.
+        First string is the name of the sender, second is the name of the target, last is the amount of the transaction that triggered this beharior.
+    *)
+    | MutezOvrflw of string
+    (** Mutez overflow.
+
+        Can happen either during a transfer or during operations on mutez.
     *)
     | Tezos of string
     (** Something went wrong in the protocol.
@@ -71,6 +76,9 @@ module Throw : sig
 
     (** Raises an insufficient amount error. *)
     val too_poor : src : string -> tgt : string -> amount : Int64.t -> 'a
+
+    (** Raises a mutez overflow error. *)
+    val mutez_overflow : string -> 'a
 end
 
 (** Raises an exception from a single trace frame. *)
@@ -105,3 +113,9 @@ val unreachable : unit -> 'a
 
 (** Fails by saying an unimplemented feature was triggered. *)
 val unimplemented : unit -> 'a
+
+(** If the exception was originally a protocol error, returns that error. *)
+val get_protocol : exn -> Protocol.t option
+
+(** If the exception was originally an internal error, returns that error. *)
+val get_internal : exn -> Internal.t option
