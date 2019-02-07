@@ -183,6 +183,8 @@ and const =
 | No
 | So of const
 
+| Lst of const list
+
 and contract = {
     storage : Dtyp.t ;
     (** Type of the storage. *)

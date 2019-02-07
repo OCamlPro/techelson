@@ -31,7 +31,7 @@ let open_file (file : string) : in_channel =
     )
 
 let open_file_write (file : string) : out_channel =
-    (fun () -> open_out file)
+    (fun () -> open_out_gen [ Open_wronly ; Open_creat ; Open_trunc ] 0o644 file)
     |> Exc.chain_err (
         fun () -> sprintf "while opening file `%s` in write mode" file
     )

@@ -622,4 +622,20 @@ const :
     ; CCURL {
         Mic.Cont c
     }
+
+    | OCURL
+    ; lst = const_list
+    ; CCURL {
+        Mic.Lst lst
+    }
 ;
+
+const_list :
+    | c = const
+    ; SEMICOL
+    ; tail = const_list {
+        c :: tail
+    }
+    | c = const {
+        [c]
+    }

@@ -148,6 +148,7 @@ module TStampConv
     type t_stamp = TStamp.t
     type int = Int.t
 
+    let int_to_tstamp (i : int) : t_stamp = i * 100
     let add (t : t_stamp) (i : int) : t_stamp = t + (i * 100)
     let sub_int (t : t_stamp) (i : int) : t_stamp = t - (i * 100) |> Int.of_native
     let sub (t_1 : t_stamp) (t_2 : t_stamp) : int = t_1 - t_2 |> Int.of_native

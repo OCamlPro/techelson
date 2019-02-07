@@ -207,6 +207,9 @@ module type TStampConv = sig
     (** Type of integers in the theory. *)
     type int
 
+    (** Turns an integer into a timestamp. *)
+    val int_to_tstamp : int -> t_stamp
+
     (** Addition between timestamps and integers. *)
     val add : t_stamp -> int -> t_stamp
 

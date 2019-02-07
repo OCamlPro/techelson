@@ -161,6 +161,11 @@ module Theory (
 
             | By _, Leaf Bytes -> t
 
+            | I i, Leaf Timestamp -> Ts (TStampConv.int_to_tstamp i)
+            | N n, Leaf Timestamp -> Ts (
+                NatConv.nat_to_int n
+                |> TStampConv.int_to_tstamp
+            )
             | Ts _, Leaf Timestamp -> t
 
             | KeyH _, Leaf KeyH -> t
@@ -596,22 +601,6 @@ module Theory (
 
         go_down [] v
 
-    let cast (dtyp : Dtyp.t) (v : value) : value =
-        let bail_msg () =
-            asprintf "cannot cast value `%a` to type `%a`" fmt v Dtyp.fmt dtyp
-        in
-        match dtyp.typ, v with
-        | Dtyp.Leaf Dtyp.Key, C (Cmp.S s) ->
-            Key (Str.to_string s |> Key.of_native)
-        | Dtyp.Contract param, Contract (_, c) ->
-            if c.Mic.param = param then v else bail_msg () |> Exc.throw
-        | Dtyp.Leaf Dtyp.Unit, U -> v
-        | _ -> (
-            match v with
-            | C cmp -> C (Cmp.cast dtyp cmp)
-            | _ -> bail_msg () |> Exc.throw
-        )
-
     module Of = struct
         let int (i : Int.t) : value = C (Cmp.I i)
         let nat (i : Nat.t) : value = C (Cmp.N i)
@@ -648,28 +637,48 @@ module Theory (
 
         let contract (a : Address.t) (c : Mic.contract) : value = Contract (Some a, c)
 
+        type constructor = value -> value
+        type list_constructor = value list -> value
+        type frame =
+        | Con of constructor
+        (* A simple constructor. Takes a value and produces a value. *)
+        | LstCon of list_constructor * Mic.const list * value list
+        (* List constructor, constant to transpose, values already processed in reverse order. *)
+
         let const (c : Mic.const) : value =
-            let rec go_down (stack : (value -> value) list) (c : Mic.const) : value =
+            let rec go_down (stack : frame list) (c : Mic.const) : value =
                 match c with
-                | U -> U
+                | Mic.U -> U
 
-                | Bool b -> C (Cmp.B b) |> go_up stack
-                | Int i -> C (Cmp.I (Cmp.Int.of_string i)) |> go_up stack
-                | Str s -> C (Cmp.S (Cmp.Str.of_native s)) |> go_up stack
-                | Bytes by -> C (Cmp.By (Cmp.Bytes.of_native by)) |> go_up stack
+                | Mic.Bool b -> C (Cmp.B b) |> go_up stack
+                | Mic.Int i -> C (Cmp.I (Cmp.Int.of_string i)) |> go_up stack
+                | Mic.Str s -> C (Cmp.S (Cmp.Str.of_native s)) |> go_up stack
+                | Mic.Bytes by -> C (Cmp.By (Cmp.Bytes.of_native by)) |> go_up stack
 
-                | Cont c -> Contract (None, c)
+                | Mic.Cont c -> Contract (None, c)
 
-                | No -> Option None |> go_up stack
+                | Mic.No -> Option None |> go_up stack
 
-                | So c -> go_down ((fun v -> Option (Some v)) :: stack) c
-                | Lft c -> go_down ((fun v -> Either (Either.Lft v)) :: stack) c
-                | Rgt c -> go_down ((fun v -> Either (Either.Rgt v)) :: stack) c
+                | Mic.So c -> go_down (Con (fun v -> Option (Some v)) :: stack) c
+                | Mic.Lft c -> go_down (Con (fun v -> Either (Either.Lft v)) :: stack) c
+                | Mic.Rgt c -> go_down (Con (fun v -> Either (Either.Rgt v)) :: stack) c
 
-            and go_up (stack : (value -> value) list) (v : value) : value =
+                | Mic.Lst (hd :: tl) ->
+                    let frame =
+                        LstCon ((fun lst -> Lst (Lst.of_list lst)), tl, [])
+                    in
+                    go_down (frame :: stack) hd
+                | Mic.Lst [] -> Lst (Lst.of_list [])
+
+            and go_up (stack : frame list) (v : value) : value =
                 match stack with
                 | [] -> v
-                | constructor :: stack -> constructor v |> go_up stack
+                | (Con constructor) :: stack -> constructor v |> go_up stack
+                | (LstCon (constructor, [], tail)) :: stack ->
+                    v :: tail |> List.rev |> constructor |> go_up stack
+                | (LstCon (constructor, cst :: cst_tail, values)) ::  stack ->
+                    let stack = (LstCon (constructor, cst_tail, v :: values)) :: stack in
+                    go_down stack cst
             in
             go_down [] c
 
@@ -732,6 +741,30 @@ module Theory (
             | Map map -> map
             | _ -> asprintf "expected a map value, found `%a`" fmt v |> Exc.throw
     end
+
+    (*  # TODO
+
+        - stackless
+    *)
+    let rec cast (dtyp : Dtyp.t) (v : value) : value =
+        let bail_msg () =
+            asprintf "cannot cast value `%a` to type `%a`" fmt v Dtyp.fmt dtyp
+        in
+        match dtyp.typ, v with
+        | Dtyp.Leaf Dtyp.Key, C (Cmp.S s) ->
+            Key (Str.to_string s |> Key.of_native)
+        | Dtyp.Contract param, Contract (_, c) ->
+            if c.Mic.param = param then v else bail_msg () |> Exc.throw
+        | Dtyp.Leaf Dtyp.Unit, U -> v
+        | Dtyp.List sub, Lst l ->
+            (fun () -> l |> List.map (cast sub))
+            |> Exc.chain_err bail_msg
+            |> Of.list
+        | _ -> (
+            match v with
+            | C cmp -> C (Cmp.cast dtyp cmp)
+            | _ -> bail_msg () |> Exc.throw
+        )
 
     let cons (head : value) (tail : value) : value =
         let tail = Inspect.list tail in

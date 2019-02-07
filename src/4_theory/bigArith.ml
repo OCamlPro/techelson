@@ -88,6 +88,7 @@ module NaiveTStampConv = struct
     type t_stamp = Naive.TStamp.t
     type int = BInt.t
 
+    let int_to_tstamp (i : int) : t_stamp = (BInt.to_native i) * 100
     let add (t : t_stamp) (i : int) : t_stamp =
         let i = BInt.to_native i in
         t + (i * 100)
@@ -98,6 +99,31 @@ module NaiveTStampConv = struct
         t_1 - t_2 |> BInt.of_native
 end
 
+module BTStamp = struct
+    type t = BInt.t
+
+    let now () : t = BInt.zero
+
+    let to_string (t : t) : string = BInt.to_string t
+    let of_native (s : string) : t = BInt.of_string s
+    let compare (t_1 : t) (t_2 : t) : int = BInt.compare t_1 t_2
+    let fmt (fmt : formatter) (t : t) : unit = BInt.fmt fmt t
+end
+
+
+module BTStampConv = struct
+    type t_stamp = BTStamp.t
+    type int = BInt.t
+
+    let int_to_tstamp (i : int) : t_stamp = i
+    let add (t : t_stamp) (i : int) : t_stamp =
+        BInt.add t i
+    let sub_int (t : t_stamp) (i : int) : t_stamp =
+        BInt.sub t i
+    let sub (t_1 : t_stamp) (t_2 : t_stamp) : int =
+        BInt.sub t_1 t_2
+end
+
 module BigNaivePrimitive = struct
     module Int = BInt
     module Nat = BNat
@@ -106,8 +132,8 @@ module BigNaivePrimitive = struct
     module StrConv = NaiveStrConv
     module Bytes = Naive.Bytes
     module BytesConv = NaiveStrConv
-    module TStamp = Naive.TStamp
-    module TStampConv = NaiveTStampConv
+    module TStamp = BTStamp
+    module TStampConv = BTStampConv
     module Key = Naive.Key
     module KeyH = Naive.KeyH
     module KeyHConv = Naive.KeyHConv

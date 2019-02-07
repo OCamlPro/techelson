@@ -53,7 +53,7 @@ let key (dtyp : Dtyp.t) : Mic.t =
     Mic.Push (dtyp, Const.key ()) |> Mic.mk
 
 let timestamp (dtyp : Dtyp.t) : Mic.t =
-    Mic.Push (dtyp, Const.string ()) |> Mic.mk
+    Mic.Push (dtyp, Const.int ()) |> Mic.mk
 
 let hash () : Mic.t =
     Mic.Hash (

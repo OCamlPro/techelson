@@ -17,6 +17,12 @@ module NaiveTStampConv : Sigs.TStampConv with
     type t_stamp = Naive.TStamp.t and
     type int = BInt.t
 
+module BTStamp : Sigs.TStamp
+
+module BTStampConv : Sigs.TStampConv with
+    type t_stamp = BTStamp.t and
+    type int = BInt.t
+
 module BigNaivePrimitive : Sigs.Primitive
 
 module Theory : Sigs.Theory

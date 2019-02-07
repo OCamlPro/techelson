@@ -1,9 +1,0 @@
-parameter int;
-storage (or int string);
-code { DUP ;
-       DIP { CDR @storage_slash_1 } ;
-       DIP { DROP } ;
-       CAR @parameter_slash_2 ;
-       LEFT @a string ;
-       NIL operation ;
-       PAIR };

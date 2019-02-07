@@ -68,9 +68,9 @@ let rec handle_events (stack : Cxt.Run.Stack.t) (events : Cxt.event list) : bool
 let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
     Tests.get_tests cxt |> Lst.fold (
         fun (err_count : int) (test : Testcase.t) ->
-            log_0 "Running test `%s`@.@." test.name;
+            log_0 "@.Running test `%s`@." test.name;
             if conf.step then (
-                log_0 "press enter to continue@.";
+                log_0 "@.press enter to continue@.";
                 input_line stdin |> ignore;
             );
             let cxt = Cxt.init (Tests.get_contracts cxt) test in

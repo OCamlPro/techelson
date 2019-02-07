@@ -418,7 +418,6 @@ module Interpreter (
 
                     | Mic.If (mic_then, mic_else) -> (
                         let cond, _ = Stack.Pop.bool self.stack in
-                        log_0 "cond: %b@." cond;
                         (* Remember whatever next instructions there is. *)
                         push_block (Nop (mic, self.next)) self;
                         (* Which branch are we in? *)

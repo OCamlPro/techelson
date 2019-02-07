@@ -400,6 +400,8 @@ and const =
 | No
 | So of const
 
+| Lst of const list
+
 and contract = {
     storage : Dtyp.t ;
     param : Dtyp.t ;
@@ -518,7 +520,12 @@ let rec fmt_contract (fmtt : formatter) ({ storage ; param ; entry } : contract)
         fmtt "@[@[<v 4>{@ storage %a ;@ parameter %a ;@ code @[%a@] ;@]@,}@]"
         Dtyp.fmt storage Dtyp.fmt param fmt entry
 
-(* Formats constants. *)
+(*  Formats constants.
+
+    # TODO
+
+    - stackless
+*)
 and fmt_const (fmtt : formatter) (c : const) : unit =
     match c with
     | U -> fprintf fmtt "Unit"
@@ -531,6 +538,11 @@ and fmt_const (fmtt : formatter) (c : const) : unit =
     | Rgt c -> fprintf fmtt "(Right %a)" fmt_const c
     | No -> fprintf fmtt "None"
     | So c -> fprintf fmtt "(Some %a)" fmt_const c
+    | Lst l -> (
+        fprintf fmtt "{";
+        l |> List.iter (fprintf fmtt " %a ;" fmt_const);
+        fprintf fmtt "}"
+    )
 
 (* Formats instructions.
 
