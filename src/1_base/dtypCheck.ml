@@ -164,11 +164,17 @@ let unify (cxt : t) (t_1 : Dtyp.t) (t_2 : Dtyp.t) : unit =
                     asprintf "cannot unify %a and %a" Dtyp.fmt t_1 Dtyp.fmt t_2
                     |> Exc.throw
             in
+
             loop to_do
         )
     in
 
-    (fun () -> loop [ t_1, t_2 ])
+    (fun () ->
+        try loop [ t_1, t_2 ] with
+        | e -> (
+            try loop [ t_2, t_1 ] with _ -> raise e
+        )
+    )
     |> Exc.chain_err (
         fun () -> asprintf "while unifying %a and %a" Dtyp.fmt t_1 Dtyp.fmt t_2
     )

@@ -73,7 +73,7 @@
 %token C_UNIT
 %token <bool> C_BOOL
 %token <string> C_INT C_STR C_BYTES
-%token C_NONE C_SOME C_LEFT C_RIGHT
+%token C_NONE C_SOME C_LEFT C_RIGHT C_PAIR
 
 (* Tokens for instructions. *)
 %token
@@ -615,6 +615,13 @@ const :
     ; c = const
     ; CPAR {
         Mic.Rgt c
+    }
+    | OPAR
+    ; C_PAIR
+    ; fst = const
+    ; snd = const
+    ; CPAR {
+        Mic.Pr (fst, snd)
     }
 
     | OCURL

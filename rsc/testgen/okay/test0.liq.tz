@@ -1,8 +1,0 @@
-parameter timestamp;
-storage
-  (pair string
-        (pair timestamp
-              (pair (pair mutez mutez)
-                    (pair (contract :UnitContract unit)
-                          (pair (contract :UnitContract unit) (contract :UnitContract unit))))));
-code { CDR @storage_slash_1 ; NIL operation ; PAIR };

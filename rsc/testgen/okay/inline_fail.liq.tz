@@ -1,8 +1,0 @@
-parameter unit;
-storage unit;
-code { DUP ;
-       DIP { CDR @s_slash_1 } ;
-       CAR @__slash_2 ;
-       PUSH int 1 ;
-       DUP @x ;
-       FAILWITH };

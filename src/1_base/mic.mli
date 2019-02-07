@@ -183,6 +183,7 @@ and const =
 | No
 | So of const
 
+| Pr of const * const
 | Lst of const list
 
 and contract = {

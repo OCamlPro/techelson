@@ -643,7 +643,11 @@ module Theory (
         | Con of constructor
         (* A simple constructor. Takes a value and produces a value. *)
         | LstCon of list_constructor * Mic.const list * value list
-        (* List constructor, constant to transpose, values already processed in reverse order. *)
+        (* Constructs a value from a list.
+
+            First is the constructor, then the constants to transpose, values already processed in
+            reverse order.
+        *)
 
         let const (c : Mic.const) : value =
             let rec go_down (stack : frame list) (c : Mic.const) : value =
@@ -669,6 +673,33 @@ module Theory (
                     in
                     go_down (frame :: stack) hd
                 | Mic.Lst [] -> Lst (Lst.of_list [])
+
+                | Mic.Pr (fst, snd) ->
+                    let frame =
+                        (fun () ->
+                            LstCon (
+                                (function
+                                    | [ fst ; snd ] -> pair fst snd
+                                    | l ->
+                                        List.length l
+                                        |> sprintf "\
+                                            expected list of two elements for pair constructor, \
+                                            found %i\
+                                        "
+                                        |> Exc.throw
+                                ),
+                                [snd],
+                                []
+                            )
+                        )
+                        |> Exc.chain_err (
+                            fun () ->
+                                asprintf
+                                    "internal error while constructing value from %a"
+                                    Mic.fmt_const c
+                        )
+                    in
+                    go_down (frame :: stack) fst
 
             and go_up (stack : frame list) (v : value) : value =
                 match stack with
@@ -760,6 +791,20 @@ module Theory (
             (fun () -> l |> List.map (cast sub))
             |> Exc.chain_err bail_msg
             |> Of.list
+        | Dtyp.Or (lft, _), Either (Either.Lft v) ->
+            (fun () -> Either (Either.Lft (cast lft.inner v)))
+            |> Exc.chain_err bail_msg
+        | Dtyp.Or (_, rgt), Either (Either.Rgt v) ->
+            (fun () -> Either (Either.Rgt (cast rgt.inner v)))
+            |> Exc.chain_err bail_msg
+        | Dtyp.Pair (lft, rgt), Pair (l, r) ->
+            (
+                fun () ->
+                    let lft = cast lft.inner l in
+                    let rgt = cast rgt.inner r in
+                    Pair (lft, rgt)
+            )
+            |> Exc.chain_err bail_msg
         | _ -> (
             match v with
             | C cmp -> C (Cmp.cast dtyp cmp)

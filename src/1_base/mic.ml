@@ -400,6 +400,7 @@ and const =
 | No
 | So of const
 
+| Pr of const * const
 | Lst of const list
 
 and contract = {
@@ -538,6 +539,7 @@ and fmt_const (fmtt : formatter) (c : const) : unit =
     | Rgt c -> fprintf fmtt "(Right %a)" fmt_const c
     | No -> fprintf fmtt "None"
     | So c -> fprintf fmtt "(Some %a)" fmt_const c
+    | Pr (fst, snd) -> fprintf fmtt "(Pair %a %a)" fmt_const fst fmt_const snd
     | Lst l -> (
         fprintf fmtt "{";
         l |> List.iter (fprintf fmtt " %a ;" fmt_const);

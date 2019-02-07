@@ -49,7 +49,7 @@ let handle_event (stack : Cxt.Run.Stack.t) (event : Cxt.event) : bool =
         false
     )
     | Cxt.Run.Failure (value, dtyp) -> (
-        asprintf "on value %a : %a" Cxt.Theory.fmt value Dtyp.fmt dtyp
+        asprintf "%a : %a" Cxt.Theory.fmt value Dtyp.fmt dtyp
         |> Exc.Throw.failure
     )
 (* Returns true if the last event is `Done`. *)
