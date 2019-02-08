@@ -1,0 +1,9 @@
+parameter key;
+storage key_hash;
+code { DUP ;
+       DIP { CDR @storage_slash_1 } ;
+       DIP { DROP } ;
+       CAR @parameter_slash_2 ;
+       HASH_KEY ;
+       NIL operation ;
+       PAIR };

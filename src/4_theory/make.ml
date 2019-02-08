@@ -504,23 +504,27 @@ module Theory (
                 go_up stack
 
             | Set set ->
-                fprintf fmt "Set {";
-                let _, elms =
+                fprintf fmt "AASet {";
+                let elms =
                     Set.fold (
                         fun (is_first, acc) value ->
                             let pref = if is_first then " " else ", " in
                             false, (pref, C value) :: acc
                     ) (true, []) set
+                    |> snd
+                    |> List.rev
                 in
                 go_up ((elms, " }") :: stack)
             | Map map ->
                 fprintf fmt "Map {";
-                let _, elms =
+                let elms =
                     Map.fold (
                         fun (is_first, acc) key value ->
                             let pref = if is_first then " " else ", " in
                             false, (pref, C key) :: (" -> ", value) :: acc
                     ) (true, []) map
+                    |> snd
+                    |> List.rev
                 in
                 go_up ((elms, " }") :: stack)
             | BigMap map ->
@@ -1026,7 +1030,7 @@ module Theory (
                 rem_dtyp |> Dtyp.mk_named None
             ) |> Dtyp.mk
         in
-        let value =
+        let value () =
             Int.ediv i_1 i_2 |> Opt.map (
                 fun (div, rem) ->
                     let div, rem = f_div div, f_rem rem in
@@ -1034,6 +1038,8 @@ module Theory (
             )
             |> Of.option
         in
+
+        let value = value |> Exc.catch_fail in
         let dtyp = Dtyp.Option (Dtyp.mk_named None dtyp) |> Dtyp.mk in
         value, dtyp
 

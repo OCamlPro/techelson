@@ -11,8 +11,18 @@ module Const = struct
         Mic.Str (Rng.string ())
     let bytes () : Mic.const =
         Mic.Bytes (Rng.string ())
+
+    let int64_10000 = Int64.of_int 10000
     let mutez () : Mic.const =
-        Mic.Int (Rng.int64 () |> Int64.to_string)
+        let int64 = Rng.int64 () in
+        let int64 =
+            if Int64.compare int64 int64_10000 > 0 then
+                Int64.div int64 int64_10000
+            else
+                int64
+        in
+        Mic.Int (Int64.to_string int64)
+
     let key () : Mic.const =
         Mic.Str (Rng.key ())
 

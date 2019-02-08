@@ -1,0 +1,375 @@
+{
+  # deploying contract `Test_closure3`
+  {
+    # creating contract creation parameters
+    {
+      # creating storage for contract `Test_closure3`
+      {
+        PUSH int 618646678424832431127 ;
+        NEG
+      } ;
+      # money transferred
+      PUSH mutez 373370003117868 ;
+      # delegatable
+      PUSH bool False ;
+      # spendable
+      PUSH bool False ;
+      # delegate
+      {
+        PUSH key "c" ;
+        HASH_KEY ;
+        SOME
+      } ;
+      # manager
+      {
+        PUSH key "7aa17" ;
+        HASH_KEY
+      }
+    } ;
+    CREATE_CONTRACT "Test_closure3"
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT int ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_closure3`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 62533131651608 ;
+    PUSH int 30274 ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT int ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_closure3`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 111230498175141 ;
+    {
+      PUSH int 1513536255 ;
+      NEG
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT int ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_closure3`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 170793564929942 ;
+    PUSH int 813778885862314754864765320182 ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT int ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_closure3`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 371233863502297 ;
+    PUSH int 0 ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT int ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_closure3`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 148250797875661 ;
+    {
+      PUSH int 158385480641617615632440846206136852746 ;
+      NEG
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT int ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_closure3`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 385064585006229 ;
+    PUSH int 23272867068055082557 ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT int ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_closure3`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 795609106145035 ;
+    {
+      PUSH int 605723134 ;
+      NEG
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT int ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_closure3`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 652651605405978 ;
+    PUSH int 22480274071 ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT int ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_closure3`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 402413745332472 ;
+    PUSH int 4340 ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT int ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_closure3`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 257396242905287 ;
+    PUSH int 673754 ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT int ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_closure3`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 44433519548716 ;
+    PUSH int 5770 ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT int ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_closure3`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 103998164291350 ;
+    {
+      PUSH int 57140785734464446706833671 ;
+      NEG
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT int ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_closure3`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 612735983477378 ;
+    PUSH int 0 ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT int ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_closure3`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 400664494357562 ;
+    {
+      PUSH int 7 ;
+      NEG
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  }
+}

@@ -1,0 +1,245 @@
+{
+  # deploying contract `Test32`
+  {
+    # creating contract creation parameters
+    {
+      # creating storage for contract `Test32`
+      PUSH int 7320 ;
+      # money transferred
+      PUSH mutez 174150438270021 ;
+      # delegatable
+      PUSH bool False ;
+      # spendable
+      PUSH bool False ;
+      # delegate
+      {
+        PUSH key "" ;
+        BLAKE2B ;
+        SOME
+      } ;
+      # manager
+      {
+        PUSH key "" ;
+        SHA256
+      }
+    } ;
+    CREATE_CONTRACT "Test32"
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (or :t (int %A) (pair %B int (pair (pair bool unit) nat))) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test32`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 45356864082817 ;
+    {
+      PUSH nat 28101 ;
+      PUSH unit Unit ;
+      PUSH bool True ;
+      PAIR ;
+      PAIR ;
+      PUSH int 118 ;
+      PAIR ;
+      RIGHT int ;
+      RENAME :t
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (or :t (int %A) (pair %B int (pair (pair bool unit) nat))) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test32`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 513981437040090 ;
+    {
+      PUSH int 70 ;
+      LEFT (pair int (pair (pair bool unit) nat)) ;
+      RENAME :t
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (or :t (int %A) (pair %B int (pair (pair bool unit) nat))) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test32`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 883487091124162 ;
+    {
+      {
+        PUSH int 788166 ;
+        NEG
+      } ;
+      LEFT (pair int (pair (pair bool unit) nat)) ;
+      RENAME :t
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (or :t (int %A) (pair %B int (pair (pair bool unit) nat))) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test32`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 114591290301992 ;
+    {
+      PUSH int 505613140117436 ;
+      LEFT (pair int (pair (pair bool unit) nat)) ;
+      RENAME :t
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (or :t (int %A) (pair %B int (pair (pair bool unit) nat))) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test32`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 484753222395718 ;
+    {
+      {
+        PUSH int 3 ;
+        NEG
+      } ;
+      LEFT (pair int (pair (pair bool unit) nat)) ;
+      RENAME :t
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (or :t (int %A) (pair %B int (pair (pair bool unit) nat))) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test32`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 831527344084324 ;
+    {
+      PUSH int 4302 ;
+      LEFT (pair int (pair (pair bool unit) nat)) ;
+      RENAME :t
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (or :t (int %A) (pair %B int (pair (pair bool unit) nat))) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test32`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 669061467806008 ;
+    {
+      PUSH nat 3487188225746005731273735262 ;
+      PUSH unit Unit ;
+      PUSH bool True ;
+      PAIR ;
+      PAIR ;
+      {
+        PUSH int 803 ;
+        NEG
+      } ;
+      PAIR ;
+      RIGHT int ;
+      RENAME :t
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  }
+}

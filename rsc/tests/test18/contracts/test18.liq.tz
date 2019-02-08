@@ -1,0 +1,17 @@
+parameter int;
+storage (pair int nat);
+code { DUP ;
+       DIP { CDR @storage_slash_1 } ;
+       CAR @parameter_slash_2 ;
+       DUP @parameter ;
+       DUUUP @storage ;
+       CDR ;
+       INT ;
+       EDIV ;
+       IF_NONE
+         { PUSH (pair int nat) (Pair 0 0) }
+         { DUP @res ; CDR ; SWAP ; CAR ; PAIR } ;
+       DIP { DROP ; DROP } ;
+       RENAME @s ;
+       NIL operation ;
+       PAIR };

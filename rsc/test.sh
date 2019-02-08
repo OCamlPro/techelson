@@ -73,6 +73,7 @@ function fmt_run {
         echo
         echo "        exit code: $fmt_running_exit_code (expected $expected)"
         echo "        command: \"$fmt_running_cmd\""
+        exit 2
     fi
 }
 

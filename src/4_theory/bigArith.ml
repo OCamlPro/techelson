@@ -58,11 +58,13 @@ module BNatConv = struct
             try (
                 let q, r = Z.div_rem i_1 i_2 in
                 let q, r =
-                    if Z.lt r Z.zero && Z.geq q Z.zero then
+                    if Z.lt r Z.zero && Z.geq q Z.zero then (
                         Z.add q Z.one, Z.sub r i_2
-                    else if Z.lt r Z.zero && Z.lt q Z.zero then
+                    ) else if Z.lt r Z.zero && Z.lt q Z.zero then (
                         Z.sub q Z.one, Z.add r i_2
-                    else Z.sub q Z.one, Z.add i_2 r
+                    ) else (
+                        q, r
+                    )
                 in
                 Some (q, r)
             ) with

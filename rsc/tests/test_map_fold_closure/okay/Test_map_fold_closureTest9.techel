@@ -1,0 +1,62 @@
+{
+  # deploying contract `Test_map_fold_closure`
+  {
+    # creating contract creation parameters
+    {
+      # creating storage for contract `Test_map_fold_closure`
+      {
+        EMPTY_MAP string bool ;
+        PUSH bool True ;
+        PAIR
+      } ;
+      # money transferred
+      PUSH mutez 202313723986090 ;
+      # delegatable
+      PUSH bool True ;
+      # spendable
+      PUSH bool True ;
+      # delegate
+      {
+        PUSH key "108" ;
+        BLAKE2B ;
+        SOME
+      } ;
+      # manager
+      {
+        PUSH key "" ;
+        HASH_KEY
+      }
+    } ;
+    CREATE_CONTRACT "Test_map_fold_closure"
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (map string mutez) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_map_fold_closure`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 232799044423221 ;
+    EMPTY_MAP string mutez ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  }
+}

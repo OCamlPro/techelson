@@ -1,0 +1,3 @@
+parameter int;
+storage int;
+code { DROP ; PUSH int 0 ; NIL operation ; PAIR };

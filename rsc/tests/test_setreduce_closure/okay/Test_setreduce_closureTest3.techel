@@ -1,0 +1,265 @@
+{
+  # deploying contract `Test_setreduce_closure`
+  {
+    # creating contract creation parameters
+    {
+      # creating storage for contract `Test_setreduce_closure`
+      PUSH bool False ;
+      # money transferred
+      PUSH mutez 108207323144286 ;
+      # delegatable
+      PUSH bool False ;
+      # spendable
+      PUSH bool True ;
+      # delegate
+      {
+        PUSH key "4fcacef" ;
+        HASH_KEY ;
+        SOME
+      } ;
+      # manager
+      {
+        PUSH key "" ;
+        HASH_KEY
+      }
+    } ;
+    CREATE_CONTRACT "Test_setreduce_closure"
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (set mutez) ;
+      IF_NONE {
+                PUSH string
+                     "unable to spawn contract `Test_setreduce_closure`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 705344611142311 ;
+    {
+      EMPTY_SET mutez ;
+      PUSH bool True ;
+      PUSH mutez 790081599636768 ;
+      UPDATE ;
+      PUSH bool True ;
+      PUSH mutez 543252665208295 ;
+      UPDATE ;
+      PUSH bool True ;
+      PUSH mutez 206086407581280 ;
+      UPDATE ;
+      PUSH bool True ;
+      PUSH mutez 811211477424330 ;
+      UPDATE ;
+      PUSH bool True ;
+      PUSH mutez 162212869377244 ;
+      UPDATE ;
+      PUSH bool True ;
+      PUSH mutez 729752929570284 ;
+      UPDATE ;
+      PUSH bool True ;
+      PUSH mutez 812523915759621 ;
+      UPDATE ;
+      PUSH bool True ;
+      PUSH mutez 114590201266603 ;
+      UPDATE ;
+      PUSH bool True ;
+      PUSH mutez 596869000303779 ;
+      UPDATE
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (set mutez) ;
+      IF_NONE {
+                PUSH string
+                     "unable to spawn contract `Test_setreduce_closure`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 263521395198012 ;
+    {
+      EMPTY_SET mutez ;
+      PUSH bool True ;
+      PUSH mutez 579016869128954 ;
+      UPDATE ;
+      PUSH bool True ;
+      PUSH mutez 782180100515286 ;
+      UPDATE ;
+      PUSH bool True ;
+      PUSH mutez 182579734089463 ;
+      UPDATE ;
+      PUSH bool True ;
+      PUSH mutez 133773353033535 ;
+      UPDATE
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (set mutez) ;
+      IF_NONE {
+                PUSH string
+                     "unable to spawn contract `Test_setreduce_closure`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 214844343063295 ;
+    EMPTY_SET mutez ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (set mutez) ;
+      IF_NONE {
+                PUSH string
+                     "unable to spawn contract `Test_setreduce_closure`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 203126066602574 ;
+    {
+      EMPTY_SET mutez ;
+      PUSH bool True ;
+      PUSH mutez 344709211196139 ;
+      UPDATE ;
+      PUSH bool True ;
+      PUSH mutez 726544481870995 ;
+      UPDATE ;
+      PUSH bool True ;
+      PUSH mutez 88238137825458 ;
+      UPDATE ;
+      PUSH bool True ;
+      PUSH mutez 374907829257465 ;
+      UPDATE ;
+      PUSH bool True ;
+      PUSH mutez 210217438571381 ;
+      UPDATE ;
+      PUSH bool True ;
+      PUSH mutez 595979576966245 ;
+      UPDATE
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (set mutez) ;
+      IF_NONE {
+                PUSH string
+                     "unable to spawn contract `Test_setreduce_closure`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 274008610540239 ;
+    EMPTY_SET mutez ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (set mutez) ;
+      IF_NONE {
+                PUSH string
+                     "unable to spawn contract `Test_setreduce_closure`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 415312437396834 ;
+    {
+      EMPTY_SET mutez ;
+      PUSH bool True ;
+      PUSH mutez 770373929708720 ;
+      UPDATE ;
+      PUSH bool True ;
+      PUSH mutez 849003443402205 ;
+      UPDATE ;
+      PUSH bool True ;
+      PUSH mutez 26751584292315 ;
+      UPDATE ;
+      PUSH bool True ;
+      PUSH mutez 147573186495861 ;
+      UPDATE ;
+      PUSH bool True ;
+      PUSH mutez 571840962665812 ;
+      UPDATE ;
+      PUSH bool True ;
+      PUSH mutez 302522829093236 ;
+      UPDATE ;
+      PUSH bool True ;
+      PUSH mutez 717898077724786 ;
+      UPDATE
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  }
+}

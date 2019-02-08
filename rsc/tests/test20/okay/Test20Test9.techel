@@ -1,0 +1,67 @@
+{
+  # deploying contract `Test20`
+  {
+    # creating contract creation parameters
+    {
+      # creating storage for contract `Test20`
+      {
+        PUSH bool True ;
+        PUSH unit Unit ;
+        PUSH nat 144007277036504131875845371557081646471584454601372 ;
+        PAIR ;
+        PAIR ;
+        {
+          PUSH int 5623263 ;
+          NEG
+        } ;
+        PAIR ;
+        PUSH mutez 538546655410461 ;
+        PAIR
+      } ;
+      # money transferred
+      PUSH mutez 782584653530459 ;
+      # delegatable
+      PUSH bool True ;
+      # spendable
+      PUSH bool False ;
+      # delegate
+      NONE key_hash ;
+      # manager
+      {
+        PUSH key "fb7fdeea9" ;
+        BLAKE2B
+      }
+    } ;
+    CREATE_CONTRACT "Test20"
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT unit ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test20`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 483314725523520 ;
+    PUSH unit Unit ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  }
+}

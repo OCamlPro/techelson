@@ -1,0 +1,81 @@
+{
+  # deploying contract `Test_closure`
+  {
+    # creating contract creation parameters
+    {
+      # creating storage for contract `Test_closure`
+      PUSH int 60 ;
+      # money transferred
+      PUSH mutez 103979900581545 ;
+      # delegatable
+      PUSH bool True ;
+      # spendable
+      PUSH bool True ;
+      # delegate
+      NONE key_hash ;
+      # manager
+      {
+        PUSH key "e" ;
+        HASH_KEY
+      }
+    } ;
+    CREATE_CONTRACT "Test_closure"
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT int ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_closure`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 538546655410461 ;
+    {
+      PUSH int 53263 ;
+      NEG
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT int ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_closure`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 37163922062894 ;
+    PUSH int
+         44248134803777748244007277036504131875845371557081646471584454601372 ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  }
+}
