@@ -242,10 +242,9 @@ let catch_exn (f : unit -> 'a) : ('a, exn) Either.t =
 let catch_protocol_exn (f : unit -> 'a) : ('a, Exc.Protocol.t) Either.t =
     try f () |> Either.lft with
     | e -> (
-        log_0 "exn@.";
         match Exc.get_protocol e with
-        | Some e -> (log_0 "exc@." ; Either.rgt e)
-        | None -> (log_0 "raising@." ; raise e)
+        | Some e -> Either.rgt e
+        | None -> raise e
     )
 
 let catch_internal_exn (f : unit -> 'a) : ('a, Exc.Internal.t) Either.t =
