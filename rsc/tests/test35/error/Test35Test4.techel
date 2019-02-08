@@ -1,0 +1,228 @@
+{
+  # deploying contract `Test35`
+  {
+    # creating contract creation parameters
+    {
+      # creating storage for contract `Test35`
+      PUSH int 18 ;
+      # money transferred
+      PUSH mutez 494348037370066 ;
+      # delegatable
+      PUSH bool True ;
+      # spendable
+      PUSH bool True ;
+      # delegate
+      {
+        PUSH key "" ;
+        BLAKE2B ;
+        SOME
+      } ;
+      # manager
+      {
+        PUSH key "" ;
+        BLAKE2B
+      }
+    } ;
+    CREATE_CONTRACT "Test35"
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (or :t (unit %A) (or (unit %B) (unit %C))) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test35`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 528212207636639 ;
+    {
+      PUSH unit Unit ;
+      LEFT (or (unit %B) (unit %C)) ;
+      RENAME :t
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (or :t (unit %A) (or (unit %B) (unit %C))) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test35`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 749016662872158 ;
+    {
+      PUSH unit Unit ;
+      RIGHT unit ;
+      RIGHT unit ;
+      RENAME :t
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (or :t (unit %A) (or (unit %B) (unit %C))) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test35`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 912579197303894 ;
+    {
+      PUSH unit Unit ;
+      RIGHT unit ;
+      RIGHT unit ;
+      RENAME :t
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (or :t (unit %A) (or (unit %B) (unit %C))) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test35`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 849003443402205 ;
+    {
+      PUSH unit Unit ;
+      LEFT (or (unit %B) (unit %C)) ;
+      RENAME :t
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (or :t (unit %A) (or (unit %B) (unit %C))) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test35`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 499179692878089 ;
+    {
+      PUSH unit Unit ;
+      RIGHT unit ;
+      RIGHT unit ;
+      RENAME :t
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (or :t (unit %A) (or (unit %B) (unit %C))) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test35`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 248765687729988 ;
+    {
+      PUSH unit Unit ;
+      LEFT (or (unit %B) (unit %C)) ;
+      RENAME :t
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (or :t (unit %A) (or (unit %B) (unit %C))) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test35`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 358302862800558 ;
+    {
+      PUSH unit Unit ;
+      RIGHT unit ;
+      RIGHT unit ;
+      RENAME :t
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  }
+}

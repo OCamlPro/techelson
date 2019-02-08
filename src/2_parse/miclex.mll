@@ -219,6 +219,7 @@ rule token = parse
 | '%' { PERANNOT (Base.Annot.Field.of_string "") }
 
 | ['0'-'9']+ as str { C_INT str }
+| "-" ['0'-'9']+ as str { C_INT str }
 | "0x" (['0'-'9' 'A'-'Z' 'a'-'z']+ as bytes) {
     C_BYTES bytes
 }
