@@ -47,7 +47,7 @@ module type ContractEnv = sig
         *)
         val must_fail :
             t ->
-            Theory.value option ->
+            (Theory.value * Dtyp.t) option ->
             operation ->
             Theory.value
 

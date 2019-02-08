@@ -130,7 +130,7 @@ module Interpreter (
         mutable src : Src.t ;
         mutable balance : Theory.Tez.t ;
         amount : Theory.Tez.t ;
-        env : Env.t ;
+        mutable env : Env.t ;
     }
 
     let unify (self : t) (dtyp_1 : Dtyp.t) (dtyp_2 : Dtyp.t) : unit =
@@ -139,6 +139,9 @@ module Interpreter (
     let balance (self : t) : Theory.Tez.t = self.balance
 
     let contract_env (self : t) : Env.t = self.env
+
+    let set_contract_env (env: Env.t) (self : t) : unit =
+        self.env <- env
 
     let push_block (block : block_end) (self : t) : unit =
         self.blocks <- block :: self.blocks
@@ -731,7 +734,7 @@ module Interpreter (
                         let binding = Lst.hd mic.vars in
                         let value, _ = Stack.pop self.stack in
                         let value = Theory.is_not_zero value in
-                        log_0 "value : %a" Theory.fmt value ;
+                        (* log_0 "value : %a" Theory.fmt value ; *)
                         let dtyp = Dtyp.Bool |> Dtyp.mk_leaf in
 
                         Stack.push ~binding dtyp value self.stack;
@@ -1421,7 +1424,13 @@ module Interpreter (
                         None
                     
                     | Mic.Extension Mic.MustFail ->
-                        let expected = Stack.Pop.option self.stack |> fst in
+                        let expected, expected_dtyp = Stack.Pop.option self.stack in
+                        let expected =
+                            expected |> Opt.map (
+                                fun v ->
+                                    v, Dtyp.Inspect.option expected_dtyp
+                            )
+                        in
                         let value =
                             Stack.Pop.operation self.stack
                             |> fst
@@ -1538,6 +1547,7 @@ module TestInterpreter (
     let testcase (self : t) : Testcase.t = self.tc
 
     let contract_env (self : t) : Env.t = self.interp |> Run.contract_env
+    let set_contract_env (env : Env.t) (self : t) = self.interp |> Run.set_contract_env env
 
     let is_done (self : t) : bool = Run.is_done self.interp
     let interp (self : t) : Run.t = self.interp

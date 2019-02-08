@@ -429,7 +429,7 @@ module Theory (
     }
 
     and operation =
-    | MustFail of value option * operation * int
+    | MustFail of (value * Dtyp.t) option * operation * int
     | Create of contract_params * Mic.contract
     | CreateNamed of contract_params * Contract.t
     | InitNamed of contract_params * value * string
@@ -466,7 +466,7 @@ module Theory (
             (
                 match value with
                 | None -> fprintf fmtt "_"
-                | Some v -> fmt fmtt v
+                | Some (v, t) -> fprintf fmtt "%a : %a" fmt v Dtyp.fmt t
             );
             fprintf fmtt " (%a)" (fmt_operation op_uid) operation
         | Create (params, contract) ->
@@ -747,7 +747,7 @@ module Theory (
                 Operation (uid, Transfer info)
             let must_fail
                 (uid : int)
-                (value : value option)
+                (value : (value * Dtyp.t) option)
                 (op, op_uid : operation * int)
                 : value
             =

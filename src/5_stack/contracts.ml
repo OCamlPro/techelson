@@ -181,7 +181,7 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
 
         let must_fail
             (env : t)
-            (expected : Theory.value option)
+            (expected : (Theory.value * Dtyp.t) option)
             (self : operation)
             : Theory.value
         =

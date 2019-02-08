@@ -123,6 +123,9 @@ module type Interpreter = sig
     (** Contract environment of an interpreter. *)
     val contract_env : t -> Env.t
 
+    (** Forces the value of the contract environment. *)
+    val set_contract_env : Env.t -> t -> unit
+
     (** Performs an interpretation step, return true if there are no more instructions to run.
 
         A step is not the same as "running a single instruction". A step can be, for instance,
@@ -203,6 +206,9 @@ module type TestInterpreter = sig
 
     (** Contract environment of an interpreter. *)
     val contract_env : t -> Env.t
+
+    (** Forces the value of the contract environment. *)
+    val set_contract_env : Env.t -> t -> unit
 
     (** Constructor. *)
     val mk : Src.t -> Testcase.t -> Env.t -> t
