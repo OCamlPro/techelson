@@ -942,6 +942,9 @@ module Interpreter (
                                 |> Exc.throw
                         in
                         let kdtyp, value_dtyp = Dtyp.Inspect.map map_dtyp in
+                        let value_dtyp =
+                            Dtyp.Option (value_dtyp |> Dtyp.mk_named None) |> Dtyp.mk
+                        in
                         Env.unify self.env kdtyp key_dtyp;
 
                         Stack.push ~binding value_dtyp value self.stack;

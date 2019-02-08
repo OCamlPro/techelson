@@ -523,7 +523,7 @@ module Theory (
                     Map.fold (
                         fun (is_first, acc) key value ->
                             let pref = if is_first then " " else ", " in
-                            false, (pref, C key) :: (" -> ", value) :: acc
+                            false, (" -> ", value) :: (pref, C key) :: acc
                     ) (true, []) map
                     |> snd
                     |> List.rev
@@ -531,12 +531,14 @@ module Theory (
                 go_up ((elms, " }") :: stack)
             | BigMap map ->
                 fprintf fmt "BigMap {";
-                let _, elms =
+                let elms =
                     Map.fold (
                         fun (is_first, acc) key value ->
                             let pref = if is_first then " " else ", " in
-                            false, (pref, C key) :: (" -> ", value) :: acc
+                            false, (" -> ", value) :: (pref, C key) :: acc
                     ) (true, []) map
+                    |> snd
+                    |> List.rev
                 in
                 go_up ((elms, " }") :: stack)
 
@@ -828,6 +830,24 @@ module Theory (
                     Pair (lft, rgt)
             )
             |> Exc.chain_err bail_msg
+        | Dtyp.Map (keys, values), Map map ->
+            Map (
+                map |> Map.fold (
+                    fun map key value ->
+                        let key = Of.cmp key |> cast keys in
+                        let value = cast values value in
+                        Map.update (Inspect.cmp key) (Some value) map
+                ) Map.empty
+            )
+        | Dtyp.BigMap (keys, values), Map map ->
+            Map (
+                map |> Map.fold (
+                    fun bigmap key value ->
+                        let key = Of.cmp key |> cast keys in
+                        let value = cast values value in
+                        BigMap.update (Inspect.cmp key) (Some value) bigmap
+                ) BigMap.empty
+            )
         | _ -> (
             match v with
             | C cmp -> C (Cmp.cast dtyp cmp)

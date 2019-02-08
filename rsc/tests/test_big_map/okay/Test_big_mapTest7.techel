@@ -1,0 +1,151 @@
+{
+  # deploying contract `Test_big_map`
+  {
+    # creating contract creation parameters
+    {
+      # creating storage for contract `Test_big_map`
+      {
+        NONE int ;
+        EMPTY_MAP string int ;
+        CAST (big_map string int) ;
+        PAIR
+      } ;
+      # money transferred
+      PUSH mutez 464797858311815 ;
+      # delegatable
+      PUSH bool True ;
+      # spendable
+      PUSH bool True ;
+      # delegate
+      NONE key_hash ;
+      # manager
+      {
+        PUSH key "b2da0dcccdd6" ;
+        HASH_KEY
+      }
+    } ;
+    CREATE_CONTRACT "Test_big_map"
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT string ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_big_map`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 10321326551201 ;
+    PUSH string "" ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT string ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_big_map`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 215463358187329 ;
+    PUSH string "" ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT string ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_big_map`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 123659861002290 ;
+    PUSH string "E" ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT string ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_big_map`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 383247432813501 ;
+    PUSH string "<VQ}&b8?r7)AIE8PX313S" ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT string ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_big_map`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 908521836144797 ;
+    PUSH string "" ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  }
+}

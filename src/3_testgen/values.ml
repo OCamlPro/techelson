@@ -88,6 +88,10 @@ let rename (dtyp : Dtyp.t) : Mic.t list =
         Mic.Rename |> Mic.mk_leaf ~typs:([alias])
     ]
 
+(** Issues a cast instruction. *)
+let cast (dtyp : Dtyp.t) : Mic.t list =
+    [Mic.Cast dtyp |> Mic.mk]
+
 let key_hash (dtyp : Dtyp.t) : Mic.t list =
     let push_key = key (Dtyp.Key |> Dtyp.mk_leaf) in
     let hash = hash () in
@@ -260,7 +264,7 @@ let from
             | Dtyp.BigMap (keys, vals) -> (
                 let val_opt = Dtyp.Option (Dtyp.mk_named None vals) |> Dtyp.mk in
                 let empty = [ Mic.EmptyMap (keys, vals) |> Mic.mk ] in
-                let suff = rename dtyp in
+                let suff = cast dtyp in
                 let add_one () : frame =
                     {
                         mic_pref = [] ;
