@@ -61,32 +61,32 @@ module Throw = struct
         Exc (Protocol (Protocol.MutezOvrflw blah)) |> raise
 end
 
-let fmt (fmt : formatter) (e : exn) : unit =
-    fprintf fmt "@[<v 4>";
+let rec fmt (fmtt : formatter) (e : exn) : unit =
+    fprintf fmtt "@[<v 4>";
     (
         match e with
         | Exc (Error (trace, opt, backtrace)) ->
-            fprintf fmt "Error";
-            trace |> List.iter (fprintf fmt "@,@[%s@]");
+            fprintf fmtt "Error";
+            trace |> List.iter (fprintf fmtt "@,@[%s@]");
             (
                 match opt with
                 | None -> ()
                 | Some e -> (
-                    fprintf fmt "@,@[%s@]" (Printexc.to_string e);
-                    if !print_backtrace then (
-                        Printexc.raw_backtrace_to_string backtrace
-                        |> String.split_on_char '\n'
-                        |> List.iter (fprintf fmt "@,%s")
-                    )
+                    fprintf fmtt "@,@[%a@]" fmt e;
                 )
             );
+            if !print_backtrace then (
+                Printexc.raw_backtrace_to_string backtrace
+                |> String.split_on_char '\n'
+                |> List.iter (fprintf fmtt "@,%s")
+            )
         | Exc (Internal i) ->
-            fprintf fmt "Uncaught internal exception@,%a" Internal.fmt i
+            fprintf fmtt "Uncaught internal exception@,%a" Internal.fmt i
         | Exc (Protocol p) ->
-            fprintf fmt "Tezos protocol error@,%a" Protocol.fmt p
-        | e -> fprintf fmt "Error@,%s" (Printexc.to_string e)
+            fprintf fmtt "Tezos protocol error@,%a" Protocol.fmt p
+        | e -> fprintf fmtt "Error@,%s" (Printexc.to_string e)
     );
-    fprintf fmt "@]"
+    fprintf fmtt "@]"
 
 let get_callstack () = Printexc.get_callstack 666
 
