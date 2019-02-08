@@ -188,7 +188,7 @@ module type StrConv = sig
     val size : str -> nat
 
     (** String slice. *)
-    val slice : nat -> nat -> str -> str
+    val slice : nat -> nat -> str -> str option
 
     (** String comparison. *)
     val compare : str -> str -> int
@@ -385,7 +385,7 @@ module type Theory = sig
         val size : t -> Nat.t
 
         (** String slice. *)
-        val slice : Nat.t -> Nat.t -> t -> t
+        val slice : Nat.t -> Nat.t -> t -> t option
 
         (** String comparison. *)
         val compare : t -> t -> Int.t
@@ -399,7 +399,7 @@ module type Theory = sig
         val size : t -> Nat.t
 
         (** Bytes slice. *)
-        val slice : Nat.t -> Nat.t -> t -> t
+        val slice : Nat.t -> Nat.t -> t -> t option
 
         (** Bytes comparison. *)
         val compare : t -> t -> Int.t

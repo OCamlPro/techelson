@@ -142,8 +142,13 @@ module StrConv
     type int = Int.t
     type nat = Nat.t
     let size (t : Str.t) : Nat.t = String.length t |> sprintf "%i" |> Nat.of_string
-    let slice (start : Nat.t) (len : Nat.t) (t : Str.t) : Str.t =
-        String.sub t (Nat.to_native start) (Nat.to_native len)
+    let slice (start : Nat.t) (len : Nat.t) (t : Str.t) : Str.t option =
+        let slice_len = Nat.add start len in
+        let string_len = size t in
+        if Nat.compare slice_len string_len > 0 then
+            None
+        else
+            Some (String.sub t (Nat.to_native start) (Nat.to_native len))
     let compare (t_1 : Str.t) (t_2 : Str.t) : Int.t = compare t_1 t_2 |> Int.of_native
 end
 

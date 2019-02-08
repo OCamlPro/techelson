@@ -228,14 +228,14 @@ module Theory (
     module Str = struct
         include Cmp.Str
         let size : t -> Nat.t = Cmp.StrConv.size
-        let slice : Nat.t -> Nat.t -> t -> t = Cmp.StrConv.slice
+        let slice : Nat.t -> Nat.t -> t -> t option = Cmp.StrConv.slice
         let compare : t -> t -> Int.t = Cmp.StrConv.compare
     end
 
     module Bytes = struct
         include Cmp.Bytes
         let size : t -> Nat.t = Cmp.BytesConv.size
-        let slice : Nat.t -> Nat.t -> t -> t = Cmp.BytesConv.slice
+        let slice : Nat.t -> Nat.t -> t -> t option = Cmp.BytesConv.slice
         let compare : t -> t -> Int.t = Cmp.BytesConv.compare
     end
 

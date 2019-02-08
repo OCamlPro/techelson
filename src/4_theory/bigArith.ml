@@ -82,8 +82,13 @@ module NaiveStrConv = struct
 
     let size (str : str) : nat =
         String.length str |> BNat.of_native
-    let slice (start : nat) (len : nat) (str : str) : str =
-        String.sub str (BNat.to_native start) (BNat.to_native len)
+    let slice (start : nat) (len : nat) (str : str) : str option =
+        let slice_len = BNat.add start len in
+        let string_len = size str in
+        if BNat.compare slice_len string_len > 0 then
+            None
+        else
+            Some (String.sub str (BNat.to_native start) (BNat.to_native len))
     let compare (s_1 : str) (s_2 : str) : int =
         String.compare s_1 s_2 |> BNat.of_native
 end

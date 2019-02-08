@@ -676,9 +676,15 @@ module Interpreter (
                         let value, dtyp =
                             match Stack.pop self.stack with
                             | Theory.C (Theory.Cmp.S s), dtyp ->
-                                Theory.Str.slice start length s |> Theory.Of.str, dtyp
+                                Theory.Str.slice start length s
+                                |> Opt.map Theory.Of.str
+                                |> Theory.Of.option,
+                                Dtyp.Option (Dtyp.mk_named None dtyp) |> Dtyp.mk
                             | Theory.C (Theory.Cmp.By by), dtyp ->
-                                Theory.Bytes.slice start length by |> Theory.Of.bytes, dtyp
+                                Theory.Bytes.slice start length by
+                                |> Opt.map Theory.Of.bytes
+                                |> Theory.Of.option,
+                                Dtyp.Option (Dtyp.mk_named None dtyp) |> Dtyp.mk
                             | v, d ->
                                 asprintf "expected string or bytes, found %a of type %a"
                                     Theory.fmt v Dtyp.fmt d
@@ -835,11 +841,30 @@ module Interpreter (
                         Stack.Push.nil ~binding ~alias dtyp self.stack;
                         None
 
-                    | Mic.Leaf Size ->
-                        let lst, _ = Stack.Pop.list self.stack in
-                        let len = Theory.Lst.size lst |> Theory.Of.nat in
-                        Stack.push (Dtyp.nat) len self.stack;
+                    | Mic.Leaf Size -> (
+                        let value, dtyp = Stack.pop self.stack in
+                        let size =
+                            match dtyp.typ with
+                            | Dtyp.Leaf Dtyp.Str -> (
+                                let str = Theory.Inspect.str value in
+                                Theory.Str.size str |> Theory.Of.nat
+                            )
+                            | Dtyp.Leaf Dtyp.Bytes -> (
+                                let bytes = Theory.Inspect.bytes value in
+                                Theory.Bytes.size bytes |> Theory.Of.nat
+                            )
+                            | Dtyp.List _ -> (
+                                let lst = Theory.Inspect.list value in
+                                Theory.Lst.size lst |> Theory.Of.nat
+                            )
+                            | _ ->
+                                asprintf "cannot compute SIZE of %a : %a"
+                                    Theory.fmt value Dtyp.fmt dtyp
+                                |> Exc.throw
+                        in
+                        Stack.push (Dtyp.nat) size self.stack;
                         None
+                    )
 
                     (* # Set operations. *)
 
