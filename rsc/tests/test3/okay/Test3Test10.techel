@@ -9,17 +9,21 @@
         {
           PUSH unit Unit ;
           # money transferred
-          PUSH mutez 533689734566594 ;
+          PUSH mutez 226365001235550 ;
           # delegatable
           PUSH bool False ;
           # spendable
           PUSH bool False ;
           # delegate
-          NONE key_hash ;
+          {
+            PUSH key "" ;
+            HASH_KEY ;
+            SOME
+          } ;
           # manager
           {
             PUSH key "" ;
-            SHA256
+            BLAKE2B
           }
         } ;
         CREATE_CONTRACT {
@@ -54,13 +58,17 @@
         {
           PUSH unit Unit ;
           # money transferred
-          PUSH mutez 238674209212075 ;
+          PUSH mutez 231896988577325 ;
           # delegatable
-          PUSH bool True ;
+          PUSH bool False ;
           # spendable
           PUSH bool False ;
           # delegate
-          NONE key_hash ;
+          {
+            PUSH key "f0594cf55" ;
+            HASH_KEY ;
+            SOME
+          } ;
           # manager
           {
             PUSH key "" ;
@@ -100,9 +108,9 @@
         {
           PUSH unit Unit ;
           # money transferred
-          PUSH mutez 460769925096306 ;
+          PUSH mutez 594402860164483 ;
           # delegatable
-          PUSH bool False ;
+          PUSH bool True ;
           # spendable
           PUSH bool True ;
           # delegate
@@ -113,8 +121,8 @@
           } ;
           # manager
           {
-            PUSH key "4d3" ;
-            SHA256
+            PUSH key "e" ;
+            BLAKE2B
           }
         } ;
         CREATE_CONTRACT {
@@ -146,31 +154,31 @@
                   {}
         } ;
         PAIR ;
-        PUSH mutez 30983914268009 ;
-        PUSH mutez 82333678504785 ;
+        PUSH mutez 320068420421797 ;
+        PUSH mutez 272592481956243 ;
         PAIR ;
         PAIR ;
-        PUSH timestamp 3131337272183 ;
+        PUSH timestamp 0 ;
         PAIR ;
-        PUSH string "NZzV;G$0]MO>g|t?odI!D?" ;
+        PUSH string "" ;
         PAIR
       } ;
       # money transferred
-      PUSH mutez 381371850323223 ;
+      PUSH mutez 81876511255384 ;
       # delegatable
-      PUSH bool False ;
+      PUSH bool True ;
       # spendable
       PUSH bool True ;
       # delegate
       {
-        PUSH key "f915479cfaaeec" ;
-        BLAKE2B ;
+        PUSH key "0bf16e0d0a2" ;
+        HASH_KEY ;
         SOME
       } ;
       # manager
       {
         PUSH key "" ;
-        SHA256
+        BLAKE2B
       }
     } ;
     CREATE_CONTRACT "Test3"
@@ -194,8 +202,8 @@
               }
               {}
     } ;
-    PUSH mutez 181447286361953 ;
-    PUSH timestamp 4303277742756 ;
+    PUSH mutez 902240986610203 ;
+    PUSH timestamp 1226048483 ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply
@@ -217,8 +225,8 @@
               }
               {}
     } ;
-    PUSH mutez 485312314666569 ;
-    PUSH timestamp 14 ;
+    PUSH mutez 86337805887249 ;
+    PUSH timestamp 3847063355 ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply
@@ -240,8 +248,8 @@
               }
               {}
     } ;
-    PUSH mutez 280883814188641 ;
-    PUSH timestamp 200331147871570834066448680 ;
+    PUSH mutez 33011469608516 ;
+    PUSH timestamp 362 ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply
@@ -263,7 +271,7 @@
               }
               {}
     } ;
-    PUSH mutez 547315527070126 ;
+    PUSH mutez 648977149330509 ;
     PUSH timestamp 0 ;
     TRANSFER_TOKENS
   } ;
@@ -286,8 +294,8 @@
               }
               {}
     } ;
-    PUSH mutez 684761601561381 ;
-    PUSH timestamp 62431 ;
+    PUSH mutez 45141507586833 ;
+    PUSH timestamp 6477783334 ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply
@@ -309,8 +317,8 @@
               }
               {}
     } ;
-    PUSH mutez 765294327480413 ;
-    PUSH timestamp 6764538418017728845017641117771831716345577 ;
+    PUSH mutez 668066383484802 ;
+    PUSH timestamp 0 ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply

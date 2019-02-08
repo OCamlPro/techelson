@@ -1,0 +1,156 @@
+{
+  # deploying contract `Test37`
+  {
+    # creating contract creation parameters
+    {
+      # creating storage for contract `Test37`
+      {
+        # creating contract creation parameters
+        {
+          PUSH unit Unit ;
+          # money transferred
+          PUSH mutez 752177313216242 ;
+          # delegatable
+          PUSH bool True ;
+          # spendable
+          PUSH bool False ;
+          # delegate
+          {
+            PUSH key "aa296d2" ;
+            HASH_KEY ;
+            SOME
+          } ;
+          # manager
+          {
+            PUSH key "" ;
+            BLAKE2B
+          }
+        } ;
+        CREATE_CONTRACT {
+            storage unit;
+            parameter unit;
+            code {
+                   # discarding inputs
+                   DROP ;
+                   PUSH unit Unit ;
+                   NIL operation ;
+                   PAIR
+                 };
+        } ;
+        # create a list of operations and apply
+        {
+          NIL operation ;
+          SWAP ;
+          CONS ;
+          APPLY_OPERATIONS
+        } ;
+        # retrieve contract from address, fail if none
+        {
+          CONTRACT unit ;
+          IF_NONE {
+                    PUSH string
+                         "unable to spawn contract `test-generated anonymous contract`" ;
+                    FAILWITH
+                  }
+                  {}
+        } ;
+        EMPTY_MAP int mutez ;
+        PAIR
+      } ;
+      # money transferred
+      PUSH mutez 549773307295941 ;
+      # delegatable
+      PUSH bool True ;
+      # spendable
+      PUSH bool False ;
+      # delegate
+      {
+        PUSH key "" ;
+        SHA256 ;
+        SOME
+      } ;
+      # manager
+      {
+        PUSH key "" ;
+        SHA256
+      }
+    } ;
+    CREATE_CONTRACT "Test37"
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (contract :UnitContract unit) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test37`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 474490206886638 ;
+    {
+      # creating contract creation parameters
+      {
+        PUSH unit Unit ;
+        # money transferred
+        PUSH mutez 546411442923196 ;
+        # delegatable
+        PUSH bool False ;
+        # spendable
+        PUSH bool True ;
+        # delegate
+        NONE key_hash ;
+        # manager
+        {
+          PUSH key "" ;
+          HASH_KEY
+        }
+      } ;
+      CREATE_CONTRACT {
+          storage unit;
+          parameter unit;
+          code {
+                 # discarding inputs
+                 DROP ;
+                 PUSH unit Unit ;
+                 NIL operation ;
+                 PAIR
+               };
+      } ;
+      # create a list of operations and apply
+      {
+        NIL operation ;
+        SWAP ;
+        CONS ;
+        APPLY_OPERATIONS
+      } ;
+      # retrieve contract from address, fail if none
+      {
+        CONTRACT unit ;
+        IF_NONE {
+                  PUSH string
+                       "unable to spawn contract `test-generated anonymous contract`" ;
+                  FAILWITH
+                }
+                {}
+      }
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  }
+}

@@ -1,0 +1,183 @@
+{
+  # deploying contract `Bug_annot1`
+  {
+    # creating contract creation parameters
+    {
+      # creating storage for contract `Bug_annot1`
+      {
+        # creating contract creation parameters
+        {
+          PUSH unit Unit ;
+          # money transferred
+          PUSH mutez 262664944709603 ;
+          # delegatable
+          PUSH bool False ;
+          # spendable
+          PUSH bool True ;
+          # delegate
+          NONE key_hash ;
+          # manager
+          {
+            PUSH key "87fe8febd72" ;
+            SHA256
+          }
+        } ;
+        CREATE_CONTRACT {
+            storage unit;
+            parameter nat;
+            code {
+                   # discarding inputs
+                   DROP ;
+                   PUSH unit Unit ;
+                   NIL operation ;
+                   PAIR
+                 };
+        } ;
+        # create a list of operations and apply
+        {
+          NIL operation ;
+          SWAP ;
+          CONS ;
+          APPLY_OPERATIONS
+        } ;
+        # retrieve contract from address, fail if none
+        {
+          CONTRACT nat ;
+          IF_NONE {
+                    PUSH string
+                         "unable to spawn contract `test-generated anonymous contract`" ;
+                    FAILWITH
+                  }
+                  {}
+        } ;
+        # creating contract creation parameters
+        {
+          PUSH unit Unit ;
+          # money transferred
+          PUSH mutez 653155709059023 ;
+          # delegatable
+          PUSH bool True ;
+          # spendable
+          PUSH bool True ;
+          # delegate
+          {
+            PUSH key "" ;
+            SHA256 ;
+            SOME
+          } ;
+          # manager
+          {
+            PUSH key "" ;
+            HASH_KEY
+          }
+        } ;
+        CREATE_CONTRACT {
+            storage unit;
+            parameter int;
+            code {
+                   # discarding inputs
+                   DROP ;
+                   PUSH unit Unit ;
+                   NIL operation ;
+                   PAIR
+                 };
+        } ;
+        # create a list of operations and apply
+        {
+          NIL operation ;
+          SWAP ;
+          CONS ;
+          APPLY_OPERATIONS
+        } ;
+        # retrieve contract from address, fail if none
+        {
+          CONTRACT int ;
+          IF_NONE {
+                    PUSH string
+                         "unable to spawn contract `test-generated anonymous contract`" ;
+                    FAILWITH
+                  }
+                  {}
+        } ;
+        PAIR
+      } ;
+      # money transferred
+      PUSH mutez 731055638832637 ;
+      # delegatable
+      PUSH bool True ;
+      # spendable
+      PUSH bool True ;
+      # delegate
+      {
+        PUSH key "" ;
+        SHA256 ;
+        SOME
+      } ;
+      # manager
+      {
+        PUSH key "a" ;
+        HASH_KEY
+      }
+    } ;
+    CREATE_CONTRACT "Bug_annot1"
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT key_hash ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Bug_annot1`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 569747800558748 ;
+    {
+      PUSH key "" ;
+      BLAKE2B
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT key_hash ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Bug_annot1`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 611991783258931 ;
+    {
+      PUSH key "" ;
+      BLAKE2B
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  }
+}

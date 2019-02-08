@@ -1,0 +1,111 @@
+{
+  # deploying contract `Test_iter`
+  {
+    # creating contract creation parameters
+    {
+      # creating storage for contract `Test_iter`
+      PUSH unit Unit ;
+      # money transferred
+      PUSH mutez 1953356931461 ;
+      # delegatable
+      PUSH bool False ;
+      # spendable
+      PUSH bool False ;
+      # delegate
+      {
+        PUSH key "" ;
+        SHA256 ;
+        SOME
+      } ;
+      # manager
+      {
+        PUSH key "" ;
+        BLAKE2B
+      }
+    } ;
+    CREATE_CONTRACT "Test_iter"
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (list int) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_iter`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 16871940168442 ;
+    {
+      NIL int ;
+      {
+        PUSH int 22351505464873 ;
+        NEG
+      } ;
+      CONS ;
+      PUSH int 471207338681362247 ;
+      CONS ;
+      {
+        PUSH int 48156461081221853 ;
+        NEG
+      } ;
+      CONS ;
+      PUSH int 764404401063 ;
+      CONS ;
+      {
+        PUSH int 20508153281756274064 ;
+        NEG
+      } ;
+      CONS ;
+      PUSH int 18 ;
+      CONS ;
+      PUSH int 35247585732470 ;
+      CONS ;
+      PUSH int 68 ;
+      CONS ;
+      {
+        PUSH int 2285 ;
+        NEG
+      } ;
+      CONS ;
+      PUSH int 2847760001 ;
+      CONS ;
+      PUSH int 61543324652725 ;
+      CONS ;
+      {
+        PUSH int 7171454214062327 ;
+        NEG
+      } ;
+      CONS ;
+      {
+        PUSH int 726165 ;
+        NEG
+      } ;
+      CONS ;
+      PUSH int 0 ;
+      CONS ;
+      PUSH int 5503815746 ;
+      CONS
+    } ;
+    TRANSFER_TOKENS ;
+    UNIT ;
+    SOME ;
+    MUST_FAIL
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  }
+}

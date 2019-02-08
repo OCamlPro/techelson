@@ -112,6 +112,24 @@ module BTStamp = struct
     let fmt (fmt : formatter) (t : t) : unit = BInt.fmt fmt t
 end
 
+module PTStamp = struct
+    type t = Ptime.t
+
+    let now () : t = Ptime.epoch
+
+    let to_string (t : t) : string = asprintf "%a" Ptime.pp t
+    let of_native (s : string) : t =
+        match Ptime.of_rfc3339 ~strict:false ~start:0 ~sub:false s with
+        | Result.Ok (t, _, _) -> t
+        | Result.Error (`RFC3339 (_, e)) ->
+            Exc.throws [
+                asprintf "%a" Ptime.pp_rfc3339_error e ;
+                sprintf "while parsing timestamp `%s`" s ;
+            ]
+    let compare (t_1 : t) (t_2 : t) : int = Ptime.compare t_1 t_2
+    let fmt (fmt : formatter) (t : t) : unit = Ptime.pp fmt t
+end
+
 
 module BTStampConv = struct
     type t_stamp = BTStamp.t
@@ -126,6 +144,43 @@ module BTStampConv = struct
         BInt.sub t_1 t_2
 end
 
+module PTStampConv = struct
+    type t_stamp = PTStamp.t
+    type int = BInt.t
+
+    let int_to_tstamp (i : int) : t_stamp =
+        let span = Z.to_float i |> Ptime.Span.of_float_s in
+        (
+            match span with
+            | None -> log_0 "none@."
+            | Some f -> log_0 "some %a@." Ptime.Span.pp f
+        );
+        match span |> Opt.and_then (PTStamp.now () |> Ptime.add_span) with
+        | Some res -> res
+        | None -> asprintf "failed to convert integer %a to timestamp" BInt.fmt i |> Exc.throw
+
+    let add (t : t_stamp) (i : int) : t_stamp =
+        let span = BInt.to_native i |> Ptime.Span.of_int_s in
+        match Ptime.add_span (PTStamp.now ()) span with
+        | Some res -> res
+        | None ->
+            asprintf "failed to add %a seconds to timestamp %a" BInt.fmt i PTStamp.fmt t
+            |> Exc.throw
+    let sub_int (t : t_stamp) (i : int) : t_stamp =
+        let span = BInt.to_native i |> Ptime.Span.of_int_s in
+        match Ptime.sub_span (PTStamp.now ()) span with
+        | Some res -> res
+        | None ->
+            asprintf "failed to sub %a seconds to timestamp %a" BInt.fmt i PTStamp.fmt t
+            |> Exc.throw
+    let sub (t_1 : t_stamp) (t_2 : t_stamp) : int =
+        match Ptime.diff t_1 t_2 |> Ptime.Span.to_int_s with
+        | Some res -> BInt.of_native res
+        | None ->
+            asprintf "failed to sub %a to %a" PTStamp.fmt t_1 PTStamp.fmt t_2
+            |> Exc.throw
+end
+
 module BigNaivePrimitive = struct
     module Int = BInt
     module Nat = BNat
@@ -134,8 +189,8 @@ module BigNaivePrimitive = struct
     module StrConv = NaiveStrConv
     module Bytes = Naive.Bytes
     module BytesConv = NaiveStrConv
-    module TStamp = BTStamp
-    module TStampConv = BTStampConv
+    module TStamp = PTStamp
+    module TStampConv = PTStampConv
     module Key = Naive.Key
     module KeyH = Naive.KeyH
     module KeyHConv = Naive.KeyHConv

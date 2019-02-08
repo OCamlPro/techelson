@@ -1,0 +1,229 @@
+{
+  # deploying contract `Test27`
+  {
+    # creating contract creation parameters
+    {
+      # creating storage for contract `Test27`
+      {
+        # creating contract creation parameters
+        {
+          PUSH unit Unit ;
+          # money transferred
+          PUSH mutez 343927719569148 ;
+          # delegatable
+          PUSH bool False ;
+          # spendable
+          PUSH bool True ;
+          # delegate
+          {
+            PUSH key "" ;
+            BLAKE2B ;
+            SOME
+          } ;
+          # manager
+          {
+            PUSH key "fdc2ec830c824ff7dd5bb21f2" ;
+            HASH_KEY
+          }
+        } ;
+        CREATE_CONTRACT {
+            storage unit;
+            parameter nat;
+            code {
+                   # discarding inputs
+                   DROP ;
+                   PUSH unit Unit ;
+                   NIL operation ;
+                   PAIR
+                 };
+        } ;
+        # create a list of operations and apply
+        {
+          NIL operation ;
+          SWAP ;
+          CONS ;
+          APPLY_OPERATIONS
+        } ;
+        # retrieve contract from address, fail if none
+        {
+          CONTRACT nat ;
+          IF_NONE {
+                    PUSH string
+                         "unable to spawn contract `test-generated anonymous contract`" ;
+                    FAILWITH
+                  }
+                  {}
+        } ;
+        PUSH bool True ;
+        PAIR
+      } ;
+      # money transferred
+      PUSH mutez 559875777180078 ;
+      # delegatable
+      PUSH bool False ;
+      # spendable
+      PUSH bool False ;
+      # delegate
+      {
+        PUSH key "" ;
+        BLAKE2B ;
+        SOME
+      } ;
+      # manager
+      {
+        PUSH key "" ;
+        HASH_KEY
+      }
+    } ;
+    CREATE_CONTRACT "Test27"
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (contract :NatContract nat) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test27`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 526855094985070 ;
+    {
+      # creating contract creation parameters
+      {
+        PUSH unit Unit ;
+        # money transferred
+        PUSH mutez 451449452615851 ;
+        # delegatable
+        PUSH bool False ;
+        # spendable
+        PUSH bool True ;
+        # delegate
+        NONE key_hash ;
+        # manager
+        {
+          PUSH key "349b80b4bee9" ;
+          SHA256
+        }
+      } ;
+      CREATE_CONTRACT {
+          storage unit;
+          parameter nat;
+          code {
+                 # discarding inputs
+                 DROP ;
+                 PUSH unit Unit ;
+                 NIL operation ;
+                 PAIR
+               };
+      } ;
+      # create a list of operations and apply
+      {
+        NIL operation ;
+        SWAP ;
+        CONS ;
+        APPLY_OPERATIONS
+      } ;
+      # retrieve contract from address, fail if none
+      {
+        CONTRACT nat ;
+        IF_NONE {
+                  PUSH string
+                       "unable to spawn contract `test-generated anonymous contract`" ;
+                  FAILWITH
+                }
+                {}
+      }
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (contract :NatContract nat) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test27`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 247604108603680 ;
+    {
+      # creating contract creation parameters
+      {
+        PUSH unit Unit ;
+        # money transferred
+        PUSH mutez 290035844265409 ;
+        # delegatable
+        PUSH bool True ;
+        # spendable
+        PUSH bool True ;
+        # delegate
+        {
+          PUSH key "" ;
+          BLAKE2B ;
+          SOME
+        } ;
+        # manager
+        {
+          PUSH key "" ;
+          BLAKE2B
+        }
+      } ;
+      CREATE_CONTRACT {
+          storage unit;
+          parameter nat;
+          code {
+                 # discarding inputs
+                 DROP ;
+                 PUSH unit Unit ;
+                 NIL operation ;
+                 PAIR
+               };
+      } ;
+      # create a list of operations and apply
+      {
+        NIL operation ;
+        SWAP ;
+        CONS ;
+        APPLY_OPERATIONS
+      } ;
+      # retrieve contract from address, fail if none
+      {
+        CONTRACT nat ;
+        IF_NONE {
+                  PUSH string
+                       "unable to spawn contract `test-generated anonymous contract`" ;
+                  FAILWITH
+                }
+                {}
+      }
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  }
+}

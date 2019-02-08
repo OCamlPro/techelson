@@ -9,20 +9,16 @@
         {
           PUSH unit Unit ;
           # money transferred
-          PUSH mutez 540632931303900 ;
+          PUSH mutez 226978657749404 ;
           # delegatable
-          PUSH bool True ;
+          PUSH bool False ;
           # spendable
           PUSH bool False ;
           # delegate
-          {
-            PUSH key "" ;
-            SHA256 ;
-            SOME
-          } ;
+          NONE key_hash ;
           # manager
           {
-            PUSH key "" ;
+            PUSH key "13e72c" ;
             SHA256
           }
         } ;
@@ -58,16 +54,20 @@
         {
           PUSH unit Unit ;
           # money transferred
-          PUSH mutez 650284983519797 ;
+          PUSH mutez 56435647840122 ;
           # delegatable
-          PUSH bool True ;
+          PUSH bool False ;
           # spendable
           PUSH bool True ;
           # delegate
-          NONE key_hash ;
+          {
+            PUSH key "" ;
+            BLAKE2B ;
+            SOME
+          } ;
           # manager
           {
-            PUSH key "3" ;
+            PUSH key "710d9d4" ;
             BLAKE2B
           }
         } ;
@@ -104,16 +104,16 @@
         {
           PUSH unit Unit ;
           # money transferred
-          PUSH mutez 497496735290792 ;
+          PUSH mutez 819915601566928 ;
           # delegatable
-          PUSH bool True ;
+          PUSH bool False ;
           # spendable
           PUSH bool False ;
           # delegate
           NONE key_hash ;
           # manager
           {
-            PUSH key "a71fd52a6e5067edba7da8" ;
+            PUSH key "" ;
             SHA256
           }
         } ;
@@ -146,27 +146,27 @@
                   {}
         } ;
         PAIR ;
-        PUSH mutez 77736364356727 ;
-        PUSH mutez 161213653083760 ;
+        PUSH mutez 183603583318783 ;
+        PUSH mutez 167137592944107 ;
         PAIR ;
         PAIR ;
-        PUSH timestamp 7 ;
+        PUSH timestamp 417436 ;
         PAIR ;
-        PUSH string "" ;
+        PUSH string "H" ;
         PAIR
       } ;
       # money transferred
-      PUSH mutez 914609766595549 ;
+      PUSH mutez 389998670378276 ;
       # delegatable
       PUSH bool False ;
       # spendable
-      PUSH bool True ;
+      PUSH bool False ;
       # delegate
       NONE key_hash ;
       # manager
       {
         PUSH key "" ;
-        BLAKE2B
+        SHA256
       }
     } ;
     CREATE_CONTRACT "Test3"
@@ -190,53 +190,7 @@
               }
               {}
     } ;
-    PUSH mutez 398097614398329 ;
-    PUSH timestamp 3388166 ;
-    TRANSFER_TOKENS
-  } ;
-  # create a list of operations and apply
-  {
-    NIL operation ;
-    SWAP ;
-    CONS ;
-    APPLY_OPERATIONS
-  } ;
-  # create transfer operation
-  {
-    DUP ;
-    # retrieve contract from address, fail if none
-    {
-      CONTRACT timestamp ;
-      IF_NONE {
-                PUSH string "unable to spawn contract `Test3`" ;
-                FAILWITH
-              }
-              {}
-    } ;
-    PUSH mutez 360358412498199 ;
-    PUSH timestamp 15613140117436 ;
-    TRANSFER_TOKENS
-  } ;
-  # create a list of operations and apply
-  {
-    NIL operation ;
-    SWAP ;
-    CONS ;
-    APPLY_OPERATIONS
-  } ;
-  # create transfer operation
-  {
-    DUP ;
-    # retrieve contract from address, fail if none
-    {
-      CONTRACT timestamp ;
-      IF_NONE {
-                PUSH string "unable to spawn contract `Test3`" ;
-                FAILWITH
-              }
-              {}
-    } ;
-    PUSH mutez 483314725523520 ;
+    PUSH mutez 697949439589911 ;
     PUSH timestamp 0 ;
     TRANSFER_TOKENS
   } ;
@@ -259,8 +213,8 @@
               }
               {}
     } ;
-    PUSH mutez 847085808040593 ;
-    PUSH timestamp 14 ;
+    PUSH mutez 290746430200908 ;
+    PUSH timestamp 0 ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply
@@ -282,8 +236,8 @@
               }
               {}
     } ;
-    PUSH mutez 640775660113325 ;
-    PUSH timestamp 58302 ;
+    PUSH mutez 354281701234242 ;
+    PUSH timestamp 61300 ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply
@@ -305,8 +259,54 @@
               }
               {}
     } ;
-    PUSH mutez 891327129907104 ;
-    PUSH timestamp 803 ;
+    PUSH mutez 348497477125681 ;
+    PUSH timestamp 2388304774 ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT timestamp ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test3`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 589113593442904 ;
+    PUSH timestamp 0 ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT timestamp ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test3`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 512313097330030 ;
+    PUSH timestamp 0 ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply

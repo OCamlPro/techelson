@@ -9,17 +9,17 @@
         {
           PUSH unit Unit ;
           # money transferred
-          PUSH mutez 667946874376066 ;
+          PUSH mutez 384468538459091 ;
           # delegatable
-          PUSH bool False ;
+          PUSH bool True ;
           # spendable
-          PUSH bool False ;
+          PUSH bool True ;
           # delegate
           NONE key_hash ;
           # manager
           {
-            PUSH key "" ;
-            BLAKE2B
+            PUSH key "b5" ;
+            HASH_KEY
           }
         } ;
         CREATE_CONTRACT {
@@ -54,15 +54,15 @@
         {
           PUSH unit Unit ;
           # money transferred
-          PUSH mutez 739574166025053 ;
+          PUSH mutez 556636507524752 ;
           # delegatable
           PUSH bool True ;
           # spendable
-          PUSH bool False ;
+          PUSH bool True ;
           # delegate
           {
-            PUSH key "" ;
-            SHA256 ;
+            PUSH key "6efd9" ;
+            HASH_KEY ;
             SOME
           } ;
           # manager
@@ -104,16 +104,16 @@
         {
           PUSH unit Unit ;
           # money transferred
-          PUSH mutez 785440612151065 ;
+          PUSH mutez 49406688159151 ;
           # delegatable
-          PUSH bool False ;
+          PUSH bool True ;
           # spendable
           PUSH bool False ;
           # delegate
           NONE key_hash ;
           # manager
           {
-            PUSH key "230901c822b83" ;
+            PUSH key "" ;
             BLAKE2B
           }
         } ;
@@ -146,8 +146,8 @@
                   {}
         } ;
         PAIR ;
-        PUSH mutez 109808593074405 ;
-        PUSH mutez 893998040060144 ;
+        PUSH mutez 883315983784450 ;
+        PUSH mutez 466601692186156 ;
         PAIR ;
         PAIR ;
         PUSH timestamp 0 ;
@@ -156,21 +156,17 @@
         PAIR
       } ;
       # money transferred
-      PUSH mutez 692544640859738 ;
+      PUSH mutez 366640449223158 ;
       # delegatable
-      PUSH bool True ;
+      PUSH bool False ;
       # spendable
-      PUSH bool True ;
+      PUSH bool False ;
       # delegate
-      {
-        PUSH key "" ;
-        SHA256 ;
-        SOME
-      } ;
+      NONE key_hash ;
       # manager
       {
-        PUSH key "" ;
-        BLAKE2B
+        PUSH key "5" ;
+        SHA256
       }
     } ;
     CREATE_CONTRACT "Test0"
@@ -194,8 +190,8 @@
               }
               {}
     } ;
-    PUSH mutez 61613621876932 ;
-    PUSH timestamp 0 ;
+    PUSH mutez 48107184924983 ;
+    PUSH timestamp 8811238277 ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply

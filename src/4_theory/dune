@@ -7,5 +7,6 @@
         base
         parse
         zarith
+        ptime
     )
 )

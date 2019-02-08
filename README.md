@@ -15,10 +15,10 @@ We recommend to use the latest version of the OCaml compiler. For example
 `techelson`relies on the [dune] build system and a few other libraries:
 
 ```bash
-> opam install dune menhir zarith
+> opam install dune menhir zarith ptime
 ```
 
-Finally, build `techelson` with `make`. The binary will be `./bin/techelson`.
+(This list of dependencies might be out-of-date. Check `.travis.sh` for the latest version.) Finally, build `techelson` with `make`. The binary will be `./bin/techelson`.
 
 # Usage
 

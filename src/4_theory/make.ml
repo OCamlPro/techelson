@@ -168,6 +168,7 @@ module Theory (
 
             | By _, Leaf Bytes -> t
 
+            | S s, Leaf Timestamp -> Ts (Str.to_string s |> TStamp.of_native)
             | I i, Leaf Timestamp -> Ts (TStampConv.int_to_tstamp i)
             | N n, Leaf Timestamp -> Ts (
                 NatConv.nat_to_int n

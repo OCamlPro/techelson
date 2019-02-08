@@ -1,0 +1,108 @@
+{
+  # deploying contract `Test_call`
+  {
+    # creating contract creation parameters
+    {
+      # creating storage for contract `Test_call`
+      PUSH mutez 235413440666546 ;
+      # money transferred
+      PUSH mutez 30244347759661 ;
+      # delegatable
+      PUSH bool True ;
+      # spendable
+      PUSH bool False ;
+      # delegate
+      {
+        PUSH key "6a0b9" ;
+        BLAKE2B ;
+        SOME
+      } ;
+      # manager
+      {
+        PUSH key "cb38ff1bd647f49a" ;
+        HASH_KEY
+      }
+    } ;
+    CREATE_CONTRACT "Test_call"
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (contract :UnitContract unit) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_call`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 413923853224559 ;
+    {
+      # creating contract creation parameters
+      {
+        PUSH unit Unit ;
+        # money transferred
+        PUSH mutez 325557988137438 ;
+        # delegatable
+        PUSH bool False ;
+        # spendable
+        PUSH bool False ;
+        # delegate
+        {
+          PUSH key "f0a6c7beeffa8ae9dbd006ac343cfe0" ;
+          SHA256 ;
+          SOME
+        } ;
+        # manager
+        {
+          PUSH key "" ;
+          HASH_KEY
+        }
+      } ;
+      CREATE_CONTRACT {
+          storage unit;
+          parameter unit;
+          code {
+                 # discarding inputs
+                 DROP ;
+                 PUSH unit Unit ;
+                 NIL operation ;
+                 PAIR
+               };
+      } ;
+      # create a list of operations and apply
+      {
+        NIL operation ;
+        SWAP ;
+        CONS ;
+        APPLY_OPERATIONS
+      } ;
+      # retrieve contract from address, fail if none
+      {
+        CONTRACT unit ;
+        IF_NONE {
+                  PUSH string
+                       "unable to spawn contract `test-generated anonymous contract`" ;
+                  FAILWITH
+                }
+                {}
+      }
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  }
+}

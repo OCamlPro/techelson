@@ -268,6 +268,9 @@ module Rng : sig
     (** Generates a string representing a bignat. *)
     val big_nat : unit -> string
 
+    (** Generates a string representing a relatively small natural number. *)
+    val tiny_nat : unit -> string
+
     (** Arith-related booleans. *)
     module Arith : sig
         (** True if the integer shall be zero. *)

@@ -1,0 +1,267 @@
+{
+  # deploying contract `Test37`
+  {
+    # creating contract creation parameters
+    {
+      # creating storage for contract `Test37`
+      {
+        # creating contract creation parameters
+        {
+          PUSH unit Unit ;
+          # money transferred
+          PUSH mutez 218168750798530 ;
+          # delegatable
+          PUSH bool True ;
+          # spendable
+          PUSH bool False ;
+          # delegate
+          {
+            PUSH key "" ;
+            HASH_KEY ;
+            SOME
+          } ;
+          # manager
+          {
+            PUSH key "" ;
+            BLAKE2B
+          }
+        } ;
+        CREATE_CONTRACT {
+            storage unit;
+            parameter unit;
+            code {
+                   # discarding inputs
+                   DROP ;
+                   PUSH unit Unit ;
+                   NIL operation ;
+                   PAIR
+                 };
+        } ;
+        # create a list of operations and apply
+        {
+          NIL operation ;
+          SWAP ;
+          CONS ;
+          APPLY_OPERATIONS
+        } ;
+        # retrieve contract from address, fail if none
+        {
+          CONTRACT unit ;
+          IF_NONE {
+                    PUSH string
+                         "unable to spawn contract `test-generated anonymous contract`" ;
+                    FAILWITH
+                  }
+                  {}
+        } ;
+        EMPTY_MAP int mutez ;
+        NONE mutez ;
+        PUSH int 35586378012760457 ;
+        UPDATE ;
+        PUSH mutez 612735983477378 ;
+        SOME ;
+        {
+          PUSH int 57140785734464446706833671 ;
+          NEG
+        } ;
+        UPDATE ;
+        PUSH mutez 582131824640937 ;
+        SOME ;
+        PUSH int 343564673754 ;
+        UPDATE ;
+        PUSH mutez 455849435410217 ;
+        SOME ;
+        PUSH int 2847 ;
+        UPDATE ;
+        NONE mutez ;
+        {
+          PUSH int 84873782848447205723134 ;
+          NEG
+        } ;
+        UPDATE ;
+        NONE mutez ;
+        PUSH int 773272867068055082557 ;
+        UPDATE ;
+        PUSH mutez 392161776691373 ;
+        SOME ;
+        PUSH int 7 ;
+        UPDATE ;
+        NONE mutez ;
+        PUSH int 0 ;
+        UPDATE ;
+        PUSH mutez 464797858311815 ;
+        SOME ;
+        PUSH int 24476 ;
+        UPDATE ;
+        PAIR
+      } ;
+      # money transferred
+      PUSH mutez 866550654183380 ;
+      # delegatable
+      PUSH bool False ;
+      # spendable
+      PUSH bool True ;
+      # delegate
+      {
+        PUSH key "d5da812c7cc306e7b" ;
+        HASH_KEY ;
+        SOME
+      } ;
+      # manager
+      {
+        PUSH key "" ;
+        SHA256
+      }
+    } ;
+    CREATE_CONTRACT "Test37"
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (contract :UnitContract unit) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test37`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 292710389679617 ;
+    {
+      # creating contract creation parameters
+      {
+        PUSH unit Unit ;
+        # money transferred
+        PUSH mutez 262664944709603 ;
+        # delegatable
+        PUSH bool False ;
+        # spendable
+        PUSH bool True ;
+        # delegate
+        NONE key_hash ;
+        # manager
+        {
+          PUSH key "3e2017c5287fe8febd72" ;
+          SHA256
+        }
+      } ;
+      CREATE_CONTRACT {
+          storage unit;
+          parameter unit;
+          code {
+                 # discarding inputs
+                 DROP ;
+                 PUSH unit Unit ;
+                 NIL operation ;
+                 PAIR
+               };
+      } ;
+      # create a list of operations and apply
+      {
+        NIL operation ;
+        SWAP ;
+        CONS ;
+        APPLY_OPERATIONS
+      } ;
+      # retrieve contract from address, fail if none
+      {
+        CONTRACT unit ;
+        IF_NONE {
+                  PUSH string
+                       "unable to spawn contract `test-generated anonymous contract`" ;
+                  FAILWITH
+                }
+                {}
+      }
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (contract :UnitContract unit) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test37`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 442419346175519 ;
+    {
+      # creating contract creation parameters
+      {
+        PUSH unit Unit ;
+        # money transferred
+        PUSH mutez 865337344626161 ;
+        # delegatable
+        PUSH bool True ;
+        # spendable
+        PUSH bool True ;
+        # delegate
+        {
+          PUSH key "d" ;
+          BLAKE2B ;
+          SOME
+        } ;
+        # manager
+        {
+          PUSH key "" ;
+          HASH_KEY
+        }
+      } ;
+      CREATE_CONTRACT {
+          storage unit;
+          parameter unit;
+          code {
+                 # discarding inputs
+                 DROP ;
+                 PUSH unit Unit ;
+                 NIL operation ;
+                 PAIR
+               };
+      } ;
+      # create a list of operations and apply
+      {
+        NIL operation ;
+        SWAP ;
+        CONS ;
+        APPLY_OPERATIONS
+      } ;
+      # retrieve contract from address, fail if none
+      {
+        CONTRACT unit ;
+        IF_NONE {
+                  PUSH string
+                       "unable to spawn contract `test-generated anonymous contract`" ;
+                  FAILWITH
+                }
+                {}
+      }
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  }
+}

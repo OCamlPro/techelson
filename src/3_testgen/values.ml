@@ -12,6 +12,9 @@ module Const = struct
     let bytes () : Mic.const =
         Mic.Bytes (Rng.string ())
 
+    let tstamp () : Mic.const =
+        Mic.Int (Rng.tiny_nat ())
+
     let int64_10000 = Int64.of_int 10000
     let mutez () : Mic.const =
         let int64 = Rng.int64 () in
@@ -63,7 +66,7 @@ let key (dtyp : Dtyp.t) : Mic.t =
     Mic.Push (dtyp, Const.key ()) |> Mic.mk
 
 let timestamp (dtyp : Dtyp.t) : Mic.t =
-    Mic.Push (dtyp, Const.int ()) |> Mic.mk
+    Mic.Push (dtyp, Const.tstamp ()) |> Mic.mk
 
 let hash () : Mic.t =
     Mic.Hash (

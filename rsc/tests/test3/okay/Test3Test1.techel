@@ -9,15 +9,15 @@
         {
           PUSH unit Unit ;
           # money transferred
-          PUSH mutez 886314026182649 ;
+          PUSH mutez 884274745191934 ;
           # delegatable
           PUSH bool False ;
           # spendable
-          PUSH bool False ;
+          PUSH bool True ;
           # delegate
           {
-            PUSH key "24aa6bd" ;
-            BLAKE2B ;
+            PUSH key "" ;
+            HASH_KEY ;
             SOME
           } ;
           # manager
@@ -58,17 +58,21 @@
         {
           PUSH unit Unit ;
           # money transferred
-          PUSH mutez 270076781902664 ;
+          PUSH mutez 188558040809766 ;
           # delegatable
-          PUSH bool True ;
+          PUSH bool False ;
           # spendable
           PUSH bool True ;
           # delegate
-          NONE key_hash ;
+          {
+            PUSH key "fdc2ec830c824ff7dd5bb21f2" ;
+            HASH_KEY ;
+            SOME
+          } ;
           # manager
           {
             PUSH key "" ;
-            SHA256
+            HASH_KEY
           }
         } ;
         CREATE_CONTRACT {
@@ -104,17 +108,21 @@
         {
           PUSH unit Unit ;
           # money transferred
-          PUSH mutez 451449452615851 ;
+          PUSH mutez 840455030518689 ;
           # delegatable
-          PUSH bool False ;
+          PUSH bool True ;
           # spendable
           PUSH bool True ;
           # delegate
-          NONE key_hash ;
+          {
+            PUSH key "" ;
+            BLAKE2B ;
+            SOME
+          } ;
           # manager
           {
-            PUSH key "59349b80b4bee9" ;
-            SHA256
+            PUSH key "" ;
+            BLAKE2B
           }
         } ;
         CREATE_CONTRACT {
@@ -146,31 +154,27 @@
                   {}
         } ;
         PAIR ;
-        PUSH mutez 526855094985070 ;
-        PUSH mutez 248765687729988 ;
+        PUSH mutez 67983239647006 ;
+        PUSH mutez 95806188677916 ;
         PAIR ;
         PAIR ;
-        PUSH timestamp 2 ;
+        PUSH timestamp 2401008632 ;
         PAIR ;
-        PUSH string "lyCMN9Utvy17N" ;
+        PUSH string "=X9o" ;
         PAIR
       } ;
       # money transferred
-      PUSH mutez 900252244617921 ;
+      PUSH mutez 451449452615851 ;
       # delegatable
       PUSH bool False ;
       # spendable
-      PUSH bool False ;
+      PUSH bool True ;
       # delegate
-      {
-        PUSH key "" ;
-        HASH_KEY ;
-        SOME
-      } ;
+      NONE key_hash ;
       # manager
       {
-        PUSH key "" ;
-        BLAKE2B
+        PUSH key "f4aab8ed0f4ad01691fddbb5659349b80b4bee9" ;
+        SHA256
       }
     } ;
     CREATE_CONTRACT "Test3"
@@ -194,8 +198,8 @@
               }
               {}
     } ;
-    PUSH mutez 411588917104341 ;
-    PUSH timestamp 8082470742351505464873 ;
+    PUSH mutez 157880803930150 ;
+    PUSH timestamp 8082470742 ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply

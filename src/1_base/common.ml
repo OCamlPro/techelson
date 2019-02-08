@@ -391,6 +391,21 @@ module Rng = struct
     let big_nat () : string =
         wrap unsafe_big_nat ()
 
+    let unsafe_tiny_nat () : string =
+        if Arith.unsafe_zero () then "0" else (
+            let digit = 1 + (Some 8 |> unsafe_pos_int) |> string_of_int in
+            let rec loop (tiny_nat : string) : string =
+                if String.length tiny_nat > 9 then
+                    tiny_nat
+                else if Coll.unsafe_add_one () then
+                    sprintf "%s%i" tiny_nat (Some 9 |> unsafe_pos_int) |> loop
+                else tiny_nat
+            in
+            loop digit
+        )
+    let tiny_nat () : string =
+        wrap unsafe_tiny_nat ()
+
     let unsafe_big_int () : string =
         if Arith.unsafe_zero () then "0" else (
             let digit = 1 + (Some 8 |> unsafe_pos_int) |> string_of_int in
