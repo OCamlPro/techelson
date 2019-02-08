@@ -701,6 +701,34 @@ module Interpreter (
                                 let by_2, dtyp_2 = Stack.Pop.bytes self.stack in
                                 Env.unify self.env dtyp_1 dtyp_2;
                                 Theory.Bytes.concat by_1 by_2 |> Theory.Of.bytes, dtyp_2
+                            | (Theory.Lst values as value), lst_dtyp -> (
+                                let sub = Dtyp.Inspect.list lst_dtyp in
+                                match sub.typ with
+                                | Dtyp.Leaf Dtyp.Str ->
+                                    let str =
+                                        values |> Theory.Lst.fold (
+                                            fun s value ->
+                                                let tail = Theory.Inspect.str value in
+                                                Theory.Str.concat s tail
+                                        ) (Theory.Str.of_native "")
+                                    in
+                                    Theory.Of.str str, Dtyp.mk_leaf Dtyp.Str
+                                | Dtyp.Leaf Dtyp.Bytes ->
+                                    let bytes =
+                                        values |> Theory.Lst.fold (
+                                            fun s value ->
+                                                let tail = Theory.Inspect.bytes value in
+                                                Theory.Bytes.concat s tail
+                                        ) (Theory.Bytes.of_native "")
+                                    in
+                                    Theory.Of.bytes bytes, Dtyp.mk_leaf Dtyp.Bytes
+                                | _ ->
+                                    asprintf
+                                        "expected a list of strings or bytes, \
+                                        found a list of %a : %a"
+                                        Dtyp.fmt sub Theory.fmt value
+                                    |> Exc.throw
+                            )
                             | v, d ->
                                 asprintf "expected string or bytes, found %a of type %a"
                                     Theory.fmt v Dtyp.fmt d

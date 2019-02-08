@@ -1,25 +1,29 @@
 {
-  # deploying contract `Test39`
+  # deploying contract `Test11`
   {
     # creating contract creation parameters
     {
-      # creating storage for contract `Test39`
-      PUSH bool True ;
+      # creating storage for contract `Test11`
+      PUSH string "-UOL, #z" ;
       # money transferred
-      PUSH mutez 486269977689537 ;
+      PUSH mutez 442419346175519 ;
       # delegatable
-      PUSH bool True ;
+      PUSH bool False ;
       # spendable
       PUSH bool False ;
       # delegate
-      NONE key_hash ;
+      {
+        PUSH key "" ;
+        SHA256 ;
+        SOME
+      } ;
       # manager
       {
-        PUSH key "9cab4d9a" ;
+        PUSH key "d" ;
         BLAKE2B
       }
     } ;
-    CREATE_CONTRACT "Test39"
+    CREATE_CONTRACT "Test11"
   } ;
   # create a list of operations and apply
   {
@@ -33,15 +37,15 @@
     DUP ;
     # retrieve contract from address, fail if none
     {
-      CONTRACT bool ;
+      CONTRACT string ;
       IF_NONE {
-                PUSH string "unable to spawn contract `Test39`" ;
+                PUSH string "unable to spawn contract `Test11`" ;
                 FAILWITH
               }
               {}
     } ;
-    PUSH mutez 664731669399716 ;
-    PUSH bool True ;
+    PUSH mutez 467796898537760 ;
+    PUSH string "" ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply
@@ -56,15 +60,15 @@
     DUP ;
     # retrieve contract from address, fail if none
     {
-      CONTRACT bool ;
+      CONTRACT string ;
       IF_NONE {
-                PUSH string "unable to spawn contract `Test39`" ;
+                PUSH string "unable to spawn contract `Test11`" ;
                 FAILWITH
               }
               {}
     } ;
-    PUSH mutez 629264608368742 ;
-    PUSH bool False ;
+    PUSH mutez 807191617415602 ;
+    PUSH string "~nwd" ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply
@@ -79,15 +83,15 @@
     DUP ;
     # retrieve contract from address, fail if none
     {
-      CONTRACT bool ;
+      CONTRACT string ;
       IF_NONE {
-                PUSH string "unable to spawn contract `Test39`" ;
+                PUSH string "unable to spawn contract `Test11`" ;
                 FAILWITH
               }
               {}
     } ;
-    PUSH mutez 689892243378439 ;
-    PUSH bool False ;
+    PUSH mutez 747906856019268 ;
+    PUSH string "" ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply
@@ -102,15 +106,15 @@
     DUP ;
     # retrieve contract from address, fail if none
     {
-      CONTRACT bool ;
+      CONTRACT string ;
       IF_NONE {
-                PUSH string "unable to spawn contract `Test39`" ;
+                PUSH string "unable to spawn contract `Test11`" ;
                 FAILWITH
               }
               {}
     } ;
-    PUSH mutez 554230763190417 ;
-    PUSH bool False ;
+    PUSH mutez 77736364356727 ;
+    PUSH string "JI-k-^nh.Vd4;O>Y" ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply
@@ -125,15 +129,15 @@
     DUP ;
     # retrieve contract from address, fail if none
     {
-      CONTRACT bool ;
+      CONTRACT string ;
       IF_NONE {
-                PUSH string "unable to spawn contract `Test39`" ;
+                PUSH string "unable to spawn contract `Test11`" ;
                 FAILWITH
               }
               {}
     } ;
-    PUSH mutez 489341786453016 ;
-    PUSH bool True ;
+    PUSH mutez 469581294958181 ;
+    PUSH string "" ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply
@@ -148,15 +152,15 @@
     DUP ;
     # retrieve contract from address, fail if none
     {
-      CONTRACT bool ;
+      CONTRACT string ;
       IF_NONE {
-                PUSH string "unable to spawn contract `Test39`" ;
+                PUSH string "unable to spawn contract `Test11`" ;
                 FAILWITH
               }
               {}
     } ;
-    PUSH mutez 894280287178353 ;
-    PUSH bool False ;
+    PUSH mutez 98169700783407 ;
+    PUSH string "" ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply
@@ -171,15 +175,15 @@
     DUP ;
     # retrieve contract from address, fail if none
     {
-      CONTRACT bool ;
+      CONTRACT string ;
       IF_NONE {
-                PUSH string "unable to spawn contract `Test39`" ;
+                PUSH string "unable to spawn contract `Test11`" ;
                 FAILWITH
               }
               {}
     } ;
-    PUSH mutez 747656866097192 ;
-    PUSH bool False ;
+    PUSH mutez 558939582560652 ;
+    PUSH string "" ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply
@@ -194,15 +198,15 @@
     DUP ;
     # retrieve contract from address, fail if none
     {
-      CONTRACT bool ;
+      CONTRACT string ;
       IF_NONE {
-                PUSH string "unable to spawn contract `Test39`" ;
+                PUSH string "unable to spawn contract `Test11`" ;
                 FAILWITH
               }
               {}
     } ;
-    PUSH mutez 89207380209060 ;
-    PUSH bool True ;
+    PUSH mutez 692834517968342 ;
+    PUSH string "j<poeuJ.ZEs;z/~'QMb6I)Cd]Sr+)v<NYmt" ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply
@@ -217,15 +221,15 @@
     DUP ;
     # retrieve contract from address, fail if none
     {
-      CONTRACT bool ;
+      CONTRACT string ;
       IF_NONE {
-                PUSH string "unable to spawn contract `Test39`" ;
+                PUSH string "unable to spawn contract `Test11`" ;
                 FAILWITH
               }
               {}
     } ;
-    PUSH mutez 779476469042473 ;
-    PUSH bool True ;
+    PUSH mutez 360358412498199 ;
+    PUSH string "n+.$-&N8" ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply
@@ -240,15 +244,15 @@
     DUP ;
     # retrieve contract from address, fail if none
     {
-      CONTRACT bool ;
+      CONTRACT string ;
       IF_NONE {
-                PUSH string "unable to spawn contract `Test39`" ;
+                PUSH string "unable to spawn contract `Test11`" ;
                 FAILWITH
               }
               {}
     } ;
-    PUSH mutez 676851712978042 ;
-    PUSH bool True ;
+    PUSH mutez 515701999932152 ;
+    PUSH string "" ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply
@@ -263,15 +267,15 @@
     DUP ;
     # retrieve contract from address, fail if none
     {
-      CONTRACT bool ;
+      CONTRACT string ;
       IF_NONE {
-                PUSH string "unable to spawn contract `Test39`" ;
+                PUSH string "unable to spawn contract `Test11`" ;
                 FAILWITH
               }
               {}
     } ;
-    PUSH mutez 782783561648240 ;
-    PUSH bool True ;
+    PUSH mutez 636929403956801 ;
+    PUSH string "" ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply
@@ -286,15 +290,15 @@
     DUP ;
     # retrieve contract from address, fail if none
     {
-      CONTRACT bool ;
+      CONTRACT string ;
       IF_NONE {
-                PUSH string "unable to spawn contract `Test39`" ;
+                PUSH string "unable to spawn contract `Test11`" ;
                 FAILWITH
               }
               {}
     } ;
-    PUSH mutez 819216601537629 ;
-    PUSH bool False ;
+    PUSH mutez 421253119748472 ;
+    PUSH string "" ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply
@@ -309,15 +313,15 @@
     DUP ;
     # retrieve contract from address, fail if none
     {
-      CONTRACT bool ;
+      CONTRACT string ;
       IF_NONE {
-                PUSH string "unable to spawn contract `Test39`" ;
+                PUSH string "unable to spawn contract `Test11`" ;
                 FAILWITH
               }
               {}
     } ;
-    PUSH mutez 191552279045217 ;
-    PUSH bool True ;
+    PUSH mutez 143122235087065 ;
+    PUSH string "" ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply
@@ -332,15 +336,15 @@
     DUP ;
     # retrieve contract from address, fail if none
     {
-      CONTRACT bool ;
+      CONTRACT string ;
       IF_NONE {
-                PUSH string "unable to spawn contract `Test39`" ;
+                PUSH string "unable to spawn contract `Test11`" ;
                 FAILWITH
               }
               {}
     } ;
-    PUSH mutez 903313030665375 ;
-    PUSH bool False ;
+    PUSH mutez 535645140442767 ;
+    PUSH string "zG" ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply

@@ -1,25 +1,25 @@
 {
-  # deploying contract `Test39`
+  # deploying contract `Test11`
   {
     # creating contract creation parameters
     {
-      # creating storage for contract `Test39`
-      PUSH bool False ;
+      # creating storage for contract `Test11`
+      PUSH string "" ;
       # money transferred
-      PUSH mutez 520090578679187 ;
+      PUSH mutez 200365036483682 ;
       # delegatable
-      PUSH bool True ;
+      PUSH bool False ;
       # spendable
       PUSH bool False ;
       # delegate
       NONE key_hash ;
       # manager
       {
-        PUSH key "24aa6bd" ;
-        BLAKE2B
+        PUSH key "" ;
+        SHA256
       }
     } ;
-    CREATE_CONTRACT "Test39"
+    CREATE_CONTRACT "Test11"
   } ;
   # create a list of operations and apply
   {
@@ -33,15 +33,15 @@
     DUP ;
     # retrieve contract from address, fail if none
     {
-      CONTRACT bool ;
+      CONTRACT string ;
       IF_NONE {
-                PUSH string "unable to spawn contract `Test39`" ;
+                PUSH string "unable to spawn contract `Test11`" ;
                 FAILWITH
               }
               {}
     } ;
-    PUSH mutez 344634031425344 ;
-    PUSH bool False ;
+    PUSH mutez 357931738305099 ;
+    PUSH string "d8h" ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply
@@ -56,15 +56,15 @@
     DUP ;
     # retrieve contract from address, fail if none
     {
-      CONTRACT bool ;
+      CONTRACT string ;
       IF_NONE {
-                PUSH string "unable to spawn contract `Test39`" ;
+                PUSH string "unable to spawn contract `Test11`" ;
                 FAILWITH
               }
               {}
     } ;
-    PUSH mutez 761996373088210 ;
-    PUSH bool False ;
+    PUSH mutez 894280287178353 ;
+    PUSH string "X,)N<X`p.(pTp '" ;
     TRANSFER_TOKENS
   } ;
   # create a list of operations and apply

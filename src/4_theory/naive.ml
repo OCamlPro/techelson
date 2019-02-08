@@ -59,6 +59,10 @@ module Nat : Sigs.Nat with type t = int = struct
 
     let xor (n : t) (m : t) : t = n lxor m
 
+    let conj (n : t) (m : t) : t = n land m
+
+    let disj (n : t) (m : t) : t = n lor m
+
     let fmt (fmt : formatter) (t : t) : unit =
         fprintf fmt "%ip" t
 end
@@ -128,6 +132,7 @@ module NatConv : Sigs.NatConv with type int = Int.t and type nat = Nat.t = struc
             Some (Int.of_native q, Nat.of_native r)
         ) with
         | Division_by_zero -> None
+    let int_nat_conj (i_1 : Int.t) (n_2 : Nat.t) : Nat.t = i_1 land n_2
 end
 
 module StrConv

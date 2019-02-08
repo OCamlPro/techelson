@@ -215,6 +215,7 @@ module Theory (
         let of_nat : Cmp.Nat.t -> t = Cmp.NatConv.nat_to_int
         let abs : t -> Cmp.Nat.t = Cmp.NatConv.int_abs
         let ediv : t -> t -> (t * Cmp.Nat.t) option = Cmp.NatConv.ediv
+        let conj_nat : t -> Cmp.Nat.t -> Cmp.Nat.t = Cmp.NatConv.int_nat_conj
     end
 
     module Nat = struct
@@ -764,6 +765,16 @@ module Theory (
             | C cmp -> cmp
             | _ -> asprintf "expected a comparable value, found `%a`" fmt v |> Exc.throw
 
+        let str (v : value) : Str.t =
+            match v with
+            | C (Cmp.S s) -> s
+            | _ -> asprintf "expected a string value, found `%a`" fmt v |> Exc.throw
+
+        let bytes (v : value) : Bytes.t =
+            match v with
+            | C (Cmp.By by) -> by
+            | _ -> asprintf "expected some bytes, found `%a`" fmt v |> Exc.throw
+
         let key (v : value) : Key.t =
             match v with
             | Key k -> k
@@ -1061,12 +1072,18 @@ module Theory (
     let disj (v_1 : value) (v_2 : value) : value * Dtyp.t =
         match v_1, v_2 with
         | C (Cmp.B b_1), C (Cmp.B b_2) -> C (Cmp.B (b_1 || b_2)), Dtyp.Bool |> Dtyp.mk_leaf
+        | C (Cmp.N n_1), C (Cmp.N n_2) ->
+            C (Cmp.N (Nat.disj n_1 n_2)), Dtyp.Nat |> Dtyp.mk_leaf
 
         | _ -> asprintf "cannot compute disjunction of %a and %a" fmt v_1 fmt v_2 |> Exc.throw
 
     let conj (v_1 : value) (v_2 : value) : value * Dtyp.t =
         match v_1, v_2 with
         | C (Cmp.B b_1), C (Cmp.B b_2) -> C (Cmp.B (b_1 && b_2)), Dtyp.Bool |> Dtyp.mk_leaf
+        | C (Cmp.N n_1), C (Cmp.N n_2) ->
+            C (Cmp.N (Nat.conj n_1 n_2)), Dtyp.Nat |> Dtyp.mk_leaf
+        | C (Cmp.I i_1), C (Cmp.N n_2) ->
+            C (Cmp.N (Int.conj_nat i_1 n_2)), Dtyp.Nat |> Dtyp.mk_leaf
 
         | _ -> asprintf "cannot compute conjunction of %a and %a" fmt v_1 fmt v_2 |> Exc.throw
 

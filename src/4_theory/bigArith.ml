@@ -42,6 +42,8 @@ module BNat = struct
     let lshift_rgt (n : t) (shift : t) : t =
         to_native shift |> Z.shift_right n
     let xor = Z.logxor
+    let conj = Z.logand
+    let disj = Z.logor
 end
 
 module BNatConv = struct
@@ -70,6 +72,7 @@ module BNatConv = struct
             ) with
             | Division_by_zero -> None
         )
+    let int_nat_conj (i_1 : int) (n_2 : nat) : nat = Z.logand i_1 n_2
 end
 
 module NaiveStrConv = struct

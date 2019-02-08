@@ -83,6 +83,12 @@ module type Nat = sig
 
     (** Logical xor. *)
     val xor : t -> t -> t
+
+    (** Logical conjunction. *)
+    val conj : t -> t -> t
+
+    (** Logical disjunction. *)
+    val disj : t -> t -> t
 end
 
 (** Signature of a module for the mutez datatype. *)
@@ -151,6 +157,9 @@ module type NatConv = sig
 
     (** Euclidian division. *)
     val ediv : int -> int -> (int * nat) option
+
+    (** Int/Nat conjunction. *)
+    val int_nat_conj : int -> nat -> nat
 end
 
 (** String module. *)
@@ -941,6 +950,12 @@ module type Theory = sig
     module Inspect : sig
         (** Deconstructs a comparable value. *)
         val cmp : value -> Cmp.t
+
+        (** Deconstructs a string. *)
+        val str : value -> Str.t
+
+        (** Deconstructs some bytes. *)
+        val bytes : value -> Bytes.t
 
         (** Deconstructs a list of values. *)
         val list : value -> value Lst.t
