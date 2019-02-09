@@ -209,6 +209,8 @@ module Address : Sigs.Address = struct
         self.uid = other.uid
 
     let uid (self : t) : int = self.uid
+
+    let compare (t_1 : t) (t_2 : t) : int = compare t_1.uid t_2.uid
 end
 
 module Prims : Sigs.Primitive = struct

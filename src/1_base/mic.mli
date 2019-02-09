@@ -101,6 +101,7 @@ type leaf =
 | Pack
 | Unpack
 | Slice
+| Address
 | Hash of hash_fun
 | CheckSignature
 | Rename

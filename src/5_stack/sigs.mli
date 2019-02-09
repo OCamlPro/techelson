@@ -288,16 +288,27 @@ module type Stack = sig
     (** Convenience push operation. *)
     module Push : sig
         (** Pushes on the stack `Some` of the last element of the stack. *)
-        val some : ?alias : Dtyp.alias -> ?field : Annot.Field.t option -> t -> unit
+        val some :
+            ?binding : Annot.Var.t option ->
+            ?alias : Dtyp.alias ->
+            ?field : Annot.Field.t option ->
+            t ->
+            unit
 
         (** Pushes a `None` value on the stack. *)
-        val none : ?alias : Dtyp.alias -> ?field : Annot.Field.t option -> Dtyp.t -> t -> unit
+        val none :
+            ?binding : Annot.Var.t option ->
+            ?alias : Dtyp.alias ->
+            ?field : Annot.Field.t option ->
+            Dtyp.t ->
+            t ->
+            unit
 
         (** Pushes a left value for a disjunction. *)
-        val left : ?alias : Dtyp.alias -> Dtyp.t -> t -> unit
+        val left : ?binding : Annot.Var.t option -> ?alias : Dtyp.alias -> Dtyp.t -> t -> unit
 
         (** Pushes a right value for a disjunction. *)
-        val right : ?alias : Dtyp.alias -> Dtyp.t -> t -> unit
+        val right : ?binding : Annot.Var.t option -> ?alias : Dtyp.alias -> Dtyp.t -> t -> unit
 
         (** Pushes a `nil` value. *)
         val nil : ?binding : Annot.Var.t option -> ?alias : Dtyp.alias -> Dtyp.t -> t -> unit
@@ -315,7 +326,12 @@ module type Stack = sig
             unit
 
         (** Pushes an address on the stack. *)
-        val address : Theory.Address.t -> t -> unit
+        val address :
+            ?binding : Annot.Var.t option ->
+            ?alias : Dtyp.alias ->
+            Theory.Address.t ->
+            t ->
+            unit
     end
 
     (** Prepend operation over lists.

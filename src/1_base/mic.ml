@@ -156,6 +156,7 @@ type leaf =
 | Pack
 | Unpack
 | Slice
+| Address
 | Hash of hash_fun
 | CheckSignature
 | Rename
@@ -210,6 +211,7 @@ let fmt_leaf (fmt : formatter) (leaf : leaf) : unit = match leaf with
 | Pack -> fprintf fmt "PACK"
 | Unpack -> fprintf fmt "UNPACK"
 | Slice -> fprintf fmt "SLICE"
+| Address -> fprintf fmt "ADDRESS"
 | Hash h -> fmt_hash_fun fmt h
 | CheckSignature -> fprintf fmt "CHECK_SIGNATURE"
 | Rename -> fprintf fmt "RENAME"
@@ -282,7 +284,8 @@ let annot_arity_of_leaf (leaf : leaf) : (int * int * int) = match leaf with
 | Car
 | Cdr
 | Cons
-| Som -> (0, 1, 1)
+| Som
+| Address -> (0, 1, 1)
 
 (* One variable annotation, two field annotations. *)
 | Pair -> (0, 1, 2)
@@ -491,7 +494,14 @@ let mk_seq (seq : t list) : t =
 
 let unit_contract : contract =
     let dtyp = Dtyp.mk_leaf Dtyp.Unit in
-    let entry = mk_seq [] in
+    let entry =
+        mk_seq [
+            Drop |> mk_leaf ;
+            Unit |> mk_leaf ;
+            Nil (Dtyp.mk_leaf Dtyp.Operation) |> mk ;
+            Pair |> mk_leaf ;
+        ]
+    in
     mk_contract ~storage:(dtyp) ~param:(dtyp) entry
 
 (* Formats an IF-like instruction. *)

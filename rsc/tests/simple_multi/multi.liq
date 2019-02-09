@@ -16,7 +16,7 @@ let%entry add_admin
     ((admin_name, user_name, user_address) : string * string * address)
     (storage : storage)
   : operation list * storage 
-  =
+=
   admin_check storage admin_name (Current.sender ()); 
   let storage = storage.admins <- Map.update user_name (Some user_address) storage.admins in
   [], storage
@@ -68,3 +68,33 @@ let%entry drain (name : string) (storage : storage) =
   let storage = storage.users <- Map.update name None storage.users in
   let ops = [Contract.call ~dest:c ~amount:money ~parameter:()] in
   ops, storage
+
+let%test add_client () =
+  let key = "ed0f4ad01691fddbb5659349b80b4bee9" in
+  let manager = Crypto.hash_key key in
+  let delegatable = true in
+  let spendable = false in
+
+  let storage = () in
+  let admin_op, admin_address =
+    Account.create ~manager ~delegatable ~delegate:None ~amount:0tz
+  in
+
+  let storage = () in
+  let client_op, client_address =
+    Account.create ~manager ~delegatable ~delegate:None ~amount:0tz
+  in
+
+  let admins = Map.empty |> Map.add "Muriel" in
+  let clients = Map.empty in
+  let storage = (admins, clients) in
+
+  let contract_op, contract_address =
+    Contract.create ~storage ~manager ~spendable ~delegatable ~delegate:None ~amount:0tz Multi
+  in
+
+  Test.apply_ops [ admin_op ; client_op ; contract_op ] ;
+
+  
+
+

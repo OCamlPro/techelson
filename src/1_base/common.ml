@@ -208,7 +208,7 @@ end
 let conf_ref : Conf.t ref = ref Conf.default
 
 let set_conf (conf : Conf.t) : unit =
-    conf.verb > 1 |> Exc.set_print_backtrace;
+    conf.verb > 3 |> Exc.set_print_backtrace;
     conf_ref := conf
 
 let conf () : Conf.t = ! conf_ref

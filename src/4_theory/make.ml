@@ -480,9 +480,9 @@ module Theory (
         | InitNamed (params, value, name) ->
             fprintf fmtt "@[<hv 4>CREATE[uid:%i] %a %a %s@]"
                 uid fmt_contract_params params fmt value name
-        | Transfer { target ; amount ; param ; _ } ->
-            fprintf fmtt "@[<hv 4>TRANSFER[uid:%i] %a %a %a@]"
-                uid Address.fmt target Tez.fmt amount fmt param
+        | Transfer { target ; amount ; sender ; param ; _ } ->
+            fprintf fmtt "@[<hv 4>TRANSFER[uid:%i] %a -> %a %a %a@]"
+                uid Address.fmt sender Address.fmt target Tez.fmt amount fmt param
         | SetDelegate (address, delegate) ->
             fprintf fmtt "@[<hv 4>SET_DELEGATE[uid:%i] %a %a@]"
                 uid Address.fmt address (Opt.fmt KeyH.fmt) delegate
@@ -870,7 +870,10 @@ module Theory (
 
     let cmp (v_1 : value) (v_2 : value) : value * Dtyp.t =
         match v_1, v_2 with
-        | C c_1, C c_2 -> C (Cmp.I (Cmp.cmp c_1 c_2 |> Int.of_native)), Dtyp.Int |> Dtyp.mk_leaf
+        | C c_1, C c_2 ->
+            C (Cmp.I (Cmp.cmp c_1 c_2 |> Int.of_native)), Dtyp.Int |> Dtyp.mk_leaf
+        | Address a_1, Address a_2 ->
+            C (Cmp.I (Address.compare a_1 a_2 |> Int.of_native)), Dtyp.Int |> Dtyp.mk_leaf
         | _ -> asprintf "cannot compare values %a and %a" fmt v_1 fmt v_2 |> Exc.throw
 
     let eq_raw (v_1 : value) (v_2 : value) : bool =

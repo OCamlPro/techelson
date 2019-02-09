@@ -58,8 +58,8 @@ module StackBase (T : Theo.Sigs.Theory) : Sigs.StackBase with
 
         if self.dipped <> [] then (
            fprintf fmt "@,\
-            |================================================\
-            dipped============================================|";
+            |**********************************************| \
+            dipped |******************************************|";
             self.dipped |> List.fold_left (
                 fun is_first frame ->
                     if not is_first then (
@@ -577,27 +577,53 @@ module Stack (S : Sigs.StackBase)
     end
 
     module Push = struct
-        let some ?alias:(alias=None) ?field:(field=None) (self : t) : unit =
+        let some
+            ?binding:(binding=None)
+            ?alias:(alias=None)
+            ?field:(field=None)
+            (self : t)
+            : unit
+        =
             let value, dtyp = pop self in
             let dtyp = Dtyp.Option (Dtyp.mk_named field dtyp) |> Dtyp.mk ~alias in
-            push dtyp (Theory.Of.option (Some value)) self
-        let none ?alias:(alias=None) ?field:(field=None) (dtyp : Dtyp.t) (self : t) : unit =
-            let dtyp = Dtyp.Option (Dtyp.mk_named field dtyp) |> Dtyp.mk ~alias in
-            push dtyp (Theory.Of.option None) self
+            push ~binding dtyp (Theory.Of.option (Some value)) self
 
-        let left ?alias:(alias=None) (rgt_dtyp : Dtyp.t) (self : t) : unit =
+        let none
+            ?binding:(binding=None)
+            ?alias:(alias=None)
+            ?field:(field=None)
+            (dtyp : Dtyp.t)
+            (self : t)
+            : unit
+        =
+            let dtyp = Dtyp.Option (Dtyp.mk_named field dtyp) |> Dtyp.mk ~alias in
+            push ~binding dtyp (Theory.Of.option None) self
+
+        let left
+            ?binding:(binding=None)
+            ?alias:(alias=None)
+            (rgt_dtyp : Dtyp.t)
+            (self : t)
+            : unit
+        =
             let value, dtyp = pop self in
             let lft_dtyp = { Dtyp.inner = dtyp ; name = None} in
             let rgt_dtyp = { Dtyp.inner = rgt_dtyp ; name = None } in
             let dtyp = Dtyp.Or (lft_dtyp, rgt_dtyp) |> Dtyp.mk ~alias in
-            push dtyp (Theory.Of.either (Theory.Either.Lft value)) self
+            push ~binding dtyp (Theory.Of.either (Theory.Either.Lft value)) self
 
-        let right ?alias:(alias = None) (lft_dtyp : Dtyp.t) (self : t) : unit =
+        let right
+            ?binding:(binding=None)
+            ?alias:(alias = None)
+            (lft_dtyp : Dtyp.t)
+            (self : t)
+            : unit
+        =
             let value, dtyp = pop self in
             let lft_dtyp = { Dtyp.inner = lft_dtyp ; name = None} in
             let rgt_dtyp = { Dtyp.inner = dtyp ; name = None } in
             let dtyp = Dtyp.Or (lft_dtyp, rgt_dtyp) |> Dtyp.mk ~alias in
-            push dtyp (Theory.Of.either (Theory.Either.Rgt value)) self
+            push ~binding dtyp (Theory.Of.either (Theory.Either.Rgt value)) self
 
         let nil ?binding:(binding=None) ?alias:(alias=None) (dtyp : Dtyp.t) (self : t) : unit =
             let dtyp = Dtyp.List dtyp |> Dtyp.mk ~alias in
@@ -624,9 +650,15 @@ module Stack (S : Sigs.StackBase)
             let dtyp = Dtyp.Map (key_dtyp, val_dtyp) |> Dtyp.mk ~alias in
             push ~binding dtyp (Theory.Of.map Theory.Map.empty) self
 
-        let address (address : Theory.Address.t) (self : t) : unit =
-            let dtyp = Dtyp.Address |> Dtyp.mk_leaf in
-            push dtyp (Theory.Of.address address) self
+        let address
+            ?binding:(binding=None)
+            ?alias:(alias=None)
+            (address : Theory.Address.t)
+            (self : t)
+            : unit
+        =
+            let dtyp = Dtyp.Address |> Dtyp.mk_leaf ~alias in
+            push ~binding dtyp (Theory.Of.address address) self
     end
 
 

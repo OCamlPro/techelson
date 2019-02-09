@@ -53,8 +53,8 @@ module Stack : Sigs.StackBase = struct
 
         if self.dipped <> [] then (
            fprintf fmt "@,\
-            |================================================\
-            dipped============================================|";
+            |**********************************************| \
+            dipped |******************************************|";
             self.dipped |> List.iter (
                 fprintf fmt "@,| %a |" fmt_frame
             )

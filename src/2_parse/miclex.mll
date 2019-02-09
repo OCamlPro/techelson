@@ -70,6 +70,7 @@
         "SOME", I_SOME ;
         "CONS", I_CONS ;
         "CREATE_ACCOUNT", I_CREATE_ACCOUNT ;
+        "ADDRESS", I_ADDRESS ;
         "TRANSFER_TOKENS", I_TRANSFER_TOKENS ;
         "SET_DELEGATE", I_SET_DELEGATE ;
         "BALANCE", I_BALANCE ;
@@ -163,6 +164,7 @@
         "PRINT_STACK", I_PRINT_STACK ;
         "MUST_FAIL", I_MUST_FAIL ;
         "STEP", I_STEP ;
+        "SET_SOURCE", I_SET_SOURCE ;
 
         (* Constants. *)
         "Unit", C_UNIT ;

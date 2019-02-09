@@ -308,13 +308,16 @@ module Interpreter (
                 (* log_0 "running @[%a@]@.@." Mic.fmt mic; *)
                 self.last <- Some mic;
                 (
+                    (* Most instructions will use this directly. *)
+                    let binding = Lst.hd mic.vars in
+                    let alias = Lst.hd mic.typs in
+
+                    (* Matching on the actual instruction. *)
                     match mic.ins with
 
                     (* # Basic stack manipulation. *)
 
                     | Mic.Push (dtyp, const) ->
-                        let binding = Lst.hd mic.vars in
-                        let alias = Lst.hd mic.typs in
                         let dtyp =
                             if alias = None then dtyp
                             else Dtyp.rename alias dtyp
@@ -328,29 +331,24 @@ module Interpreter (
                         None
 
                     | Mic.Leaf Som ->
-                        let alias = Lst.hd mic.typs in
                         let field = Lst.hd mic.fields in
-                        Stack.Push.some ~alias ~field self.stack;
+                        Stack.Push.some ~binding ~alias ~field self.stack;
                         None
 
                     | Mic.Non dtyp ->
-                        let alias = Lst.hd mic.typs in
                         let field = Lst.hd mic.fields in
-                        Stack.Push.none ~alias ~field dtyp self.stack;
+                        Stack.Push.none ~binding ~alias ~field dtyp self.stack;
                         None
 
                     | Mic.Left dtyp ->
-                        let alias = Lst.hd mic.typs in
-                        Stack.Push.left ~alias dtyp self.stack;
+                        Stack.Push.left ~binding ~alias dtyp self.stack;
                         None
 
                     | Mic.Right dtyp ->
-                        let alias = Lst.hd mic.typs in
-                        Stack.Push.right ~alias dtyp self.stack;
+                        Stack.Push.right ~binding ~alias dtyp self.stack;
                         None
 
                     | Mic.Leaf Dup ->
-                        let binding = Lst.hd mic.vars in
                         Stack.dup ~binding self.stack;
                         None
 
@@ -359,7 +357,8 @@ module Interpreter (
                         None
 
                     | Mic.Leaf Unit ->
-                        Stack.push Dtyp.unit Theory.Of.unit self.stack;
+                        let dtyp = Dtyp.mk_leaf ~alias Dtyp.Unit in
+                        Stack.push ~binding dtyp Theory.Of.unit self.stack;
                         None
 
                     (* # Control structures. *)
@@ -523,8 +522,6 @@ module Interpreter (
                     (* # Basic value creation. *)
 
                     | Mic.Leaf Pair ->
-                        let binding = Lst.hd mic.vars in
-                        let alias = Lst.hd mic.typs in
                         let (snd, snd_dtyp), (fst, fst_dtyp) =
                             Stack.pop self.stack, Stack.pop self.stack
                         in
@@ -554,14 +551,12 @@ module Interpreter (
                         None
 
                     | Mic.Leaf Rename ->
-                        let binding = Lst.hd mic.vars in
                         Stack.rename binding self.stack;
                         None
 
                     (* # Booleans. *)
 
                     | Mic.Leaf And ->
-                        let binding = Lst.hd mic.vars in
                         let v_1, _ = Stack.pop self.stack in
                         let v_2, _ = Stack.pop self.stack in
                         let value, dtyp = Theory.conj v_1 v_2 in
@@ -570,7 +565,6 @@ module Interpreter (
                         None
 
                     | Mic.Leaf Or ->
-                        let binding = Lst.hd mic.vars in
                         let v_1, _ = Stack.pop self.stack in
                         let v_2, _ = Stack.pop self.stack in
                         let value, dtyp = Theory.disj v_1 v_2 in
@@ -579,7 +573,6 @@ module Interpreter (
                         None
 
                     | Mic.Leaf Not ->
-                        let binding = Lst.hd mic.vars in
                         let value, _ = Stack.pop self.stack in
                         let value, dtyp = Theory.not value in
 
@@ -587,7 +580,6 @@ module Interpreter (
                         None
 
                     | Mic.Leaf Xor ->
-                        let binding = Lst.hd mic.vars in
                         let v_1, _ = Stack.pop self.stack in
                         let v_2, _ = Stack.pop self.stack in
                         let value, dtyp = Theory.xor v_1 v_2 in
@@ -598,7 +590,6 @@ module Interpreter (
                     (* # Arithmetic. *)
 
                     | Mic.Leaf Neg ->
-                        let binding = Lst.hd mic.vars in
                         let value, _ = Stack.pop self.stack in
                         let value, dtyp = Theory.neg value in
 
@@ -606,7 +597,6 @@ module Interpreter (
                         None
 
                     | Mic.Leaf Add ->
-                        let binding = Lst.hd mic.vars in
                         let v_1, _ = Stack.pop self.stack in
                         let v_2, _ = Stack.pop self.stack in
                         let value, dtyp = Theory.add v_1 v_2 in
@@ -615,7 +605,6 @@ module Interpreter (
                         None
 
                     | Mic.Leaf Sub ->
-                        let binding = Lst.hd mic.vars in
                         let v_1, _ = Stack.pop self.stack in
                         let v_2, _ = Stack.pop self.stack in
                         let value, dtyp = Theory.sub v_1 v_2 in
@@ -624,7 +613,6 @@ module Interpreter (
                         None
 
                     | Mic.Leaf Mul ->
-                        let binding = Lst.hd mic.vars in
                         let v_1, _ = Stack.pop self.stack in
                         let v_2, _ = Stack.pop self.stack in
                         let value, dtyp = Theory.mul v_1 v_2 in
@@ -633,7 +621,6 @@ module Interpreter (
                         None
                     
                     | Mic.Leaf Abs ->
-                        let binding = Lst.hd mic.vars in
                         let value, _ = Stack.pop self.stack in
                         let value, dtyp = Theory.abs value in
 
@@ -641,7 +628,6 @@ module Interpreter (
                         None
 
                     | Mic.Leaf Lsl ->
-                        let binding = Lst.hd mic.vars in
                         let v_1, _ = Stack.pop self.stack in
                         let v_2, _ = Stack.pop self.stack in
                         let value, dtyp = Theory.lshift_lft v_1 v_2 in
@@ -650,7 +636,6 @@ module Interpreter (
                         None
 
                     | Mic.Leaf Lsr ->
-                        let binding = Lst.hd mic.vars in
                         let v_1, _ = Stack.pop self.stack in
                         let v_2, _ = Stack.pop self.stack in
                         let value, dtyp = Theory.lshift_rgt v_1 v_2 in
@@ -659,7 +644,6 @@ module Interpreter (
                         None
 
                     | Mic.Leaf EDiv ->
-                        let binding = Lst.hd mic.vars in
                         let v_1, _ = Stack.pop self.stack in
                         let v_2, _ = Stack.pop self.stack in
                         let value, dtyp = Theory.ediv v_1 v_2 in
@@ -670,7 +654,6 @@ module Interpreter (
                     (* # String/bytes. *)
 
                     | Mic.Leaf Slice -> (
-                        let binding = Lst.hd mic.vars in
                         let start, _ = Stack.Pop.nat self.stack in
                         let length, _ = Stack.Pop.nat self.stack in
                         let value, dtyp =
@@ -696,7 +679,6 @@ module Interpreter (
                     )
 
                     | Mic.Leaf Concat -> (
-                        let binding = Lst.hd mic.vars in
                         let value, dtyp =
                             match Stack.pop self.stack with
                             | Theory.C (Theory.Cmp.S s_1), dtyp_1 ->
@@ -748,7 +730,6 @@ module Interpreter (
                     (* # Comparison. *)
 
                     | Mic.Leaf Compare ->
-                        let binding = Lst.hd mic.vars in
                         let v_1, _ = Stack.pop self.stack in
                         let v_2, _ = Stack.pop self.stack in
                         let value, dtyp = Theory.cmp v_1 v_2 in
@@ -756,7 +737,6 @@ module Interpreter (
                         None
 
                     | Mic.Leaf Eq ->
-                        let binding = Lst.hd mic.vars in
                         let value, _ = Stack.pop self.stack in
                         let value = Theory.is_zero value in
                         let dtyp = Dtyp.Bool |> Dtyp.mk_leaf in
@@ -765,7 +745,6 @@ module Interpreter (
                         None
 
                     | Mic.Leaf Neq ->
-                        let binding = Lst.hd mic.vars in
                         let value, _ = Stack.pop self.stack in
                         let value = Theory.is_not_zero value in
                         (* log_0 "value : %a" Theory.fmt value ; *)
@@ -775,7 +754,6 @@ module Interpreter (
                         None
 
                     | Mic.Leaf Le ->
-                        let binding = Lst.hd mic.vars in
                         let value, _ = Stack.pop self.stack in
                         let value = Theory.le_zero value in
                         let dtyp = Dtyp.Bool |> Dtyp.mk_leaf in
@@ -784,7 +762,6 @@ module Interpreter (
                         None
 
                     | Mic.Leaf Lt ->
-                        let binding = Lst.hd mic.vars in
                         let value, _ = Stack.pop self.stack in
                         let value = Theory.lt_zero value in
                         let dtyp = Dtyp.Bool |> Dtyp.mk_leaf in
@@ -793,7 +770,6 @@ module Interpreter (
                         None
 
                     | Mic.Leaf Gt ->
-                        let binding = Lst.hd mic.vars in
                         let value, _ = Stack.pop self.stack in
                         let value = Theory.gt_zero value in
                         let dtyp = Dtyp.Bool |> Dtyp.mk_leaf in
@@ -802,7 +778,6 @@ module Interpreter (
                         None
 
                     | Mic.Leaf Ge ->
-                        let binding = Lst.hd mic.vars in
                         let value, _ = Stack.pop self.stack in
                         let value = Theory.ge_zero value in
                         let dtyp = Dtyp.Bool |> Dtyp.mk_leaf in
@@ -812,7 +787,6 @@ module Interpreter (
 
                     (* # Pair operations. *)
                     | Mic.Leaf Car ->
-                        let binding = Lst.hd mic.vars in
                         let value, dtyp = Stack.pop self.stack in
                         let value = Theory.car value in
                         let dtyp, _ = Dtyp.Inspect.pair dtyp in
@@ -821,7 +795,6 @@ module Interpreter (
                         None
 
                     | Mic.Leaf Cdr ->
-                        let binding = Lst.hd mic.vars in
                         let value, dtyp = Stack.pop self.stack in
                         let value = Theory.cdr value in
                         let _, dtyp = Dtyp.Inspect.pair dtyp in
@@ -836,8 +809,6 @@ module Interpreter (
                         None
 
                     | Mic.Nil dtyp ->
-                        let binding = Lst.hd mic.vars in
-                        let alias = Lst.hd mic.typs in
                         Stack.Push.nil ~binding ~alias dtyp self.stack;
                         None
 
@@ -862,25 +833,19 @@ module Interpreter (
                                     Theory.fmt value Dtyp.fmt dtyp
                                 |> Exc.throw
                         in
-                        Stack.push (Dtyp.nat) size self.stack;
+                        Stack.push ~binding (Dtyp.nat) size self.stack;
                         None
                     )
 
                     (* # Set operations. *)
 
                     | Mic.EmptySet dtyp ->
-                        let binding = Lst.hd mic.vars in
-                        let alias = Lst.hd mic.typs in
-
                         Stack.Push.empty_set ~binding ~alias dtyp self.stack;
                         None
 
                     (* # Map operations. *)
 
                     | Mic.EmptyMap (key_dtyp, val_dtyp) ->
-                        let binding = Lst.hd mic.vars in
-                        let alias = Lst.hd mic.typs in
-
                         Stack.Push.empty_map ~binding ~alias key_dtyp val_dtyp self.stack;
                         None
 
@@ -953,7 +918,6 @@ module Interpreter (
                         None
 
                     | Mic.Leaf Get ->
-                        let binding = Lst.hd mic.vars in
                         let key, key_dtyp = Stack.Pop.cmp self.stack in
                         let value, map_dtyp =
                             match Stack.pop self.stack with
@@ -976,7 +940,6 @@ module Interpreter (
                         None
 
                     | Mic.Leaf Mem ->
-                        let binding = Lst.hd mic.vars in
                         let key, key_dtyp = Stack.Pop.cmp self.stack in
                         let mem, kdtyp =
                             match Stack.pop self.stack with
@@ -1139,8 +1102,6 @@ module Interpreter (
                         None
 
                     | Mic.Lambda (dom, codom, mic) ->
-                        let binding = Lst.hd mic.vars in
-                        let alias = Lst.hd mic.typs in
                         let value = Theory.Of.lambda dom codom mic in
                         let dtyp = Dtyp.Lambda (dom, codom) |> Dtyp.mk ~alias in
 
@@ -1152,15 +1113,14 @@ module Interpreter (
                     (* ## Timestamps. *)
 
                     | Mic.Leaf Now ->
-                        let binding = Lst.hd mic.vars in
                         let now = Theory.TStamp.now () |> Theory.Of.timestamp in
-                        Stack.push ~binding Dtyp.timestamp now self.stack;
+                        let dtyp = Dtyp.Timestamp |> Dtyp.mk_leaf ~alias in
+                        Stack.push ~binding dtyp now self.stack;
                         None
 
                     (* ## Crypto. *)
 
                     | Mic.Leaf (Hash h) ->
-                        let binding = Lst.hd mic.vars in
                         let key, _ = Stack.pop self.stack in
                         let value =
                             (fun () ->
@@ -1176,7 +1136,7 @@ module Interpreter (
                                 fun () -> "while retrieving a key to hash (b58check)"
                             )
                         in
-                        let dtyp = Dtyp.KeyH |> Dtyp.mk_leaf in
+                        let dtyp = Dtyp.KeyH |> Dtyp.mk_leaf ~alias in
 
                         Stack.push ~binding dtyp value self.stack;
                         None
@@ -1184,18 +1144,16 @@ module Interpreter (
                     (* ## Env. *)
 
                     | Mic.Leaf Mic.Balance ->
-                        let binding = Lst.hd mic.vars in
                         let value = Theory.Of.tez self.balance in
-                        let dtyp = Dtyp.Mutez |> Dtyp.mk_leaf in
+                        let dtyp = Dtyp.Mutez |> Dtyp.mk_leaf ~alias in
 
                         Stack.push ~binding dtyp value self.stack;
                         None
 
 
                     | Mic.Leaf Mic.Amount ->
-                        let binding = Lst.hd mic.vars in
                         let value = self.amount |> Theory.Of.tez in
-                        let dtyp = Dtyp.Mutez |> Dtyp.mk_leaf in
+                        let dtyp = Dtyp.Mutez |> Dtyp.mk_leaf ~alias in
 
                         Stack.push ~binding dtyp value self.stack;
                         None
@@ -1203,9 +1161,8 @@ module Interpreter (
                     | Mic.Leaf Sender -> (
                         match self.src with
                         | Src.Contract { sender ; _ } ->
-                            let binding = Lst.hd mic.vars in
                             let value = sender |> Theory.Of.address in
-                            let dtyp = Dtyp.Address |> Dtyp.mk_leaf in
+                            let dtyp = Dtyp.Address |> Dtyp.mk_leaf ~alias in
 
                             Stack.push ~binding dtyp value self.stack;
                             None
@@ -1215,9 +1172,8 @@ module Interpreter (
                     | Mic.Leaf Source -> (
                         match self.src with
                         | Src.Contract { source ; _ } ->
-                            let binding = Lst.hd mic.vars in
                             let value = source |> Theory.Of.address in
-                            let dtyp = Dtyp.Address |> Dtyp.mk_leaf in
+                            let dtyp = Dtyp.Address |> Dtyp.mk_leaf ~alias in
 
                             Stack.push ~binding dtyp value self.stack;
                             None
@@ -1225,7 +1181,6 @@ module Interpreter (
                     )
 
                     | Mic.Contract dtyp -> (
-                        let binding = Lst.hd mic.vars in
                         let address = Stack.Pop.address self.stack |> fst in
                         let value =
                             match Env.Live.get address self.env with
@@ -1241,13 +1196,25 @@ module Interpreter (
                             )
                         in
                         let dtyp = Dtyp.Contract dtyp |> Dtyp.mk in
-                        let dtyp = Dtyp.Option (Dtyp.mk_named None dtyp) |> Dtyp.mk in
+                        let dtyp = Dtyp.Option (Dtyp.mk_named None dtyp) |> Dtyp.mk ~alias in
                         Stack.push ~binding dtyp value self.stack;
                         None
                     )
 
+                    | Mic.Leaf Address -> (
+                        let address, _ = Stack.Pop.contract self.stack in
+                        let address =
+                            match address with
+                            | None ->
+                                Exc.Throw.tezos "cannot retrieve address of undeployed contract"
+                            | Some a -> Theory.Of.address a
+                        in
+                        let dtyp = Dtyp.Address |> Dtyp.mk_leaf ~alias in
+                        Stack.push ~binding dtyp address self.stack ;
+                        None
+                    )
+
                     | Mic.Leaf Self -> (
-                        let binding = Lst.hd mic.vars in
                         let bail () =
                             Exc.throw "internal error while retrieving self contract"
                         in
@@ -1261,7 +1228,7 @@ module Interpreter (
                                 | Some contract -> (
                                     let contract = Contract.to_mic contract.contract in
                                     let value = Theory.Of.contract address contract in
-                                    let dtyp = Dtyp.Contract contract.param |> Dtyp.mk in
+                                    let dtyp = Dtyp.Contract contract.param |> Dtyp.mk ~alias in
                                     Stack.push ~binding dtyp value self.stack
                                 )
                             )
@@ -1270,17 +1237,19 @@ module Interpreter (
                     )
 
                     | Mic.CreateContract (Either.Lft None) -> (
-                        let binding = Lst.hd mic.vars in
                         let address = Theory.Address.fresh binding in
                         let params, contract =
                             Stack.Pop.contract_params_and_lambda address self.stack
                         in
 
                         (* Push address. *)
-                        Stack.Push.address address self.stack;
+                        Stack.Push.address ~binding address self.stack;
+
+                        (* Get binding for the operation. *)
+                        let binding = Lst.tl mic.vars |> Opt.and_then Lst.hd in
 
                         (* Push operation. *)
-                        let dtyp = Dtyp.Operation |> Dtyp.mk_leaf in
+                        let dtyp = Dtyp.Operation |> Dtyp.mk_leaf ~alias in
                         let uid = Env.get_uid self.env in
                         let operation = Theory.Of.Operation.create uid params contract in
                         Stack.push ~binding dtyp operation self.stack;
@@ -1288,7 +1257,6 @@ module Interpreter (
                     )
 
                     | Mic.CreateContract (Either.Lft Some (contract)) -> (
-                        let binding = Lst.hd mic.vars in
                         let address = Theory.Address.fresh binding in
                         let params, storage_val_dtyp =
                             Stack.Pop.contract_params address self.stack
@@ -1303,10 +1271,13 @@ module Interpreter (
                         );
 
                         (* Push address. *)
-                        Stack.Push.address address self.stack;
+                        Stack.Push.address ~binding address self.stack;
+
+                        (* Get binding for the operation. *)
+                        let binding = Lst.tl mic.vars |> Opt.and_then Lst.hd in
 
                         (* Push operation. *)
-                        let dtyp = Dtyp.Operation |> Dtyp.mk_leaf in
+                        let dtyp = Dtyp.Operation |> Dtyp.mk_leaf ~alias in
                         let uid = Env.get_uid self.env in
                         let operation = Theory.Of.Operation.create uid params contract in
                         Stack.push ~binding dtyp operation self.stack;
@@ -1314,17 +1285,19 @@ module Interpreter (
                     )
 
                     | Mic.Leaf CreateAccount -> (
-                        let binding = Lst.hd mic.vars in
                         let address = Theory.Address.fresh binding in
                         let params =
                             Stack.Pop.account_params address self.stack
                         in
 
                         (* Push address. *)
-                        Stack.Push.address address self.stack;
+                        Stack.Push.address ~binding address self.stack;
+
+                        (* Get binding for the operation. *)
+                        let binding = Lst.tl mic.vars |> Opt.and_then Lst.hd in
 
                         (* Push operation. *)
-                        let dtyp = Dtyp.Operation |> Dtyp.mk_leaf in
+                        let dtyp = Dtyp.Operation |> Dtyp.mk_leaf ~alias in
                         let uid = Env.get_uid self.env in
                         let operation = Theory.Of.Operation.create uid params Mic.unit_contract in
                         Stack.push ~binding dtyp operation self.stack;
@@ -1333,7 +1306,6 @@ module Interpreter (
 
                     | Mic.CreateContract (Either.Rgt name) -> (
                         let contract = Env.get name self.env in
-                        let binding = Lst.hd mic.vars in
                         let address = Theory.Address.fresh binding in
                         let params, storage_val_dtyp =
                             Stack.Pop.contract_params address self.stack
@@ -1349,10 +1321,13 @@ module Interpreter (
                         );
 
                         (* Push address. *)
-                        Stack.Push.address address self.stack;
+                        Stack.Push.address ~binding address self.stack;
+
+                        (* Get binding for the operation. *)
+                        let binding = Lst.tl mic.vars |> Opt.and_then Lst.hd in
 
                         (* Push operation. *)
-                        let dtyp = Dtyp.Operation |> Dtyp.mk_leaf in
+                        let dtyp = Dtyp.Operation |> Dtyp.mk_leaf ~alias in
                         let uid = Env.get_uid self.env in
                         let operation =
                             Theory.Of.Operation.create_named uid params contract
@@ -1362,7 +1337,6 @@ module Interpreter (
                     )
 
                     | Mic.Leaf SetDelegate -> (
-                        let binding = Lst.hd mic.vars in
                         let delegate = Stack.Pop.key_hash_option self.stack |> fst in
 
                         let address =
@@ -1373,7 +1347,7 @@ module Interpreter (
                         in
 
                         (* Push operation. *)
-                        let dtyp = Dtyp.Operation |> Dtyp.mk_leaf in
+                        let dtyp = Dtyp.Operation |> Dtyp.mk_leaf ~alias in
                         let uid = Env.get_uid self.env in
                         let operation =
                             Theory.Of.Operation.set_delegate uid address delegate
@@ -1384,7 +1358,6 @@ module Interpreter (
                     )
 
                     | Mic.Leaf TransferTokens ->
-                        let binding = Lst.hd mic.vars in
                         let param, param_dtyp = Stack.pop self.stack in
                         let amount = Stack.Pop.tez self.stack |> fst in
                         let address, contract = Stack.Pop.contract self.stack in
@@ -1401,6 +1374,7 @@ module Interpreter (
                                 | Src.Test { address ; _ } -> address, address
                                 | Src.Contract { source ; address ; _ } -> source, address
                             in
+                            log_0 "source : %a@.sender: %a@." Theory.Address.fmt source Theory.Address.fmt sender ;
                             let info : Theory.transfer_info =
                                 {
                                     source ; sender ; target = address ;
@@ -1409,7 +1383,7 @@ module Interpreter (
                             in
                             Theory.Of.Operation.transfer uid info
                         in
-                        let dtyp = Dtyp.Operation |> Dtyp.mk_leaf in
+                        let dtyp = Dtyp.Operation |> Dtyp.mk_leaf ~alias in
 
                         Stack.push ~binding dtyp operation self.stack;
                         None
@@ -1449,7 +1423,11 @@ module Interpreter (
                                             storage_dtyp contract.contract.storage;
                                         Some contract.storage |> Theory.Of.option
                                     ) with
-                                    | _ -> Theory.Of.option None
+                                    | e -> (
+                                        (fun () -> raise e) |> Exc.catch_print |> ignore;
+                                        log_0 "ping@.";
+                                        Theory.Of.option None
+                                    )
                                 in
                                 value, dtyp
                             )
@@ -1459,7 +1437,6 @@ module Interpreter (
                         None
 
                     | Mic.Extension Mic.BalanceOf ->
-                        let binding = Lst.hd mic.vars in
                         let address, _ = Stack.Pop.contract self.stack in
                         let address =
                             match address with
@@ -1474,7 +1451,7 @@ module Interpreter (
                                 |> Exc.throw
                             | Some contract -> contract.balance |> Theory.Of.tez
                         in
-                        let dtyp = Dtyp.Mutez |> Dtyp.mk_leaf in
+                        let dtyp = Dtyp.Mutez |> Dtyp.mk_leaf ~alias in
 
                         Stack.push ~binding dtyp value self.stack;
                         None
@@ -1492,9 +1469,9 @@ module Interpreter (
                             |> fst
                             |> Env.Op.must_fail self.env expected
                         in
-                        let dtyp = Dtyp.Operation |> Dtyp.mk_leaf in
+                        let dtyp = Dtyp.Operation |> Dtyp.mk_leaf ~alias in
 
-                        Stack.push dtyp value self.stack;
+                        Stack.push ~binding dtyp value self.stack;
                         None
 
                     | Mic.Extension Mic.SetSource -> (

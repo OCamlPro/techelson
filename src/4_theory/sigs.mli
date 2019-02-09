@@ -284,6 +284,9 @@ module type Address = sig
 
     (** Unique identifier associated with the address. *)
     val uid : t -> int
+
+    (** Comparison over addresses. *)
+    val compare : t -> t -> int
 end
 
 (** Aggregates all the primitive datatypes.
