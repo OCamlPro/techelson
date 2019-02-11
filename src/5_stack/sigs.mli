@@ -305,10 +305,22 @@ module type Stack = sig
             unit
 
         (** Pushes a left value for a disjunction. *)
-        val left : ?binding : Annot.Var.t option -> ?alias : Dtyp.alias -> Dtyp.t -> t -> unit
+        val left :
+            ?binding : Annot.Var.t option ->
+            ?alias : Dtyp.alias ->
+            ?field : Annot.Field.t option ->
+            Dtyp.t ->
+            t ->
+            unit
 
         (** Pushes a right value for a disjunction. *)
-        val right : ?binding : Annot.Var.t option -> ?alias : Dtyp.alias -> Dtyp.t -> t -> unit
+        val right :
+            ?binding : Annot.Var.t option ->
+            ?alias : Dtyp.alias ->
+            ?field : Annot.Field.t option ->
+            Dtyp.t ->
+            t ->
+            unit
 
         (** Pushes a `nil` value. *)
         val nil : ?binding : Annot.Var.t option -> ?alias : Dtyp.alias -> Dtyp.t -> t -> unit

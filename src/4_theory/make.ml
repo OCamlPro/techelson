@@ -809,19 +809,29 @@ module Theory (
         match dtyp.typ, v with
         | Dtyp.Leaf Dtyp.Key, C (Cmp.S s) ->
             Key (Str.to_string s |> Key.of_native)
+        | Dtyp.Leaf Dtyp.Unit, U -> v
+
         | Dtyp.Contract param, Contract (_, c) ->
             if c.Mic.param = param then v else bail_msg () |> Exc.throw
-        | Dtyp.Leaf Dtyp.Unit, U -> v
+
         | Dtyp.List sub, Lst l ->
             (fun () -> l |> List.map (cast sub))
             |> Exc.chain_err bail_msg
             |> Of.list
+
+        | Dtyp.Option _, Option None -> v
+        | Dtyp.Option sub, Option (Some v) -> (
+            let sub = cast sub.inner v in
+            Option (Some sub)
+        )
+
         | Dtyp.Or (lft, _), Either (Either.Lft v) ->
             (fun () -> Either (Either.Lft (cast lft.inner v)))
             |> Exc.chain_err bail_msg
         | Dtyp.Or (_, rgt), Either (Either.Rgt v) ->
             (fun () -> Either (Either.Rgt (cast rgt.inner v)))
             |> Exc.chain_err bail_msg
+
         | Dtyp.Pair (lft, rgt), Pair (l, r) ->
             (
                 fun () ->
@@ -830,24 +840,34 @@ module Theory (
                     Pair (lft, rgt)
             )
             |> Exc.chain_err bail_msg
-        | Dtyp.Map (keys, values), Map map ->
-            Map (
-                map |> Map.fold (
-                    fun map key value ->
-                        let key = Of.cmp key |> cast keys in
-                        let value = cast values value in
-                        Map.update (Inspect.cmp key) (Some value) map
-                ) Map.empty
-            )
-        | Dtyp.BigMap (keys, values), Map map ->
-            Map (
-                map |> Map.fold (
-                    fun bigmap key value ->
-                        let key = Of.cmp key |> cast keys in
-                        let value = cast values value in
-                        BigMap.update (Inspect.cmp key) (Some value) bigmap
-                ) BigMap.empty
-            )
+
+        | Dtyp.Map (keys, values), Map map -> Map (
+            map |> Map.fold (
+                fun map key value ->
+                    let key = Of.cmp key |> cast keys in
+                    let value = cast values value in
+                    Map.update (Inspect.cmp key) (Some value) map
+            ) Map.empty
+        )
+
+        | Dtyp.BigMap (keys, values), Map map -> Map (
+            map |> Map.fold (
+                fun bigmap key value ->
+                    let key = Of.cmp key |> cast keys in
+                    let value = cast values value in
+                    BigMap.update (Inspect.cmp key) (Some value) bigmap
+            ) BigMap.empty
+        )
+
+        | Dtyp.BigMap (keys, values), BigMap map -> BigMap (
+            map |> BigMap.fold (
+                fun bigmap key value ->
+                    let key = Of.cmp key |> cast keys in
+                    let value = cast values value in
+                    BigMap.update (Inspect.cmp key) (Some value) bigmap
+            ) BigMap.empty
+        )
+
         | _ -> (
             match v with
             | C cmp -> C (Cmp.cast dtyp cmp)

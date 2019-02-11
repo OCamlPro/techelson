@@ -229,13 +229,11 @@ module TestCxt (
         let check_prev (self : apply_ops) : (run_test, transfer) Either.t option =
 
             match self.prev, self.outcome with
-            | Some (sub_op, Failure (value, dtyp)), Success op -> (
-                asprintf "\
-                    operation %a was expected to succeed, \
-                    but a transfer failed on %a : %a while running operation %a\
-                " Env.Op.fmt op Theory.fmt value Dtyp.fmt dtyp Env.Op.fmt sub_op
-                |> Exc.throw
-            )
+            | Some (sub_op, Failure (value, dtyp)), Success op -> Exc.throws [
+                asprintf "operation %a was expected to succeed" Env.Op.fmt op ;
+                asprintf "but failed on operation %a" Env.Op.fmt sub_op ;
+                asprintf "operation failed on %a : %a" Theory.fmt value Dtyp.fmt dtyp ;
+            ]
             | Some (sub_op, Protocol e), Success op ->
                 (fun () -> raise (Exc.Exc (Exc.Protocol e)))
                 |> Exc.chain_errs (
@@ -256,44 +254,44 @@ module TestCxt (
                 )
             )
             | Some (sub_op, Failure (value, dtyp)), Fail (expected, op, env) -> (
-                let failed_failure_msg (blah : string) =
-                    asprintf "operation %a was expected to fail %s" Env.Op.fmt op blah
-                in
                 (
                     match expected with
                     | Some (e_v, e_t) -> (
                         (
-                            try DtypCheck.unify (DtypCheck.empty ()) e_t dtyp |> ignore with
-                            | _ -> (
-                                asprintf "\
-                                    with value %a : %a \
-                                    but failed with value %a : %a while running operation %a\
-                                "
+                            try
+                                DtypCheck.unify (DtypCheck.empty ()) e_t dtyp |> ignore;
+                                if value <> e_v then Exc.throw "bailing"
+                            with
+                            | _ -> Exc.throws [
+                                asprintf "operation %a was expected to fail" Env.Op.fmt op ;
+                                asprintf "with value @[<h>%a : %a@]"
                                     Theory.fmt e_v
-                                    Dtyp.fmt e_t
+                                    Dtyp.fmt e_t ;
+                                asprintf "but failed with value @[<h>%a : %a@]"
                                     Theory.fmt value
-                                    Dtyp.fmt dtyp
-                                    Env.Op.fmt sub_op
-                                |> failed_failure_msg
-                                |> Exc.throw
-                            )
+                                    Dtyp.fmt dtyp ;
+                                asprintf "while running operation %a"
+                                    Env.Op.fmt sub_op ;
+                            ]
                         )
                     )
                     | None -> ()
                 );
 
-                log_1 "failure confirmed on test operation %a@." Env.Op.fmt op;
-                log_1 "while running operation %a@." Env.Op.fmt sub_op;
-                log_1 "failed with value %a : %a@." Theory.fmt value Dtyp.fmt dtyp;
+                log_2 "failure confirmed on test operation@.";
+                log_2 "  @[%a@]@." Env.Op.fmt op;
+                log_3 "while running operation %a@." Env.Op.fmt sub_op;
+                log_3 "failed with value %a : %a@." Theory.fmt value Dtyp.fmt dtyp;
 
                 RunTest.set_contract_env env self.test;
 
                 stage_next_test_op self
             )
             | Some (sub_op, Protocol e), Fail (None, op, env) -> (
-                log_1 "failure confirmed on test operation %a@." Env.Op.fmt op;
-                log_1 "while running operation %a@." Env.Op.fmt sub_op;
-                log_1 "%a@." Exc.Protocol.fmt e;
+                log_2 "failure confirmed on test operation@.";
+                log_2 "  @[%a@]@." Env.Op.fmt op;
+                log_3 "while running operation %a@." Env.Op.fmt sub_op;
+                log_3 "%a@." Exc.Protocol.fmt e;
                 RunTest.set_contract_env env self.test;
                 stage_next_test_op self
             )
@@ -459,6 +457,8 @@ module TestCxt (
                             in
 
                             Run.Env.Live.transfer ~src amount tgt;
+
+                            log_0 "contract env : @[%a@]@." Run.Env.fmt contract_env;
 
                             let src = Run.Src.of_address ~source ~sender ~address:target in
                             let param_dtyp =

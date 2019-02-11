@@ -341,11 +341,13 @@ module Interpreter (
                         None
 
                     | Mic.Left dtyp ->
-                        Stack.Push.left ~binding ~alias dtyp self.stack;
+                        let field = Lst.hd mic.fields in
+                        Stack.Push.left ~field ~binding ~alias dtyp self.stack;
                         None
 
                     | Mic.Right dtyp ->
-                        Stack.Push.right ~binding ~alias dtyp self.stack;
+                        let field = Lst.hd mic.fields in
+                        Stack.Push.right ~field ~binding ~alias dtyp self.stack;
                         None
 
                     | Mic.Leaf Dup ->
@@ -1374,7 +1376,6 @@ module Interpreter (
                                 | Src.Test { address ; _ } -> address, address
                                 | Src.Contract { source ; address ; _ } -> source, address
                             in
-                            log_0 "source : %a@.sender: %a@." Theory.Address.fmt source Theory.Address.fmt sender ;
                             let info : Theory.transfer_info =
                                 {
                                     source ; sender ; target = address ;

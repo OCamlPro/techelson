@@ -60,7 +60,6 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
             (self : t)
             : unit
         =
-            log_0 "ping@.";
             let uid = Theory.Address.uid address in
             let live =
                 try Hashtbl.find self.live uid with
@@ -130,9 +129,9 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
             )
 
         let collect ~(tgt : string) (tez : Theory.Tez.t) (live : live) : unit =
-            if Theory.Tez.compare live.balance tez >= 0 then
+            if Theory.Tez.compare live.balance tez >= 0 then (
                 live.balance <- Theory.Tez.sub live.balance tez
-            else
+            ) else
                 Exc.Throw.too_poor ~src:live.contract.name ~tgt ~amount:(Theory.Tez.to_native tez)
 
         let set_delegate (delegate : Theory.KeyH.t option) (self : live) : unit =

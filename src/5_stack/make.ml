@@ -602,26 +602,28 @@ module Stack (S : Sigs.StackBase)
         let left
             ?binding:(binding=None)
             ?alias:(alias=None)
+            ?field:(field=None)
             (rgt_dtyp : Dtyp.t)
             (self : t)
             : unit
         =
             let value, dtyp = pop self in
-            let lft_dtyp = { Dtyp.inner = dtyp ; name = None} in
-            let rgt_dtyp = { Dtyp.inner = rgt_dtyp ; name = None } in
+            let lft_dtyp = Dtyp.mk_named field dtyp in
+            let rgt_dtyp = Dtyp.mk_named None rgt_dtyp in
             let dtyp = Dtyp.Or (lft_dtyp, rgt_dtyp) |> Dtyp.mk ~alias in
             push ~binding dtyp (Theory.Of.either (Theory.Either.Lft value)) self
 
         let right
             ?binding:(binding=None)
             ?alias:(alias = None)
+            ?field:(field=None)
             (lft_dtyp : Dtyp.t)
             (self : t)
             : unit
         =
             let value, dtyp = pop self in
-            let lft_dtyp = { Dtyp.inner = lft_dtyp ; name = None} in
-            let rgt_dtyp = { Dtyp.inner = dtyp ; name = None } in
+            let lft_dtyp = Dtyp.mk_named None lft_dtyp in
+            let rgt_dtyp = Dtyp.mk_named field dtyp in
             let dtyp = Dtyp.Or (lft_dtyp, rgt_dtyp) |> Dtyp.mk ~alias in
             push ~binding dtyp (Theory.Of.either (Theory.Either.Rgt value)) self
 
