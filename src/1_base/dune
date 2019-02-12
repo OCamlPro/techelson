@@ -2,4 +2,7 @@
     (name base)
     (public_name techelson.base)
     (synopsis "Base types and helpers for techelson.")
+    (libraries
+        zarith
+    )
 )

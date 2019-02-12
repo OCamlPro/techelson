@@ -542,7 +542,7 @@ and fmt_const (fmtt : formatter) (c : const) : unit =
     | U -> fprintf fmtt "Unit"
     | Bool b -> fprintf fmtt (if b then "True" else "False")
     | Int n -> fprintf fmtt "%s" n
-    | Str s -> fprintf fmtt "\"%s\"" s
+    | Str s -> fprintf fmtt "\"%S\"" s
     | Bytes s -> fprintf fmtt "0x%s" s
     | Cont c -> fmt_contract fmtt c
     | Lft c -> fprintf fmtt "(Left %a)" fmt_const c

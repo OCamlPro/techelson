@@ -1501,7 +1501,11 @@ module Interpreter (
 
                     (* # Unimplemented stuff. *)
 
-                    | _ -> Exc.throw "unsupported instruction"
+                    | Mic.Leaf StepsToQuota
+                    | Mic.Leaf ImplicitAccount
+                    | Mic.Leaf Pack
+                    | Mic.Leaf Unpack
+                    | Mic.Leaf CheckSignature -> Exc.throw "unsupported instruction"
                 )
             )
         in

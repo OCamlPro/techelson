@@ -78,7 +78,7 @@ end = struct
     let concat (t_1 : t) (t_2 : t) : t = t_1 ^ t_2
 
     let fmt (fmt : formatter) (t : t) : unit =
-        fprintf fmt "\"%s\"" t
+        fprintf fmt "\"%S\"" t
 end
 
 module Bytes : Sigs.Str with type t = string = struct

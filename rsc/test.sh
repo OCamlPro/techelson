@@ -58,7 +58,7 @@ function fmt_run {
 
     printf "    $pref/%-37s..." "$fmt_running_name"
 
-    $fmt_running_cmd > /dev/null
+    timeout 2 $fmt_running_cmd &> /dev/null
     fmt_running_exit_code="$?"
 
     if [[ \
