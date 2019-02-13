@@ -1487,6 +1487,38 @@ module Interpreter (
                         None
                     )
 
+                    (* Packing / Unpacking. *)
+                    | Mic.Leaf Pack -> (
+                        let value, dtyp = Stack.pop self.stack in
+                        let value = Theory.pack value dtyp in
+                        let dtyp = Dtyp.mk_leaf ~alias Dtyp.Bytes in
+                        Stack.push ~binding dtyp value self.stack;
+                        None
+                    )
+                    | Mic.Unpack expected -> (
+                        let value, dtyp = Stack.pop self.stack in
+                        let value, real_dtyp =
+                            (fun () -> Theory.unpack value)
+                            |> Exc.chain_err (
+                                fun () -> asprintf "while unpacking value of type %a" Dtyp.fmt dtyp
+                            )
+                        in
+                        let field = Lst.hd mic.fields in
+                        let dtyp = Dtyp.Option (Dtyp.mk_named field real_dtyp) |> Dtyp.mk ~alias in
+                        let value =
+                            try (
+                                unify self expected real_dtyp;
+                                Some value
+                                
+                            ) with
+                            | _ -> (
+                                None
+                            )
+                        in
+                        Stack.push ~binding dtyp (Theory.Of.option value) self.stack;
+                        None
+                    )
+
                     (* Events. *)
 
                     | Mic.Leaf Mic.Failwith ->
@@ -1503,8 +1535,6 @@ module Interpreter (
 
                     | Mic.Leaf StepsToQuota
                     | Mic.Leaf ImplicitAccount
-                    | Mic.Leaf Pack
-                    | Mic.Leaf Unpack
                     | Mic.Leaf CheckSignature -> Exc.throw "unsupported instruction"
                 )
             )

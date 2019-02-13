@@ -154,7 +154,6 @@ type leaf =
 | StepsToQuota
 | Now
 | Pack
-| Unpack
 | Slice
 | Address
 | Hash of hash_fun
@@ -209,7 +208,6 @@ let fmt_leaf (fmt : formatter) (leaf : leaf) : unit = match leaf with
 | StepsToQuota -> fprintf fmt "STEPS_TO_QUOTA"
 | Now -> fprintf fmt "NOW"
 | Pack -> fprintf fmt "PACK"
-| Unpack -> fprintf fmt "UNPACK"
 | Slice -> fprintf fmt "SLICE"
 | Address -> fprintf fmt "ADDRESS"
 | Hash h -> fmt_hash_fun fmt h
@@ -264,7 +262,6 @@ let leaf_of_string (token : string) : leaf option = match token with
 | "STEPS_TO_QUOTA" -> Some StepsToQuota
 | "NOW" -> Some Now
 | "PACK" -> Some Pack
-| "UNPACK" -> Some Unpack
 | "SLICE" -> Some Slice
 | "HASH_KEY" -> Some (Hash B58Check)
 | "BLAKE2B" -> Some (Hash Blake2B)
@@ -329,7 +326,6 @@ let annot_arity_of_leaf (leaf : leaf) : (int * int * int) = match leaf with
 | StepsToQuota
 | Now
 | Pack
-| Unpack
 | Slice
 | Hash _
 | CreateAccount
@@ -365,6 +361,7 @@ type 'sub ins =
 | Cast of Dtyp.t
 | EmptySet of Dtyp.t
 | EmptyMap of Dtyp.t * Dtyp.t
+| Unpack of Dtyp.t
 | Non of Dtyp.t
 | Left of Dtyp.t
 | Right of Dtyp.t
@@ -606,6 +603,9 @@ and fmt (fmtt : formatter) (t : t) : unit =
                     tail
                 | EmptyMap (k, v) ->
                     fprintf fmtt "EMPTY_MAP%a %a %a" fmt_annots () Dtyp.fmt k Dtyp.fmt v;
+                    tail
+                | Unpack dtyp ->
+                    fprintf fmtt "UNPACK%a %a" fmt_annots () Dtyp.fmt dtyp;
                     tail
                 | Non dtyp ->
                     fprintf fmtt "NONE%a %a" fmt_annots () Dtyp.fmt dtyp;

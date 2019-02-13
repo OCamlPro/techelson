@@ -742,6 +742,7 @@ module type Theory = sig
     (** An address. *)
     | Lambda of Dtyp.t * Dtyp.t * Mic.t
     (** A lambda. *)
+    | Packed of value * Dtyp.t
 
     (** Parameters for contract creation. *)
     and contract_params = private {
@@ -1078,4 +1079,10 @@ module type Theory = sig
 
     (** Transforms a collection into a list. *)
     val coll_to_list : value -> value list
+
+    (** Packs a value. *)
+    val pack : value -> Dtyp.t -> value
+
+    (** Unpacks a value. *)
+    val unpack : value -> value * Dtyp.t
 end

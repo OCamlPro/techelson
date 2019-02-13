@@ -350,7 +350,6 @@ instruction_leaf :
     | I_STEPS_TO_QUOTA { Mic.Leaf Mic.StepsToQuota }
     | I_NOW { Mic.Leaf Mic.Now }
     | I_PACK { Mic.Leaf Mic.Pack }
-    | I_UNPACK { Mic.Leaf Mic.Unpack }
     | I_SLICE { Mic.Leaf Mic.Slice }
     | I_CHECK_SIGNATURE { Mic.Leaf Mic.CheckSignature }
     | I_RENAME { Mic.Leaf Mic.Rename }
@@ -374,6 +373,9 @@ instruction_dtyp :
     }
     | I_EMPTY_SET {
         fun (dtyp : Dtyp.t) -> Mic.EmptySet dtyp
+    }
+    | I_UNPACK {
+        fun (dtyp : Dtyp.t) -> Mic.Unpack dtyp
     }
     | I_NONE {
         fun (dtyp : Dtyp.t) -> Mic.Non dtyp

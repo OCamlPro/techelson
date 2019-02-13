@@ -410,6 +410,7 @@ module Theory (
     | Operation of int * operation
     | Address of Address.t
     | Lambda of Dtyp.t * Dtyp.t * Mic.t
+    | Packed of value * Dtyp.t
 
     and contract_params = {
         address : Address.t ;
@@ -600,6 +601,9 @@ module Theory (
                 fprintf fmt "LAMBDA %a %a %a"
                     Dtyp.fmt dom Dtyp.fmt codom Mic.fmt mic;
                 go_up stack
+            | Packed (value, dtyp) ->
+                fprintf fmt "(Packed %a " Dtyp.fmt dtyp;
+                go_down (([], ")") :: stack) value
 
         and go_up (stack : ((string * value) list * string) list) : unit =
             match stack with
@@ -1168,4 +1172,12 @@ module Theory (
             ) [] map |> List.rev
         )
         | _ -> asprintf "cannot turn this value into a list: %a" fmt v |> Exc.throw
+
+    let unpack (v : value) : value * Dtyp.t =
+        match v with
+        | Packed (value, dtyp) -> value, dtyp
+        | _ -> asprintf "cannot unpack value %a" fmt v |> Exc.throw
+
+    let pack (value : value) (dtyp : Dtyp.t) : value =
+        Packed (value, dtyp)
 end

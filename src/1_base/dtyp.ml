@@ -180,7 +180,7 @@ let fmt (fmtt : formatter) (typ : t) =
                     ) :: stack
 
                 | Option sub ->
-                    fprintf fmtt "(option%a%a " fmt_alias () fmt_field field;
+                    fprintf fmtt "(option%a%a" fmt_alias () fmt_field field;
                     (
                         [ frame_of_named sub ],
                         Fmt.unit_combine (Fmt.cls_paren fmtt) post

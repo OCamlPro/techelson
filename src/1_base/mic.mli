@@ -99,7 +99,6 @@ type leaf =
 | StepsToQuota
 | Now
 | Pack
-| Unpack
 | Slice
 | Address
 | Hash of hash_fun
@@ -141,6 +140,7 @@ type 'sub ins =
 | Cast of Dtyp.t
 | EmptySet of Dtyp.t
 | EmptyMap of Dtyp.t * Dtyp.t
+| Unpack of Dtyp.t
 | Non of Dtyp.t
 | Left of Dtyp.t
 | Right of Dtyp.t
