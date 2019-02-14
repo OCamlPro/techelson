@@ -1306,6 +1306,19 @@ module Interpreter (
                         None
                     )
 
+                    | Mic.Leaf ImplicitAccount -> (
+                        let key_hash, _ = Stack.Pop.key_hash self.stack in
+                        let value =
+                            let implicit = Env.Account.implicit key_hash self.env in
+                            let contract = Contract.to_mic implicit.contract in
+                            Theory.Of.contract implicit.address contract
+                        in
+
+                        let dtyp = Dtyp.Contract (Dtyp.Unit |> Dtyp.mk_leaf ~alias) |> Dtyp.mk in
+                        Stack.push ~binding dtyp value self.stack;
+                        None
+                    )
+
                     | Mic.CreateContract (Either.Rgt name) -> (
                         let contract = Env.get name self.env in
                         let address = Theory.Address.fresh binding in
@@ -1534,7 +1547,6 @@ module Interpreter (
                     (* # Unimplemented stuff. *)
 
                     | Mic.Leaf StepsToQuota
-                    | Mic.Leaf ImplicitAccount
                     | Mic.Leaf CheckSignature -> Exc.throw "unsupported instruction"
                 )
             )

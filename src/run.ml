@@ -26,6 +26,13 @@ let load_contracts (conf : Conf.t) : Contract.t list =
 module Cxt = Test.Default
 module Tests = Test.Testcases
 
+let step () : unit =
+    log_0 "@.press `return` to continue@.";
+    input_line stdin |> ignore
+
+let cond_step (conf : Conf.t) : unit =
+    if conf.step then step ()
+
 (* Returns true if the event is `Done`. *)
 let handle_event (stack : Cxt.Run.Stack.t) (event : Cxt.event) : bool =
     match event with
@@ -33,7 +40,7 @@ let handle_event (stack : Cxt.Run.Stack.t) (event : Cxt.event) : bool =
     | Cxt.Run.Step opt -> (
         unwrap_or "no information" opt
         |> log_0 "stopping [%s], press enter to keep going@.";
-        input_line stdin |> ignore;
+        step ();
         false
     )
     | Cxt.Run.PrintStack -> (
@@ -52,6 +59,7 @@ let handle_event (stack : Cxt.Run.Stack.t) (event : Cxt.event) : bool =
         asprintf "%a : %a" Cxt.Theory.fmt value Dtyp.fmt dtyp
         |> Exc.Throw.failure
     )
+
 (* Returns true if the last event is `Done`. *)
 let rec handle_events (stack : Cxt.Run.Stack.t) (events : Cxt.event list) : bool =
     match events with
@@ -69,18 +77,12 @@ let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
     Tests.get_tests cxt |> Lst.fold (
         fun (err_count : int) (test : Testcase.t) ->
             log_0 "@.Running test `%s`@." test.name;
-            if conf.step then (
-                log_0 "@.press enter to continue@.";
-                input_line stdin |> ignore;
-            );
             let cxt = Cxt.init (Tests.get_contracts cxt) test in
 
             let rec test_loop (cxt : Cxt.run_test) : unit =
-                log_1 "@.Test Step...@.";
+                log_1 "@.Running test script...@.";
                 log_3 "%a@." Cxt.Test.fmt cxt;
-                if conf.step then (
-                    input_line stdin |> ignore;
-                );
+                cond_step conf;
                 let events, next_state = Cxt.Test.run cxt in
                 let is_done = handle_events (Cxt.Test.stack cxt) events in
                 match next_state with
@@ -100,9 +102,7 @@ let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
                     | Some op -> log_2 "> %a@." Cxt.Env.Op.fmt op
                     | None -> log_2 "> <none>@."
                 );
-                if conf.step then (
-                    input_line stdin |> ignore;
-                );
+                cond_step conf;
                 let rec loop () =
                     match Cxt.Ops.apply cxt with
                     | Some (Either.Lft test) -> test_loop test
@@ -136,7 +136,7 @@ let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
                         match Cxt.Transfer.step cxt with
                         | None ->
                             log_0 "press enter to continue@.";
-                            input_line stdin |> ignore;
+                            step ();
                             loop ()
                         | Some (Either.Lft event) ->
                             let is_done = handle_event (Cxt.Transfer.stack cxt) event in
@@ -227,8 +227,8 @@ let run_testgen (conf : Conf.t) (gen_conf : Conf.testgen_mode) (cxt : Test.Testc
         |> List.rev
     in
 
-    match gen_conf.dump with
-    | None ->
+    match conf.args with
+    | [] ->
         let testcases =
             testcases |> List.fold_left (
                 fun acc (_, lst) ->
@@ -240,7 +240,11 @@ let run_testgen (conf : Conf.t) (gen_conf : Conf.testgen_mode) (cxt : Test.Testc
         in
         Tests.add_tests testcases cxt
         |> run_tests conf
-    | Some target -> (
+    | target :: tail -> (
+        if tail <> [] then (
+            log_0 "WARNING: ignoring tail arguments `%a` in test generation@."
+                (Fmt.fmt_list (fun fmt () -> fprintf fmt "@ ") Fmt.fmt_str) tail
+        );
         if Sys.is_directory target |> not then (
             sprintf "argument for test generation's `dump` option `%s` is not a directory" target
             |> Exc.throw
@@ -265,22 +269,35 @@ let run_testgen (conf : Conf.t) (gen_conf : Conf.testgen_mode) (cxt : Test.Testc
 
 let run () : unit =
     let conf = conf () in
-    log_2 "loading context...@.";
-    let context, errs =
-        Test.Load.context
-            ~contract_files:conf.contracts
-            ~test_files:conf.args
-    in
-    log_2 "done loading context@.%a@.@." (Tests.fmt ~full:false) context;
-
-    if errs > 0 then (
-        sprintf "encountered %i error%s while loading context" errs (Fmt.plurify errs)
-        |> Exc.throw
-    );
 
     match conf.Conf.mode with
-    | Conf.Inactive -> run_tests conf context
+    | Conf.Inactive ->
+        log_2 "loading context...@.";
+        let context, errs =
+            Test.Load.context
+                ~contract_files:conf.contracts
+                ~test_files:conf.args
+        in
+        log_2 "done loading context@.%a@.@." (Tests.fmt ~full:false) context;
+
+        if errs > 0 then (
+            sprintf "encountered %i error%s while loading context" errs (Fmt.plurify errs)
+            |> Exc.throw
+        );
+        run_tests conf context
     | Conf.Testgen testgen_conf ->
+    log_2 "loading context...@.";
+        let context, errs =
+            Test.Load.context
+                ~contract_files:conf.contracts
+                ~test_files:[]
+        in
+        log_2 "done loading context@.%a@.@." (Tests.fmt ~full:false) context;
+
+        if errs > 0 then (
+            sprintf "encountered %i error%s while loading context" errs (Fmt.plurify errs)
+            |> Exc.throw
+        );
         (fun () -> run_testgen conf testgen_conf context)
         |> Exc.chain_err (
             fun () -> "while running test generation"

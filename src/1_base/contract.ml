@@ -41,6 +41,8 @@ let of_mic ({ storage ; param ; entry } : Mic.contract) : t =
 let to_mic ({ storage ; entry_param ; entry ; _ }) : Mic.contract =
     { storage ; param = entry_param ; entry }
 
+let unit : t = of_mic Mic.unit_contract
+
 let fmt ~(full : bool) (fmt : formatter) {
     name ; source ; storage ; entry_param ; entry ; init
 } : unit =

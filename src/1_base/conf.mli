@@ -18,8 +18,6 @@ val mk_contract : string -> string option -> contract
 type testgen_mode = {
     mutable count : int ;
     (** Number of testcases to generate. *)
-    mutable dump : string option ;
-    (** Optional target directory for testcase generation. *)
 }
 
 (** Formats testgen options. *)

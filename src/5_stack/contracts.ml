@@ -14,6 +14,7 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
 
     type t = {
         mutable defs : (string, Contract.t) Hashtbl.t ;
+        mutable key_map : (Theory.KeyH.t, Theory.Address.t) Hashtbl.t ;
         mutable live : (int, live) Hashtbl.t ;
         mutable next_op_uid : int ;
         mutable expired_uids : IntSet.t ;
@@ -22,6 +23,7 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
 
     let empty () : t = {
         defs = Hashtbl.create 47 ;
+        key_map = Hashtbl.create 47 ;
         live = Hashtbl.create 47 ;
         next_op_uid = 0 ;
         expired_uids = IntSet.empty () ;
@@ -189,5 +191,47 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
 
         let mk (uid : int) (operation : Theory.operation) : operation =
             { operation ; uid }
+    end
+
+    module Account = struct
+        let implicit (key : Theory.KeyH.t) (self : t) : live =
+            try (
+                let address = Hashtbl.find self.key_map key in
+                try Theory.Address.uid address |> Hashtbl.find self.live with
+                | Not_found ->
+                    asprintf "unable to retrieve implicit contract for key hash %a"
+                        Theory.KeyH.fmt key
+                    |> Exc.throw
+            ) with
+            | Not_found -> (
+                let binding =
+                    Some (Theory.KeyH.to_string key |> Annot.Var.of_string)
+                in
+                let address = Theory.Address.fresh binding in
+                Hashtbl.add self.key_map key address;
+                let uid = Theory.Address.uid address in
+                (
+                    try (
+                        Hashtbl.find self.live uid |> ignore;
+                        asprintf "fresh address for implicit account for %a is not fresh"
+                            Theory.KeyH.fmt key
+                        |> Exc.throw
+                    ) with
+                    | Not_found -> ()
+                );
+                let params =
+                    Theory.mk_contract_params
+                        ~spendable:true
+                        ~delegatable:true
+                        key
+                        None
+                        Theory.Tez.zero
+                        address
+                        Theory.Of.unit
+                in
+                Live.create params Contract.unit self;
+                try Hashtbl.find self.live uid with
+                | Not_found -> Exc.unreachable ()
+            )
     end
 end

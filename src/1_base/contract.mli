@@ -49,6 +49,9 @@ val of_mic : Mic.contract -> t
 (** Conversion to michelson values. *)
 val to_mic : t -> Mic.contract
 
+(** Unit contract. *)
+val unit : t
+
 (** Contract formatter. *)
 val fmt : full : bool -> formatter -> t -> unit
 
@@ -60,5 +63,5 @@ val fmt : full : bool -> formatter -> t -> unit
 *)
 val name_of_file : string -> string
 
-(** Changs the name of a contract. *)
+(** Changes the name of a contract. *)
 val rename : string -> t -> t

@@ -135,6 +135,15 @@ module type ContractEnv = sig
         *)
         val set_delegate : Theory.KeyH.t option -> live -> unit
     end
+
+    (** Account related functions. *)
+    module Account : sig
+        (** Retrieves an implicit account for some key hash.
+
+            Creates the account with zero mutez if it does not exist.
+        *)
+        val implicit : Theory.KeyH.t -> t -> live
+    end
 end
 
 (** A stack and its most basic operations. *)

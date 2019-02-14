@@ -20,19 +20,13 @@ let mk_contract (file : string) (init : string option) : contract = {
 
 type testgen_mode = {
     mutable count : int ;
-    mutable dump : string option ;
 }
 
-let fmt_testgen_mode (fmt : formatter) ({ count ; dump } : testgen_mode) : unit =
-    fprintf fmt "count: %i@,dump: %s" count (
-        match dump with
-        | None -> "<none>"
-        | Some target -> target
-    )
+let fmt_testgen_mode (fmt : formatter) ({ count } : testgen_mode) : unit =
+    fprintf fmt "count: %i@" count
 
 let default_testgen_mode : testgen_mode = {
     count = 10 ;
-    dump = None ;
 }
 
 type mode =
