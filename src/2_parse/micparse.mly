@@ -101,6 +101,9 @@
 
 %start <string -> Base.Common.Source.t -> Base.Contract.t> just_contract
 %start <Base.Mic.t> just_mic
+%start <
+    (Base.Mic.t, string -> Base.Common.Source.t -> Base.Contract.t) Base.Common.Either.t
+> mic_or_contract
 %%
 
 just_contract :
@@ -119,6 +122,10 @@ just_contract :
 just_mic :
     | ins = instruction
     ; EOF { ins }
+
+mic_or_contract :
+    | mic = just_mic { Base.Common.Either.lft mic }
+    | contract = just_contract { Base.Common.Either.rgt contract }
 
 contract :
     | sub = contract_sub {

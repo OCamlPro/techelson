@@ -305,7 +305,6 @@ module Interpreter (
 
             (* Let's do this. *)
             | Some mic -> (
-                (* log_0 "running @[%a@]@.@." Mic.fmt mic; *)
                 self.last <- Some mic;
                 (
                     (* Most instructions will use this directly. *)
@@ -749,7 +748,6 @@ module Interpreter (
                     | Mic.Leaf Neq ->
                         let value, _ = Stack.pop self.stack in
                         let value = Theory.is_not_zero value in
-                        (* log_0 "value : %a" Theory.fmt value ; *)
                         let dtyp = Dtyp.Bool |> Dtyp.mk_leaf in
 
                         Stack.push ~binding dtyp value self.stack;
@@ -1439,7 +1437,6 @@ module Interpreter (
                                     ) with
                                     | e -> (
                                         (fun () -> raise e) |> Exc.catch_print |> ignore;
-                                        log_0 "ping@.";
                                         Theory.Of.option None
                                     )
                                 in

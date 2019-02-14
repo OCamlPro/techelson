@@ -26,13 +26,49 @@ let contract (name : string) (source : Source.t) (chan : in_channel) : Contract.
 
 let test (name : string) (source : Source.t) (chan : in_channel) : Testcase.t =
     let lexbuf = Lexing.from_channel chan in
-    let code =
-        try Parse.Micparse.just_mic Parse.Miclex.token lexbuf
-        with e ->
+    let parse_res =
+        try Parse.Micparse.mic_or_contract Parse.Miclex.token lexbuf
+        with e -> (
             let line = lexbuf.Lexing.lex_curr_p.Lexing.pos_lnum in
             let token = Lexing.lexeme lexbuf in
             (fun () -> raise e)
             |> Exc.chain_err (fun () -> sprintf "on token `%s`, line %i" token line)
+        )
+    in
+    let code =
+        match parse_res with
+        | Either.Lft code -> code
+        | Either.Rgt contract -> (
+            let contract = contract name source in
+            let unit = Dtyp.unit in
+            let unit_named = Dtyp.mk_named None unit in
+            let env = DtypCheck.empty () in
+            let code = contract.entry in
+            if DtypCheck.is_compatible env unit contract.entry_param |> not then (
+                Exc.throws [
+                    asprintf "contract parameter must have type unit, found %a"
+                        Dtyp.fmt contract.entry_param ;
+                    "while parsing a contract as a testcase" ;
+                ]
+            );
+            if DtypCheck.is_compatible env unit contract.storage |> not then (
+                Exc.throws [
+                    asprintf "contract storage must have type unit, found %a"
+                        Dtyp.fmt contract.storage ;
+                    "while parsing a contract as a testcase" ;
+                ]
+            );
+            let code =
+                Mic.Seq [
+                    Mic.Push (
+                        Dtyp.Pair (unit_named, unit_named) |> Dtyp.mk,
+                        Mic.Pr (Mic.U, Mic.U)
+                    ) |> Mic.mk ;
+                    code
+                ] |> Mic.mk
+            in
+            code
+        )
     in
     Testcase.mk name source code
 

@@ -178,3 +178,8 @@ let unify (cxt : t) (t_1 : Dtyp.t) (t_2 : Dtyp.t) : unit =
     |> Exc.chain_err (
         fun () -> asprintf "while unifying %a and %a" Dtyp.fmt t_1 Dtyp.fmt t_2
     )
+
+let is_compatible (cxt : t) (t_1 : Dtyp.t) (t_2 : Dtyp.t) : bool =
+    try unify cxt t_1 t_2 ; true with
+    | _ -> false
+

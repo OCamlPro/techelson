@@ -671,14 +671,14 @@ module Theory (
         let const (c : Mic.const) : value =
             let rec go_down (stack : frame list) (c : Mic.const) : value =
                 match c with
-                | Mic.U -> U
+                | Mic.U -> U |> go_up stack
 
                 | Mic.Bool b -> C (Cmp.B b) |> go_up stack
                 | Mic.Int i -> C (Cmp.I (Cmp.Int.of_string i)) |> go_up stack
                 | Mic.Str s -> C (Cmp.S (Cmp.Str.of_native s)) |> go_up stack
                 | Mic.Bytes by -> C (Cmp.By (Cmp.Bytes.of_native by)) |> go_up stack
 
-                | Mic.Cont c -> Contract (None, c)
+                | Mic.Cont c -> Contract (None, c) |> go_up stack
 
                 | Mic.No -> Option None |> go_up stack
 
@@ -691,7 +691,7 @@ module Theory (
                         LstCon ((fun lst -> Lst (Lst.of_list lst)), tl, [])
                     in
                     go_down (frame :: stack) hd
-                | Mic.Lst [] -> Lst (Lst.of_list [])
+                | Mic.Lst [] -> Lst (Lst.of_list []) |> go_up stack
 
                 | Mic.Pr (fst, snd) ->
                     let frame =

@@ -14,3 +14,6 @@ val empty : unit -> t
     The first type cannot contain type variables.
 *)
 val unify : t -> Dtyp.t -> Dtyp.t -> unit
+
+(** Unifies two types, return `true` iff unification is successful. *)
+val is_compatible : t -> Dtyp.t -> Dtyp.t -> bool
