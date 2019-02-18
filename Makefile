@@ -8,5 +8,8 @@ compile:
 test: compile
 	./rsc/test.sh
 
+doc-test: compile
+	./user_doc/test.sh
+
 clean:
 	dune clean

@@ -1,0 +1,63 @@
+{
+    PUSH @storage nat 0 ;
+    PUSH @amount mutez 3 ;
+    PUSH @delegatable bool True ;
+    PUSH @spendable bool True ;
+    NONE @delegate key_hash ;
+    PUSH key "manager address" ;
+    SHA512 @manager ;
+
+    CREATE_CONTRACT @main @main_op {
+        storage nat;
+        parameter bool;
+        code {
+            UNPAIR ;
+            IF {
+            } {
+                PUSH nat 1;
+                ADD
+            } ;
+            NIL operation ;
+            PAIR
+        };
+    } ;
+
+    DIP { NIL operation } ;
+    CONS ;
+
+    APPLY_OPERATIONS ;
+
+    # Takes the address on the top of the stack, retrieves a contract of parameter `bool`.
+    CONTRACT bool ;
+    IF_NONE { # There is no hope, failing.
+        PUSH @err_msg string "failed to retrieve contract" ;
+        FAILWITH
+    } {} ;
+
+    DUP ;
+
+    BALANCE_OF ;
+    PRINT_STACK ;
+    STEP "retrieved the balance of the contract" ;
+
+    PUSH mutez 3 ;
+    IFCMPNEQ {
+        PUSH string "balance should be 3utz" ;
+        FAILWITH
+    } {} ;
+
+    STORAGE_OF nat ;
+
+    IF_NONE {
+        PUSH string "unable to retrieve storage of contract" ;
+        FAILWITH
+    } {
+        PRINT_STACK ;
+        STEP "retrieved the storage of the contract" ;
+        PUSH nat 0 ;
+        IFCMPNEQ {
+            PUSH string "storage should be 0 (nat)" ;
+            FAILWITH
+        } {} ;
+    }
+}

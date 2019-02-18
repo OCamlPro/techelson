@@ -1,0 +1,15 @@
+{
+    PUSH @storage nat 0 ;
+    PUSH @amount mutez 3 ;
+    PUSH @delegatable bool True ;
+    PUSH @spendable bool True ;
+    NONE @delegate key_hash ;
+    PUSH key "manager address" ;
+    SHA512 @manager ;
+    PRINT_STACK ;
+    STEP "before creation" ;
+
+    CREATE_CONTRACT "SimpleExample" ;
+    PRINT_STACK ;
+    STEP "after creation" ;
+}

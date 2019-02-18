@@ -1,0 +1,34 @@
+Running test `Simple3`
+Running test script...
+stack:
+|==================================================================================================|
+| "starting the test"                                                                              |
+| string                                                                                           |
+|==================================================================================================|
+Running test script...
+stopping [just started the test] press `return` to continue
+
+Running test script...
+stack:
+|==================================================================================================|
+| "starting the test"                                                                              |
+| string                                                                                           |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                   @not_important |
+| "a string with a variable name"                                                                  |
+| string                                                                                           |
+|==================================================================================================|
+Running test script...
+stopping [no information] press `return` to continue
+
+Running test script...
+stack:
+|==================================================================================================|
+| "starting the test"                                                                              |
+| string                                                                                           |
+|==================================================================================================|
+Running test script...
+stopping [The string should be gone. Also, we're done.] press `return` to continue
+
+Running test script...
+Done running test `Simple3`

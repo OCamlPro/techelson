@@ -1,0 +1,27 @@
+Running test `Create4`
+Running test script...
+
+Applying Operations...
+Running test script...
+stack:
+|==================================================================================================|
+| address[1]@main                                                                                  |
+| (contract bool)                                                                                  |
+|--------------------------------------------------------------------------------------------------|
+| 3utz                                                                                             |
+| mutez                                                                                            |
+|==================================================================================================|
+Running test script...
+stopping [retrieved the balance of the contract] press `return` to continue
+
+Running test script...
+stack:
+|==================================================================================================|
+| 0                                                                                                |
+| nat                                                                                              |
+|==================================================================================================|
+Running test script...
+stopping [retrieved the storage of the contract] press `return` to continue
+
+Running test script...
+Done running test `Create4`

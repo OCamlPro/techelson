@@ -223,7 +223,7 @@ module Cla = struct
             conf.verb <- conf.verb - 1;
             args
     )
-    
+
     let step : t = mk ['s'] ["step"] [Value.Typ.bool true] (
         fun fmt () ->
             fprintf fmt "(de)activates step-by-step evaluation [default: %b]"
@@ -238,6 +238,27 @@ module Cla = struct
                 tail
             | Some false ->
                 conf.step <- false;
+                tail
+    )
+
+    let skip : t = mk [] ["skip"] [Value.Typ.bool true] (
+        fun fmt () ->
+            fprintf fmt "\
+                if true, all steps will automatically advance (and `--step` will be set to@ \
+                false) [default: %b]\
+            "
+                Conf.default.skip
+    ) (
+        fun args conf ->
+            let next, tail = Arg.next_bool_value args in
+            match next with
+            | None
+            | Some true ->
+                conf.skip <- true;
+                conf.step <- false;
+                tail
+            | Some false ->
+                conf.skip <- false;
                 tail
     )
 
@@ -258,7 +279,7 @@ module Cla = struct
             tail
     )
 
-    let options : t list = [ help ; verb ; quiet ; step ; contract ]
+    let options : t list = [ help ; verb ; quiet ; step ; skip ; contract ]
 
     let add_all (opts : options) (options : t list) = options |> List.iter (
         fun { short ; long ; action ; _ } ->

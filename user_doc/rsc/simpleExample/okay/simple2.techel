@@ -1,0 +1,4 @@
+{
+    PUSH string "starting the test" ;
+    PRINT_STACK
+}

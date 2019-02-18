@@ -1,0 +1,38 @@
+Running test `Create2`
+Running test script...
+stack:
+|==================================================================================================|
+|                                                                                            @main |
+| address[1]@main                                                                                  |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+| [ CREATE[uid:0] (@address[1]@main, "sha512:manager address", None, true, true, 3utz) "SimpleExample" ] |
+| (list operation)                                                                                 |
+|==================================================================================================|
+Running test script...
+stopping [operation is now in a list] press `return` to continue
+
+Running test script...
+
+Applying Operations...
+Running test script...
+stack:
+|==================================================================================================|
+|                                                                                            @main |
+| address[1]@main                                                                                  |
+| address                                                                                          |
+|==================================================================================================|
+Running test script...
+stopping [testing that contract exists] press `return` to continue
+
+Running test script...
+stack:
+|==================================================================================================|
+| address[1]@main                                                                                  |
+| (contract bool)                                                                                  |
+|--------------------------------------------------------------------------------------------------|
+| "success"                                                                                        |
+| string                                                                                           |
+|==================================================================================================|
+Running test script...
+Done running test `Create2`

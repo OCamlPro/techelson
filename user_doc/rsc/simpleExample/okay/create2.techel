@@ -1,0 +1,30 @@
+{
+    PUSH @storage nat 0 ;
+    PUSH @amount mutez 3 ;
+    PUSH @delegatable bool True ;
+    PUSH @spendable bool True ;
+    NONE @delegate key_hash ;
+    PUSH key "manager address" ;
+    SHA512 @manager ;
+
+    CREATE_CONTRACT @main @main_op "SimpleExample" ;
+
+    DIP { NIL operation } ;
+    CONS ;
+    PRINT_STACK ;
+    STEP "operation is now in a list" ;
+
+    APPLY_OPERATIONS ;
+
+    PRINT_STACK ;
+    STEP "testing that contract exists" ;
+    # Takes the address on the top of the stack, retrieves a contract of parameter `bool`.
+    CONTRACT bool ;
+    IF_NONE { # There is no hope, failing.
+        PUSH @err_msg string "failed to retrieve contract" ;
+        FAILWITH
+    } {
+        PUSH string "success" ;
+        PRINT_STACK
+    }
+}

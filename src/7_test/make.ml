@@ -458,8 +458,6 @@ module TestCxt (
 
                             Run.Env.Live.transfer ~src amount tgt;
 
-                            log_0 "contract env : @[%a@]@." Run.Env.fmt contract_env;
-
                             let src = Run.Src.of_address ~source ~sender ~address:target in
                             let param_dtyp =
                                 contract.param

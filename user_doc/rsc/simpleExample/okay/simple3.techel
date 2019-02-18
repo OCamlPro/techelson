@@ -1,0 +1,11 @@
+{
+    PUSH string "starting the test" ;
+    PRINT_STACK ;
+    STEP "just started the test" ; # The description string is optional, see below.
+    PUSH @not_important string "a string with a variable name" ;
+    PRINT_STACK ;
+    STEP ; # No description string.
+    DROP ;
+    PRINT_STACK ;
+    STEP "The string should be gone. Also, we're done."
+}

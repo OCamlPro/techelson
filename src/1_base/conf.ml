@@ -42,6 +42,7 @@ type t = {
     mutable verb : int ;
 
     mutable step : bool ;
+    mutable skip : bool ;
     mutable contracts : contract list ;
     mutable args : string list ;
 
@@ -57,18 +58,20 @@ let map_testgen_mode (f : testgen_mode -> unit) (self : t) : unit =
 let default : t = {
     verb = 1 ;
     step = false ;
+    skip = false ;
     contracts = [] ;
     args = [] ;
     mode = Inactive ;
 }
 
 let fmt (fmt : formatter) ({
-    verb ; step ; contracts ; args ; mode
+    verb ; step ; skip ; contracts ; args ; mode
 } : t) =
     fprintf fmt "@[<v>{@[<v 4>";
 
     fprintf fmt "@,verb: %i," verb;
     fprintf fmt "@,step: %b," step;
+    fprintf fmt "@,skip: %b," skip;
 
     if contracts = [] then (
         fprintf fmt "@,contracts: none"

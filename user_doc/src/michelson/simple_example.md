@@ -6,8 +6,8 @@ not count the transfer.
 
 Based on this description, we already have the *storage* and *parameter* types:
 
-```michelson,ignore
-{{#include simple_example/contract.tz::2}}
+```mic,ignore
+{{#include ../../rsc/simpleExample/contracts/simpleExample.tz::2}}
 ```
 
 The code of this contract should perform the following steps:
@@ -20,6 +20,6 @@ The code of this contract should perform the following steps:
 
 The complete description of the contract is thus
 
-```michelson,ignore
-{{#include simple_example/contract.tz}}
+```mic,ignore
+{{#include ../../rsc/simpleExample/contracts/simpleExample.tz}}
 ```

@@ -26,21 +26,25 @@ let load_contracts (conf : Conf.t) : Contract.t list =
 module Cxt = Test.Default
 module Tests = Test.Testcases
 
-let step () : unit =
-    log_0 "@.press `return` to continue@.";
-    input_line stdin |> ignore
+let step (conf : Conf.t) : unit =
+    log_0 "press `return` to continue@.";
+    if not conf.skip then (
+        input_line stdin |> ignore
+    ) else (
+        log_0 "@."
+    )
 
 let cond_step (conf : Conf.t) : unit =
-    if conf.step then step ()
+    if conf.step then step conf
 
 (* Returns true if the event is `Done`. *)
-let handle_event (stack : Cxt.Run.Stack.t) (event : Cxt.event) : bool =
+let handle_event (conf : Conf.t) (stack : Cxt.Run.Stack.t) (event : Cxt.event) : bool =
     match event with
     | Cxt.Run.Done -> true
     | Cxt.Run.Step opt -> (
         unwrap_or "no information" opt
-        |> log_0 "stopping [%s], press enter to keep going@.";
-        step ();
+        |> log_0 "stopping [%s] ";
+        step conf;
         false
     )
     | Cxt.Run.PrintStack -> (
@@ -61,37 +65,37 @@ let handle_event (stack : Cxt.Run.Stack.t) (event : Cxt.event) : bool =
     )
 
 (* Returns true if the last event is `Done`. *)
-let rec handle_events (stack : Cxt.Run.Stack.t) (events : Cxt.event list) : bool =
+let rec handle_events (conf : Conf.t) (stack : Cxt.Run.Stack.t) (events : Cxt.event list) : bool =
     match events with
     | [] -> false
     | event :: events ->
-        let is_done = handle_event stack event in
+        let is_done = handle_event conf stack event in
         if is_done then (
             if events <> [] then Exc.throws [
                 "inconsistent internal state" ;
                 "witnessed event `Done` but there are still event to process"
             ] else true
-        ) else handle_events stack events
+        ) else handle_events conf stack events
 
 let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
     Tests.get_tests cxt |> Lst.fold (
         fun (err_count : int) (test : Testcase.t) ->
-            log_0 "@.Running test `%s`@." test.name;
+            log_1 "Running test `%s`@." test.name;
             let cxt = Cxt.init (Tests.get_contracts cxt) test in
 
             let rec test_loop (cxt : Cxt.run_test) : unit =
-                log_1 "@.Running test script...@.";
+                log_1 "Running test script...@.";
                 log_3 "%a@." Cxt.Test.fmt cxt;
                 cond_step conf;
                 let events, next_state = Cxt.Test.run cxt in
-                let is_done = handle_events (Cxt.Test.stack cxt) events in
+                let is_done = handle_events conf (Cxt.Test.stack cxt) events in
                 match next_state with
                 | Some _ when is_done -> Exc.throws [
                     "inconsistent internal state" ;
                     "test code is done but there are still operations to process" ;
                 ]
                 | Some ops -> ops_loop ops
-                | None when is_done -> log_0 "@.Done running test `%s`@." test.name
+                | None when is_done -> log_1 "Done running test `%s`@." test.name
                 | None -> test_loop cxt
 
             and ops_loop (cxt : Cxt.apply_ops) : unit =
@@ -135,11 +139,10 @@ let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
                         
                         match Cxt.Transfer.step cxt with
                         | None ->
-                            log_0 "press enter to continue@.";
-                            step ();
+                            step conf;
                             loop ()
                         | Some (Either.Lft event) ->
-                            let is_done = handle_event (Cxt.Transfer.stack cxt) event in
+                            let is_done = handle_event conf (Cxt.Transfer.stack cxt) event in
                             if is_done then (
                                 Exc.throws [
                                     "internal inconsistent state" ;
@@ -157,7 +160,7 @@ let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
                         match Cxt.Transfer.run cxt with
                         | Either.Rgt ops -> ops_loop ops
                         | Either.Lft event ->
-                            let is_done = handle_event (Cxt.Transfer.stack cxt) event in
+                            let is_done = handle_event conf (Cxt.Transfer.stack cxt) event in
                             if is_done then (
                                 Exc.throws [
                                     "internal inconsistent state" ;
@@ -176,7 +179,7 @@ let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
                 err_count
             ) with
             | e ->
-                log_0 "@.@.Test `%s` failed:@.    @[%a@]@." test.name Exc.fmt e;
+                log_0 "Test `%s` failed:@.    @[%a@]@." test.name Exc.fmt e;
                 err_count + 1
     ) 0
     |> (

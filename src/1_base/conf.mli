@@ -44,6 +44,9 @@ type t = {
     mutable step : bool;
     (** Lockstep evaluation. *)
 
+    mutable skip : bool;
+    (** Skips all steps. *)
+
     mutable contracts : contract list;
     (** Contracts of the run. *)
 
