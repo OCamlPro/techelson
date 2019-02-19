@@ -25,8 +25,8 @@ type testgen_mode = {
 let fmt_testgen_mode (fmt : formatter) ({ count } : testgen_mode) : unit =
     fprintf fmt "count: %i@" count
 
-let default_testgen_mode : testgen_mode = {
-    count = 10 ;
+let default_testgen_mode () : testgen_mode = {
+    count = 1 ;
 }
 
 type mode =
@@ -55,7 +55,7 @@ let map_testgen_mode (f : testgen_mode -> unit) (self : t) : unit =
     | mode -> asprintf "expected testgen mode, found %a" fmt_mode mode |> Exc.throw
 
 
-let default : t = {
+let default () : t = {
     verb = 1 ;
     step = false ;
     skip = false ;

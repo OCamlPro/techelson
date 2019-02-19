@@ -207,7 +207,7 @@ module Source = struct
         | Gen -> Exc.throw "no channel associated with `Generated` source"
 end
 
-let conf_ref : Conf.t ref = ref Conf.default
+let conf_ref : Conf.t ref = ref (Conf.default ())
 
 let set_conf (conf : Conf.t) : unit =
     conf.verb > 3 |> Exc.set_print_backtrace;

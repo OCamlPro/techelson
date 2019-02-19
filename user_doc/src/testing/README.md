@@ -13,17 +13,39 @@ $ techelson --contract <contract_1> .. --contract <contract_n> -- <testcase_1> .
 Techelson will then run the testcases in sequence. All testcases will have access to all the
 contracts provided with `--contract`.
 
-This section builds on the small example from the [Michelson Section] to introduce techelson's
-workflow and its extended instruction set.
+This section builds on the small example from the [Michelson Section], and a slightly more involved
+example later on, to introduce techelson's workflow and its extended instruction set.
 
-- [First Steps] shows how to run a simple testcase with no contract; it introduces the
-    `PRINT_STACK` and `STEP` extensions
+- [First Steps] shows how to run a simple testcase with no contract.
+
+    Introduces `PRINT_STACK` and `STEP`.
 - [Creating and Calling Contracts] discusses the contract environment and contract creation and
-    transfers; it introduces the `APPLY_OPERATIONS` extension
+    transfers.
+
+    Introduces `APPLY_OPERATIONS`.
 - [Live Contract Inspection] deals with recovering the balance and the storage of live (deployed)
-    contracts; it introduces the `BALANCE_OF` and `STORAGE_OF` extensions
+    contracts.
+
+    Introduces `BALANCE_OF` and `STORAGE_OF`.
+- [Anonymous Contracts] details how to create anonymous contracts.
+- [Transfers] introduces the creation of transfers to a contract.
+- [Testing for Failures] shows how to test that an operation fails and how. This section is the
+    first to use the slightly more complex example [admins.tz], and it's liquidity version
+    [admins.liq].
+
+    Introduces `MUST_FAIL`.
+- [Usurpation of Identity] illustrates how to have your testcases pretend they are a specific
+    contract/account, and to create operations in their name.
+
+    Introduces `SET_SOURCE`.
 
 [Michelson Section]: ../michelson/simple_example.md (A simple example in michelson)
-[First Steps]: basic.md (First steps in techelson)
-[Creating and Calling Contracts]: contracts.md (Creating and calling contracts in techelson)
-[Live Contract Inspection]: inspection.md (Live contract inspection)
+[First Steps]: basic.md (First steps section)
+[Creating and Calling Contracts]: contracts.md (Creating and calling contracts section)
+[Live Contract Inspection]: inspection.md (Live contract inspection section)
+[Anonymous Contracts]: anonymous.md (Anonymous contract section)
+[Transfers]: transfers.md (Transfers section)
+[Testing for Failures]: failures.md (Testing for failures section)
+[Usurpation of Identity]: set_source.md (Usurpation of identity section)
+[admins.tz]: ../../rsc/admins/contracts/admins.tz (The Admin michelson contract)
+[admins.liq]: ../../rsc/admins/admins.liq (The Admin liquidity contract)

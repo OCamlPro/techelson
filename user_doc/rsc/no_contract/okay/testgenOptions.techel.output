@@ -1,0 +1,12 @@
+$ techelson testgen --help
+Generates testcases for some contract(s). If a directory is provided, the testcases will
+be dumped there. Otherwise techelson will just run the testcases it generated.
+
+USAGE:
+    ../bin/techelson [OPTIONS] testgen [TESTGEN_OPTIONS] [-- DIR]?
+
+TESTGEN_OPTIONS:
+    -h, --help
+            prints this help message
+    -n, --count <int>
+            sets the number of testcases to generate [default: 1]

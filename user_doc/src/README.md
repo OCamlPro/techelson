@@ -1,6 +1,6 @@
 # Techelson
 
-**Techelson** is a **T**est **E**xecution **E**nvironment (TEE) for [Michelson] smart contracts.
+**Techelson** is a **T**est **E**xecution **E**nvironment (TEE) for [Michelson smart contracts].
 Michelson is the stack-based language used by the [tezos blockchain].
 
 Techelson emulates just enough of the tezos blockchain protocol to be able to create smart
@@ -20,6 +20,16 @@ instructions look like, and their semantics.
 Michelson is a fairly low-level language which makes it difficult to discuss complex contracts.
 This book will sometimes give contracts as [Liquidity] contracts. Liquidity is a higher-level, OCaml-like language for tezos smart contracts which compiles to Michelson.
 
-[Michelson]: https://tezos.gitlab.io/master/whitedoc/michelson.html (Michelson documentation page)
+The chapters of this book are
+- [Michelson], provides a very brief introduction to michelson smart contracts.
+- [Running Tests], describes techelson's workflow for running tests through examples.
+- [Test Generation], discusses techelson's test generation features.
+- [Quick Reference], quick reminders of techelson's features, such as extensions.
+
+[Michelson smart contract]: https://tezos.gitlab.io/master/whitedoc/michelson.html (Michelson documentation page)
 [tezos blockchain]: (https://tezos.com/) (Tezos official page)
 [Liquidity]: (http://www.liquidity-lang.org/) (Liquidity official page)
+[Michelson]: michelson/README.md (Michelson chapter)
+[Running Tests]: testing/README.md (Running Tests chapter)
+[Test Generation]: testgen/README.md (Test Generation chapter)
+[Quick Reference]: quick_ref/README.md (Quick Reference chapter)

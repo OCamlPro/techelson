@@ -1,0 +1,25 @@
+$ techelson --help
+USAGE:
+    ../bin/techelson [OPTIONS] -- [FILES]*
+    ../bin/techelson [OPTIONS] testgen [TESTGEN_OPTIONS] [-- DIR]?
+
+OPTIONS:
+    -h, --help
+            prints this help message
+    -v, --verb <int>?
+            increases or sets verbosity [default: 1]
+    -q
+            decreases verbosity
+    -s, --step (on|true|True|no|off|false|False)?
+            (de)activates step-by-step evaluation [default: false]
+    --skip (on|true|True|no|off|false|False)?
+            if true, all steps will automatically advance (and `--step` will be set to
+            false) [default: false]
+    --contract <string> ',' <string>?
+            adds a contract to the test environment. The second optional argument is the
+            contract's initializer.
+
+MODES:
+    testgen
+        activates and controls test generation
+    run `../bin/techelson <MODE> --help` to obtain help on a specific mode. For example: `../bin/techelson testgen --help`

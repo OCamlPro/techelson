@@ -30,7 +30,7 @@ pair `(operations, new_storage)`.
 
 In the stack-based context of michelson, "takes `<something>` as argument" means "starts with a
 stack containing `<something>`". Likewise, "returns `<something>`" here means "leaves `<something>`
-on the stack at the end".
+on the stack at the end (and **nothing else than** `<something>`)".
 
 [Michelson]: https://tezos.gitlab.io/master/whitedoc/michelson.html (Michelson documentation page)
 [tezos blockchain]: (https://tezos.com/) (Tezos official page)

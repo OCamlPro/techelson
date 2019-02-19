@@ -205,7 +205,7 @@ module Cla = struct
     let verb : t = mk ['v'] ["verb"] [Value.Typ.int true] (
         fun fmt () ->
             fprintf fmt "increases or sets verbosity [default: %i]"
-                Conf.default.verb
+                (Conf.default ()).verb
     ) (
         fun args conf -> match Arg.next_int_value args with
         | None, tail ->
@@ -227,7 +227,7 @@ module Cla = struct
     let step : t = mk ['s'] ["step"] [Value.Typ.bool true] (
         fun fmt () ->
             fprintf fmt "(de)activates step-by-step evaluation [default: %b]"
-                Conf.default.step
+                (Conf.default ()).step
     ) (
         fun args conf ->
             let next, tail = Arg.next_bool_value args in
@@ -247,7 +247,7 @@ module Cla = struct
                 if true, all steps will automatically advance (and `--step` will be set to@ \
                 false) [default: %b]\
             "
-                Conf.default.skip
+                (Conf.default ()).skip
     ) (
         fun args conf ->
             let next, tail = Arg.next_bool_value args in
@@ -301,7 +301,7 @@ module Cla = struct
                 mk ['n'] ["count"] [Value.Typ.int false] (
                     fun fmt () ->
                         fprintf fmt "sets the number of testcases to generate [default: %i]"
-                            Conf.default_testgen_mode.count
+                            (Conf.default_testgen_mode ()).count
                 ) (
                     fun args conf -> match Arg.next_int_value args with
                     | None , _ -> Exc.throw (
@@ -324,7 +324,7 @@ module Cla = struct
         let testgen : string * description * options * Conf.mode =
             let opts = empty_options () in
             add_all opts Testgen.options;
-            Testgen.name, Testgen.description, opts, Conf.Testgen Conf.default_testgen_mode
+            Testgen.name, Testgen.description, opts, Conf.Testgen (Conf.default_testgen_mode ())
 
         let all : (string * description * options * Conf.mode) list = [
             testgen
@@ -537,7 +537,11 @@ let print_testgen_usage (fmt : formatter) () : unit =
 
 (** Prints the test generation help message. *)
 let print_testgen_help (fmt : formatter) : unit =
-    fprintf fmt "@[<v 4>USAGE:@ %a@]@." print_testgen_usage ();
+    fprintf fmt "\
+        Generates testcases for some contract(s). If a directory is provided, the testcases will@.\
+        be dumped there. Otherwise techelson will just run the testcases it generated.@.\
+    ";
+    fprintf fmt "@.@[<v 4>USAGE:@ %a@]@." print_testgen_usage ();
     fprintf fmt "@.@[<v 4>TESTGEN_OPTIONS:";
     fmt_options fmt Cla.Modes.Testgen.options;
     fprintf fmt "@]@."
@@ -575,7 +579,7 @@ let print_help (mode : Conf.mode) : unit =
 (* Runs CLAP on custom arguments. *)
 let run_on (args : string list) : Conf.t =
     try
-        args |> split_args |> handle_args options Conf.default
+        args |> split_args |> handle_args options (Conf.default ())
     with
     | Exc.Exc (Exc.Error (_, Some (PrintHelp mode), _))
     | PrintHelp mode -> (

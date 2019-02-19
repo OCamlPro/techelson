@@ -24,7 +24,7 @@ type testgen_mode = {
 val fmt_testgen_mode : formatter -> testgen_mode -> unit
 
 (** Default testgen mode. *)
-val default_testgen_mode : testgen_mode
+val default_testgen_mode : unit -> testgen_mode
 
 (** Lists the modes available. *)
 type mode =
@@ -58,7 +58,7 @@ type t = {
 }
 
 (** Default configuration. *)
-val default : t
+val default : unit -> t
 
 (** Formatter. *)
 val fmt : formatter -> t -> unit
