@@ -18,7 +18,8 @@ what a contract is and how it behaves, but the reader should know what michelson
 instructions look like, and their semantics.
 
 Michelson is a fairly low-level language which makes it difficult to discuss complex contracts.
-This book will sometimes give contracts as [Liquidity] contracts. Liquidity is a higher-level, OCaml-like language for tezos smart contracts which compiles to Michelson.
+This book will sometimes give contracts as [Liquidity] contracts. Liquidity is a higher-level,
+OCaml-like language for tezos smart contracts which compiles to Michelson.
 
 The chapters of this book are
 - [Michelson], provides a very brief introduction to michelson smart contracts.
