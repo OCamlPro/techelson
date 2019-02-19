@@ -1628,10 +1628,6 @@ module TestInterpreter (
 
     let contract_env (self : t) : Env.t = self.interp |> Run.contract_env
     let set_contract_env (env : Env.t) (self : t) =
-        log_0 "expired uids:@.";
-        Env.expired_uids env |> IntSet.iter (
-            fun i -> log_0 "  %i@." i
-        );
         self.interp |> Run.set_contract_env env
 
     let is_done (self : t) : bool = Run.is_done self.interp
