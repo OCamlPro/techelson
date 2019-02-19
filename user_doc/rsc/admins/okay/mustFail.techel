@@ -1,0 +1,85 @@
+{
+    NIL operation ;
+
+    {   # Create an account for `root`.
+        PUSH @balance mutez 0 ;
+        PUSH @delegatable bool True ;
+        PUSH @delegate (option key_hash) None ;
+        PUSH @manager key "@root_manager" ;
+        SHA512 ;
+        CREATE_ACCOUNT @root ;
+    } ;
+
+    SWAP ;
+    DIP { CONS } ;
+
+    {   # Create an account for `new_admin`.
+        PUSH @balance mutez 0 ;
+        PUSH @delegatable bool True ;
+        PUSH @delegate (option key_hash) None ;
+        PUSH @manager key "@new_admin_manager" ;
+        SHA512 ;
+        CREATE_ACCOUNT @new_admin ;
+    } ;
+
+    SWAP ;
+    DIP { SWAP ; DIP CONS } ;
+
+    {   # Create an `admins` contract.
+
+        # Create the storage's (empty) `clients` field.
+        EMPTY_MAP @clients string (pair address (pair mutez (contract unit))) ;
+
+        # Create the storage's `admins` field and register `root`.
+        EMPTY_MAP @admins string address ;
+        DUUUUP ; # Retrieve root's address.
+        SOME @address ;
+        PUSH @name string "root" ;
+        UPDATE ;
+
+        PAIR @storage ;
+        PUSH @balance mutez 0 ;
+        PUSH @delegatable bool True ;
+        PUSH @spendable bool False ;
+        PUSH @delegate (option key_hash) None ;
+        PUSH @manager key "@contract_manager" ;
+        SHA512 ;
+
+        CREATE_CONTRACT @admins "Admins"
+    } ;
+
+    SWAP ;
+    DIP { SWAP ; DIP { SWAP ; DIP CONS } } ;
+
+    DIIIP { APPLY_OPERATIONS } ;
+
+    # Retrieve the actual contract.
+    CONTRACT (pair string (pair string address)) ;
+    IF_NONE {
+        PUSH string "failed to retrieve `admins` contract" ;
+        STEP
+    } {} ;
+
+    # Saving the contract for later.
+    DUP ;
+
+    PUSH @amount mutez 0 ;
+
+    # New admin's address.
+    DUUUUP ;
+    # New admin's name.
+    PUSH @new_name string "new_admin" ;
+    PAIR ;
+    # Root's name.
+    PUSH @name string "root" ;
+    PAIR @storage ;
+
+    TRANSFER_TOKENS ;
+    PUSH (option string) None ;
+    MUST_FAIL @this_must_fail string ;
+    PRINT_STACK ;
+
+    DIP { NIL operation } ;
+    CONS ;
+    APPLY_OPERATIONS ;
+}

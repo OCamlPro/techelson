@@ -1,0 +1,82 @@
+parameter (pair string (pair string address));
+storage
+  (pair :storage
+     (map %admins string address)
+     (map %clients string (pair address (pair mutez (contract :UnitContract unit)))));
+code { DUP ;
+       DIP { CDR @storage_slash_1 } ;
+       CAR @_admin_name_nu_name_nu_address_slash_2 ;
+       DUUP @storage ;
+       LAMBDA
+         (pair string
+               (pair :storage
+                  (map %admins string address)
+                  (map %clients string (pair address (pair mutez (contract :UnitContract unit))))))
+         (pair (lambda
+                  (pair address
+                        (pair string
+                              (pair :storage
+                                 (map %admins string address)
+                                 (map %clients string (pair address (pair mutez (contract :UnitContract unit)))))))
+                  unit)
+               (pair string
+                     (pair :storage
+                        (map %admins string address)
+                        (map %clients string (pair address (pair mutez (contract :UnitContract unit)))))))
+         { RENAME @closure_env_slash_4 ;
+           DUP ;
+           CDR @storage_slash_3 ;
+           SWAP ;
+           CAR @name_slash_5 ;
+           PAIR ;
+           LAMBDA
+             (pair address
+                   (pair string
+                         (pair :storage
+                            (map %admins string address)
+                            (map %clients string (pair address (pair mutez (contract :UnitContract unit)))))))
+             unit
+             { RENAME @closure_env_slash_6 ;
+               DUP ;
+               CDDR @storage_slash_3 ;
+               CAR %admins ;
+               DUUP ;
+               CDAR @name_slash_5 ;
+               GET ;
+               IF_NONE
+                 { PUSH string "only admins can perform administrative tasks" ; FAILWITH }
+                 { DUUP ;
+                   CAR @a_slash_7 ;
+                   DUUP @address ;
+                   COMPARE ;
+                   NEQ ;
+                   IF { PUSH string "illegal access to admin account" ; FAILWITH } { UNIT } ;
+                   DIP { DROP } } ;
+               DIP { DROP } } ;
+           PAIR } ;
+       PAIR ;
+       DUUP ;
+       CAR @admin_name ;
+       DIP { DUP ; CAR ; SWAP ; CDR } ;
+       PAIR ;
+       EXEC ;
+       SENDER ;
+       DIP { DUP ; CAR ; SWAP ; CDR } ;
+       PAIR ;
+       EXEC ;
+       DROP ;
+       DUUP @storage ;
+       CDR %clients ;
+       DUUUP @storage ;
+       DIIIP { DROP } ;
+       CAR %admins ;
+       DUUUP ;
+       CDDR @nu_address ;
+       SOME ;
+       DUUUUP ;
+       DIIIIP { DROP } ;
+       CDAR @nu_name ;
+       UPDATE ;
+       PAIR @storage %admins %clients ;
+       NIL operation ;
+       PAIR };

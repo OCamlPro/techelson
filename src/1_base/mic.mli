@@ -119,6 +119,7 @@ val leaf_of_string : string -> leaf option
 *)
 val annot_arity_of_leaf : leaf -> int * int * int
 
+(** Extensions. *)
 type extension =
 | StorageOf of Dtyp.t
 | BalanceOf
@@ -126,16 +127,10 @@ type extension =
 | PrintStack
 | MustFail of Dtyp.t
 | Step of string option
-| SetSource
-
-val fmt_extension :
-    ?annots : (formatter -> unit -> unit) ->
-    formatter ->
-    extension ->
-    unit
+| SetSource of t
 
 (** Instructions. *)
-type 'sub ins =
+and 'sub ins =
 | Leaf of leaf
 | Cast of Dtyp.t
 | EmptySet of Dtyp.t
@@ -249,6 +244,13 @@ val nu_mk_leaf : ?annot : Annot.t option -> ?comments : string list -> leaf -> t
 
 (** Creates a sequence instruction. *)
 val mk_seq : t list -> t
+
+(** Extension formatter. *)
+val fmt_extension :
+    ?annots : (formatter -> unit -> unit) ->
+    formatter ->
+    extension ->
+    unit
 
 (** Contract formatter. *)
 val fmt_contract : formatter -> contract -> unit

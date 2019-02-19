@@ -9,24 +9,23 @@ and the storage of a *live* (deployed) contract. Both consume a `contract` from 
 stack.
 
 | instruction | parameter | stack |
-|:---|:---:|:---|
+|:---|:---:|:---:|
 | `STORAGE_OF` | `'storage` | `::       contract 'a : 'S` |
 |              |            | `-> (option 'storage) : 'S` |
 | `BALANCE_OF` | none       | `:: contract 'a : 'S` |
 |              |            | `->       mutez : 'S` |
 
-Let's extend the previous example to [`create3.techel`] which checks that the balance and storage
+Let's extend the previous example to [inspection.techel] which checks that the balance and storage
 of the contract deployed are correct.
 
 ```mic,ignore
-{{#include ../../rsc/simpleExample/okay/create3.techel}}
+{{#include ../../rsc/simpleExample/okay/inspection.techel}}
 ```
 
 The testcase does not fail and produces the output
 
 ```
-$ techelson --contract simpleExample.tz -- create3.techel
-{{#include ../../rsc/simpleExample/okay/create3.techel.output}}
+{{#include ../../rsc/simpleExample/okay/inspection.techel.output}}
 ```
 
-[`create3.techel`]: ../../rsc/simpleExample/okay/create3.techel (A simple contract creation testcase)
+[inspection.techel]: ../../rsc/simpleExample/okay/inspection.techel (The Inspection testcase)

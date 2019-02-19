@@ -1,0 +1,62 @@
+$ techelson --contract rsc/admins/contracts/admins.tz -- rsc/admins/okay/setSource.techel
+Running test `SetSource`
+Running test script...
+
+Applying Operations...
+Running test script...
+stack:
+|==================================================================================================|
+|                                                                                            @root |
+| address[1]@root                                                                                  |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                       @new_admin |
+| address[2]@new_admin                                                                             |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+| address[3]@admins                                                                                |
+| (contract (pair string (pair string address)))                                                   |
+|--------------------------------------------------------------------------------------------------|
+| address[3]@admins                                                                                |
+| (contract (pair string (pair string address)))                                                   |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                          @amount |
+| 0utz                                                                                             |
+| mutez                                                                                            |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                         @storage |
+| ("root", ("new_admin", address[2]@new_admin))                                                    |
+| (pair string (pair string address))                                                              |
+|--------------------------------------------------------------------------------------------------|
+| address[1]@root                                                                                  |
+| address                                                                                          |
+|==================================================================================================|
+Running test script...
+stopping [no information] press `return` to continue
+
+Running test script...
+stack:
+|==================================================================================================|
+|                                                                                            @root |
+| address[1]@root                                                                                  |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                       @new_admin |
+| address[2]@new_admin                                                                             |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+| address[3]@admins                                                                                |
+| (contract (pair string (pair string address)))                                                   |
+|--------------------------------------------------------------------------------------------------|
+| TRANSFER[uid:3] address[1]@root -> address[3]@admins 0utz ("root", ("new_admin", address[2]@new_admin)) |
+| operation                                                                                        |
+|==================================================================================================|
+Running test script...
+
+Applying Operations...
+
+Contract Transfer...
+
+Applying Operations...
+Running test script...
+Done running test `SetSource`

@@ -1,0 +1,87 @@
+$ techelson --contract rsc/admins/contracts/admins.tz -- rsc/admins/error/addAdmin.techel
+Running test `AddAdmin`
+Running test script...
+stack:
+|==================================================================================================|
+| [ CREATE[uid:1] (@address[2]@new_admin, "sha512:@new_admin_manager", None, true, true, 0utz) 
+      {
+          storage unit ;
+          parameter unit ;
+          code {
+                 DROP ;
+                 UNIT ;
+                 NIL operation ;
+                 PAIR
+               } ;
+      }, CREATE[uid:0] (@address[1]@root, "sha512:@root_manager", None, true, true, 0utz) 
+             {
+                 storage unit ;
+                 parameter unit ;
+                 code {
+                        DROP ;
+                        UNIT ;
+                        NIL operation ;
+                        PAIR
+                      } ;
+             } ] |
+| (list operation)                                                                                 |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                            @root |
+| address[1]@root                                                                                  |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                       @new_admin |
+| address[2]@new_admin                                                                             |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                         @clients |
+| Map { }                                                                                          |
+| (map string (pair address (pair mutez (contract unit))))                                         |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                          @admins |
+| Map { }                                                                                          |
+| (map string address)                                                                             |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                         @address |
+| (Some address[2]@new_admin)                                                                      |
+| (option address)                                                                                 |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                            @name |
+| "root"                                                                                           |
+| string                                                                                           |
+|==================================================================================================|
+Running test script...
+
+Applying Operations...
+Running test script...
+stack:
+|==================================================================================================|
+|                                                                                            @root |
+| address[1]@root                                                                                  |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                       @new_admin |
+| address[2]@new_admin                                                                             |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                          @admins |
+| address[3]@admins                                                                                |
+| address                                                                                          |
+|==================================================================================================|
+Running test script...
+stopping [after applying creation operations.] press `return` to continue
+
+Running test script...
+
+Applying Operations...
+
+Contract Transfer...
+
+Applying Operations...
+Test `AddAdmin` failed:
+    Error
+        operation TRANSFER[uid:3] address[0]@AddAdmin -> address[3]@admins 0utz ("root", ("new_admin", address[2]@new_admin)) was expected to succeed
+        but failed on operation TRANSFER[uid:3] address[0]@AddAdmin -> address[3]@admins 0utz ("root", ("new_admin", address[2]@new_admin))
+        operation failed on "illegal access to admin account" : string
+Error
+    1 of the 1 testcase failed

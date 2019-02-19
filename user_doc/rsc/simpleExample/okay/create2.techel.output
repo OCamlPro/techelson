@@ -1,3 +1,4 @@
+$ techelson --contract rsc/simpleExample/contracts/simpleExample.tz -- rsc/simpleExample/okay/create2.techel
 Running test `Create2`
 Running test script...
 stack:

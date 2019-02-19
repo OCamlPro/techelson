@@ -1,4 +1,5 @@
-Running test `Simple2`
+$ techelson rsc/no_contract/okay/test2.techel
+Running test `Test2`
 Running test script...
 stack:
 |==================================================================================================|
@@ -6,4 +7,4 @@ stack:
 | string                                                                                           |
 |==================================================================================================|
 Running test script...
-Done running test `Simple2`
+Done running test `Test2`

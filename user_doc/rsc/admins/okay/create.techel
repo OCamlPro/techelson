@@ -1,0 +1,59 @@
+{
+    NIL operation ;
+
+    {   # Create an account for `root`.
+        PUSH @balance mutez 0 ;
+        PUSH @delegatable bool True ;
+        PUSH @delegate (option key_hash) None ;
+        PUSH @manager key "@root_manager" ;
+        SHA512 ;
+        CREATE_ACCOUNT @root ;
+    } ;
+
+    SWAP ;
+    DIP { CONS } ;
+
+    {   # Create an account for `new_admin`.
+        PUSH @balance mutez 0 ;
+        PUSH @delegatable bool True ;
+        PUSH @delegate (option key_hash) None ;
+        PUSH @manager key "@new_admin_manager" ;
+        SHA512 ;
+        CREATE_ACCOUNT @new_admin ;
+    } ;
+
+    SWAP ;
+    DIP { SWAP ; DIP CONS } ;
+
+    {   # Create an `admins` contract.
+
+        # Create the storage's (empty) `clients` field.
+        EMPTY_MAP @clients string (pair address (pair mutez (contract unit))) ;
+
+        # Create the storage's `admins` field and register `root`.
+        EMPTY_MAP @admins string address ;
+        DUUUUP ; # Retrieve root's address.
+        SOME @address ;
+        PUSH @name string "root" ;
+        PRINT_STACK ;
+        UPDATE ;
+
+        PAIR @storage ;
+        PUSH @balance mutez 0 ;
+        PUSH @delegatable bool True ;
+        PUSH @spendable bool False ;
+        PUSH @delegate (option key_hash) None ;
+        PUSH @manager key "@contract_manager" ;
+        SHA512 ;
+
+        CREATE_CONTRACT @admins "Admins"
+    } ;
+
+    SWAP ;
+    DIP { SWAP ; DIP { SWAP ; DIP CONS } } ;
+
+    DIIIP { APPLY_OPERATIONS } ;
+
+    PRINT_STACK ;
+    STEP "after applying creation operations."
+}

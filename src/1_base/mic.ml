@@ -339,24 +339,9 @@ type extension =
 | PrintStack
 | MustFail of Dtyp.t
 | Step of string option
-| SetSource
+| SetSource of t
 
-let fmt_extension
-    ?annots:(annots = fun (_ : formatter) () -> ())
-    (fmt : formatter)
-    (e : extension)
-    : unit
-=
-    match e with
-    | StorageOf dtyp -> fprintf fmt "STORAGE_OF%a %a" annots () Dtyp.fmt dtyp
-    | BalanceOf -> fprintf fmt "BALANCE_OF%a" annots ()
-    | ApplyOps -> fprintf fmt "APPLY_OPERATIONS"
-    | PrintStack -> fprintf fmt  "PRINT_STACK"
-    | MustFail dtyp -> fprintf fmt "MUST_FAIL%a %a" annots () Dtyp.fmt dtyp
-    | Step opt -> unwrap_or "<none>" opt |> fprintf fmt "STEP %s"
-    | SetSource -> fprintf fmt "SET_SOURCE"
-
-type 'sub ins =
+and 'sub ins =
 | Leaf of leaf
 | Cast of Dtyp.t
 | EmptySet of Dtyp.t
@@ -522,8 +507,23 @@ let needs_parens (t : t) : bool =
     | Seq _ -> false
     | _ -> true
 
+let rec fmt_extension
+    ?annots:(annots = fun (_ : formatter) () -> ())
+    (fmtt : formatter)
+    (e : extension)
+    : unit
+=
+    match e with
+    | StorageOf dtyp -> fprintf fmtt "STORAGE_OF%a %a" annots () Dtyp.fmt dtyp
+    | BalanceOf -> fprintf fmtt "BALANCE_OF%a" annots ()
+    | ApplyOps -> fprintf fmtt "APPLY_OPERATIONS"
+    | PrintStack -> fprintf fmtt  "PRINT_STACK"
+    | MustFail dtyp -> fprintf fmtt "MUST_FAIL%a %a" annots () Dtyp.fmt dtyp
+    | Step opt -> unwrap_or "<none>" opt |> fprintf fmtt "STEP %s"
+    | SetSource code -> fprintf fmtt "SET_SOURCE %a" fmt code
+
 (* Formats contracts. *)
-let rec fmt_contract (fmtt : formatter) ({ storage ; param ; entry } : contract) : unit =
+and fmt_contract (fmtt : formatter) ({ storage ; param ; entry } : contract) : unit =
     fprintf
         fmtt "@[@[<v 4>{@ storage %a ;@ parameter %a ;@ code @[%a@] ;@]@,}@]"
         Dtyp.fmt storage Dtyp.fmt param fmt entry

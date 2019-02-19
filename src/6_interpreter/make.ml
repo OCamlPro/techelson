@@ -32,7 +32,8 @@ module Interpreter (
         }
         let fmt_test_info (fmt : formatter) (self : test_info) : unit =
             fprintf fmt "{ test: %s, address: %a }"
-                self.test.name Theory.Address.fmt self.address
+                self.test.name
+                Theory.Address.fmt self.address
 
         type t =
         | Test of test_info
@@ -48,6 +49,7 @@ module Interpreter (
             let binding = Some (Annot.Var.of_string test.name) in
             let address = Theory.Address.fresh binding in
             Test { test ; address }
+
         let of_address
             ~(address : Theory.Address.t)
             ~(sender : Theory.Address.t)
@@ -120,6 +122,15 @@ module Interpreter (
         - type of the new values
         - final treatment that builds the resulting collection
         - instructions following the map
+    *)
+    | Source of Theory.Address.t * Mic.t * Mic.t list
+    (* End of a `SET_SOURCE`.
+
+        Arguments
+
+        - previous address before the `SET_SOURCE` (for backtracking)
+        - `SET_SOURCE` instruction
+        - instructions following the `SET_SOURCE` instruction
     *)
 
     type t = {
@@ -213,6 +224,12 @@ module Interpreter (
                     | [] -> loop acc blocks
                     | hd :: _ -> acc, Some hd
                 )
+                | Source (_, mic, next) :: blocks -> (
+                    let acc = (asprintf "exiting set source %a" Mic.fmt mic) :: acc in
+                    match next with
+                    | [] -> loop acc blocks
+                    | hd :: _ -> acc, Some hd
+                )
             in
             let pre_ops, ins = loop [] self.blocks in
             List.rev pre_ops, ins
@@ -293,6 +310,17 @@ module Interpreter (
                     Stack.push elm_dtyp value self.stack;
                     Some body
                 )
+            )
+            | Some (Source (old_address, _, next)) -> (
+                (
+                    match self.src with
+                    | Test test -> test.address <- old_address
+                    | Contract _ ->
+                        Exc.throw
+                            "illegal `SET_SOURCE` instruction found in contract transfer"
+                );
+                self.next <- next;
+                fetch_next self
             )
             | None -> None
         )
@@ -1468,6 +1496,13 @@ module Interpreter (
                         None
                     
                     | Mic.Extension (Mic.MustFail dtyp) ->
+                        (
+                            match self.src with
+                            | Test _ -> ()
+                            | Contract _ ->
+                                Exc.throw
+                                    "illegal `MUST_FAIL` instruction found in contract transfer"
+                        ) ;
                         let expected, expected_dtyp = Stack.Pop.option self.stack in
                         let expected =
                             expected |> Opt.map (
@@ -1488,15 +1523,23 @@ module Interpreter (
                         Stack.push ~binding dtyp value self.stack;
                         None
 
-                    | Mic.Extension Mic.SetSource -> (
+                    | Mic.Extension (Mic.SetSource code) -> (
                         let address = Stack.Pop.address self.stack |> fst in
-                        (
+                        let old_address =
                             match self.src with
-                            | Test test -> test.address <- address
+                            | Test test -> (
+                                let old_address = test.address in
+                                test.address <- address;
+                                old_address
+                            )
                             | Contract _ ->
                                 Exc.throw
                                     "illegal `SET_SOURCE` instruction found in contract transfer"
-                        );
+                        in
+
+                        push_block (Source (old_address, mic, self.next)) self;
+                        self.next <- [code];
+
                         None
                     )
 

@@ -18,8 +18,10 @@ The code of this contract should perform the following steps:
     - add `1` to the storage otherwise
 - pair an empty list of operations with the new storage
 
-The complete description of the contract is thus
+The complete description of the contract, [simpleExample.tz], is thus
 
 ```mic,ignore
 {{#include ../../rsc/simpleExample/contracts/simpleExample.tz}}
 ```
+
+[simpleExample.tz]: ../../rsc/simpleExample/contracts/simpleExample.tz (The SimpleExample contract)

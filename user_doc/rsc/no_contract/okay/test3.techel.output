@@ -1,4 +1,5 @@
-Running test `Simple3`
+$ techelson rsc/no_contract/okay/test3.techel
+Running test `Test3`
 Running test script...
 stack:
 |==================================================================================================|
@@ -31,4 +32,4 @@ Running test script...
 stopping [The string should be gone. Also, we're done.] press `return` to continue
 
 Running test script...
-Done running test `Simple3`
+Done running test `Test3`

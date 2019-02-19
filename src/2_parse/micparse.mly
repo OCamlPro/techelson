@@ -366,7 +366,6 @@ instruction_leaf :
     | I_APPLY_OPERATIONS { Mic.Extension Mic.ApplyOps }
     | I_BALANCE_OF { Mic.Extension Mic.BalanceOf }
     | I_PRINT_STACK { Mic.Extension Mic.PrintStack }
-    | I_SET_SOURCE { Mic.Extension Mic.SetSource }
     | I_STEP
     ; blah = C_STR { Mic.Extension (Mic.Step (Some blah)) }
     | I_STEP { Mic.Extension (Mic.Step None) }
@@ -436,6 +435,9 @@ instruction_code :
     }
     | I_MAP {
         fun (code : Mic.t) -> Mic.Map (Dtyp.mk_var (), code)
+    }
+    | I_SET_SOURCE {
+        fun (code : Mic.t) -> Mic.Extension (Mic.SetSource code)
     }
 
 instruction_code_2 :

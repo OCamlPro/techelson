@@ -7,22 +7,21 @@ inspected. In fact, they are not really different from named contracts apart fro
 name, which (currently) prevent techelson from mentioning where they really come from in its debug
 output.
 
-The following [`create4.techel`] testcase is similar to the one from the [Live Contract Inspection]
+The following [anonymous.techel] testcase is similar to the one from the [Live Contract Inspection]
 except that the contract deployed is not given to the environment, it is inlined in the testcase.
 
 ```mic,ignore
-{{#include ../../rsc/simpleExample/okay/create4.techel}}
+{{#include ../../rsc/no_contract/okay/anonymous.techel}}
 ```
 
 This produces the exact same output (modulo the testcase's name, and as long as we do not increase
-verbosity) as for [`create3.techel`]:
+verbosity) as for [inspection.techel]:
 
 ```
-$ techelson create4.techel
-{{#include ../../rsc/simpleExample/okay/create4.techel.output}}
+{{#include ../../rsc/no_contract/okay/anonymous.techel.output}}
 ```
 
-[`create3.techel`]: ../../rsc/simpleExample/okay/create3.techel (A simple contract creation testcase)
-[`create4.techel`]: ../../rsc/simpleExample/okay/create4.techel (A simple contract creation testcase)
+[inspection.techel]: ../../rsc/simpleExample/okay/inspection.techel (The Inspection testcase)
+[anonymous.techel]: ../../rsc/no_contract/okay/anonymous.techel (The Anonymous testcase)
 [Creating and Calling Contracts]: contracts.md (Creating and calling contracts in techelson)
 [Live Contract Inspection]: inspection.md (Live contract inspection in techelson)

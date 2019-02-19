@@ -18,7 +18,7 @@ module Value = struct
         let string_val_desc : string = "<string>"
 
         (** Description of the values expected for a boolean value. *)
-        let bool_val_desc : string = "(on|true|True|no|false|False)"
+        let bool_val_desc : string = "(on|true|True|no|off|false|False)"
 
         (** Description of the values expected for an integer value. *)
         let int_val_desc : string = "<int>"
@@ -85,7 +85,7 @@ module Value = struct
         (** Retrieves a boolean from a string. *)
         let bool (s : string) : bool = match s with
         | "on" | "true"  | "True"  -> true
-        | "no" | "false" | "False" -> false
+        | "off" | "no" | "false" | "False" -> false
         | s -> Exc.throws [
             sprintf "expected a boolean value %s" Desc.bool_val_desc ;
             sprintf "found `%s`" s

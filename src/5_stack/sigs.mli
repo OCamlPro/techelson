@@ -239,6 +239,9 @@ module type Stack = sig
         (** Pops an address. *)
         val address : t -> Theory.Address.t * Dtyp.t
 
+        (** Pops an optional address. *)
+        val address_option : t -> Theory.Address.t option * Dtyp.t
+
         (** Pops a contract. *)
         val contract : t -> Theory.Address.t option * Mic.contract
 

@@ -1,0 +1,32 @@
+$ techelson --contract rsc/admins/contracts/admins.tz -- rsc/admins/okay/mustFail.techel
+Running test `MustFail`
+Running test script...
+
+Applying Operations...
+Running test script...
+stack:
+|==================================================================================================|
+|                                                                                            @root |
+| address[1]@root                                                                                  |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                       @new_admin |
+| address[2]@new_admin                                                                             |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+| address[3]@admins                                                                                |
+| (contract (pair string (pair string address)))                                                   |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                  @this_must_fail |
+| MUST_FAIL[uid:4] _ (TRANSFER[uid:3] address[0]@MustFail -> address[3]@admins 0utz ("root", ("new_admin", address[2]@new_admin))) |
+| operation                                                                                        |
+|==================================================================================================|
+Running test script...
+
+Applying Operations...
+
+Contract Transfer...
+
+Applying Operations...
+Running test script...
+Done running test `MustFail`

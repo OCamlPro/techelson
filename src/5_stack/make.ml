@@ -257,18 +257,6 @@ module Stack (S : Sigs.StackBase)
                 fun () -> "while popping a value of a comparable type from the stack"
             )
 
-        let address (self : t) : Theory.Address.t * Dtyp.t =
-            let run () =
-                match pop self with
-                | Theory.Address a, dtyp -> a, dtyp
-                | v, dtyp ->
-                    asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v
-                    |> Exc.throw
-            in
-            run |> Exc.chain_err (
-                fun () -> "while popping an address from the stack"
-            )
-
         let contract (self : t) : Theory.Address.t option * Mic.contract =
             let run () =
                 match pop self with
@@ -303,6 +291,34 @@ module Stack (S : Sigs.StackBase)
             in
             run |> Exc.chain_err (
                 fun () -> "while popping an option from the stack"
+            )
+
+        let address (self : t) : Theory.Address.t * Dtyp.t =
+            let run () =
+                match pop self with
+                | Theory.Address a, dtyp -> a, dtyp
+                | v, dtyp ->
+                    asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v
+                    |> Exc.throw
+            in
+            run |> Exc.chain_err (
+                fun () -> "while popping an address from the stack"
+            )
+
+        let address_option (self : t) : Theory.Address.t option * Dtyp.t =
+            let run () =
+                let address_opt, dtyp = option self in
+                let inner = Dtyp.Inspect.option dtyp in
+                unify self (Dtyp.Address |> Dtyp.mk_leaf) inner;
+                match address_opt with
+                | Some (Theory.Address a) -> Some a, dtyp
+                | None -> None, dtyp
+                | Some _ ->
+                    asprintf "unreachable: inconsistent value/type pair in stack"
+                    |> Exc.throw
+            in
+            run |> Exc.chain_err (
+                fun () -> "while popping an address option from the stack"
             )
 
         let list (self : t) : Theory.value Theory.Lst.t * Dtyp.t =

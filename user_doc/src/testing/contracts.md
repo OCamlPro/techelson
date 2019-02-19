@@ -26,7 +26,7 @@ defines three named contracts: `My_contract`, `MyContract` and `My`.
 Techelson extends the `CREATE_CONTRACT` michelson instruction with the following rule
 
 | instruction | parameter | stack |
-|:---|:---:|:---|
+|:---|:---:|:---:|
 | `CREATE_CONTRACT` | `<string>` | `:: key_hash : option key_hash : bool : bool : mutez : 'g : 'S` |
 |              |            | `-> operation : address : 'S` |
 
@@ -34,13 +34,13 @@ where `<string>` is the name of a contract with storage type `'g` in the environ
 of the stack parameters is the same as in michelson: manager, optional delegate, the two spendable
 and delegatable flags, and the balance and storage of the contract created.
 
-Say we have the following contract in file [`simpleExample.tz`].
+Say we have the following contract in file [simpleExample.tz].
 
 ```mic,ignore
 {{#include ../../rsc/simpleExample/contracts/simpleExample.tz}}
 ```
 
-We can craft a creation operation in file [`create1.techel`] as follows
+We can craft a creation operation in file [create1.techel] as follows
 
 ```mic,ignore
 {{#include ../../rsc/simpleExample/okay/create1.techel}}
@@ -49,7 +49,6 @@ We can craft a creation operation in file [`create1.techel`] as follows
 This produces the following output
 
 ```
-$ techelson --contract simpleExample.tz -- create1.techel
 {{#include ../../rsc/simpleExample/okay/create1.techel.output}}
 ```
 
@@ -66,7 +65,7 @@ techelson resumes the execution of the testcase.
 
 > **Warning**: this instruction is only legal in testcases, not in contracts.
 
-Consider testcase [`create2.techel`]:
+Consider testcase [create2.techel]:
 
 ```mic,ignore
 {{#include ../../rsc/simpleExample/okay/create2.techel}}
@@ -75,14 +74,13 @@ Consider testcase [`create2.techel`]:
 Running it yields
 
 ```
-$ techelson --contract simpleExample.tz -- create2.techel
 {{#include ../../rsc/simpleExample/okay/create2.techel.output}}
 ```
 
 Notice the line `Applying operations...`. We could increase techelson's verbosity to obtain more
-information as to which contracts are deployed, but let's instead see how to inspect the state of
-a *live* (deployed) contract.
+information as to which contracts are deployed, but let's see how to inspect the state of a *live*
+(deployed) contract instead.
 
-[`simpleExample.tz`]: ../../rsc/simpleExample/contracts/simpleExample.tz (A simple contract)
-[`create1.techel`]: ../../rsc/simpleExample/okay/create1.techel (A simple contract creation testcase)
-[`create2.techel`]: ../../rsc/simpleExample/okay/create2.techel (A simple contract creation testcase)
+[simpleExample.tz]: ../../rsc/simpleExample/contracts/simpleExample.tz (The SimpleExample contract)
+[create1.techel]: ../../rsc/simpleExample/okay/create1.techel (The Create1 testcase)
+[create2.techel]: ../../rsc/simpleExample/okay/create2.techel (The Create2 testcase)
