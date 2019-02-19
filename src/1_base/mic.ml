@@ -337,7 +337,7 @@ type extension =
 | BalanceOf
 | ApplyOps
 | PrintStack
-| MustFail
+| MustFail of Dtyp.t
 | Step of string option
 | SetSource
 
@@ -349,10 +349,10 @@ let fmt_extension
 =
     match e with
     | StorageOf dtyp -> fprintf fmt "STORAGE_OF%a %a" annots () Dtyp.fmt dtyp
-    | BalanceOf -> fprintf fmt "BALANCE_OF"
+    | BalanceOf -> fprintf fmt "BALANCE_OF%a" annots ()
     | ApplyOps -> fprintf fmt "APPLY_OPERATIONS"
     | PrintStack -> fprintf fmt  "PRINT_STACK"
-    | MustFail -> fprintf fmt "MUST_FAIL"
+    | MustFail dtyp -> fprintf fmt "MUST_FAIL%a %a" annots () Dtyp.fmt dtyp
     | Step opt -> unwrap_or "<none>" opt |> fprintf fmt "STEP %s"
     | SetSource -> fprintf fmt "SET_SOURCE"
 

@@ -9,6 +9,9 @@ val fmt : formatter -> t -> unit
 (** Creates an empty type-checking context. *)
 val empty : unit -> t
 
+(** Clones the type checking environment. *)
+val clone : t -> t
+
 (** Unifies two types.
 
     The first type cannot contain type variables.

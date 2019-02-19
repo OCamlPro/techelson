@@ -162,6 +162,9 @@ module IntSet : sig
     (** Clones a set. *)
     val clone : t -> t
 
+    (** Iterates over a set. *)
+    val iter : (int -> unit) -> t -> unit
+
     (** Adds an element to the set.
 
         Returns true if the element was not there (`is_new`).

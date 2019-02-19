@@ -17,6 +17,10 @@ techelson \
 
 defines three named contracts: `My_contract`, `MyContract` and `My`.
 
+> Note that the naming convention is the same for testcases, based on the testcase file. The name
+> of a testcase might be used in techelson's output to provide information, but it has no practical
+> use currently.
+
 ## Named Contract Creation
 
 Techelson extends the `CREATE_CONTRACT` michelson instruction with the following rule

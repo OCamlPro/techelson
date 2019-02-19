@@ -182,9 +182,10 @@ let rec parse
             annot_arity_check 0 0 0;
             Extension PrintStack
         | "MUST_FAIL" ->
-            param_arity_check 0 0;
-            annot_arity_check 0 0 0;
-            Extension MustFail
+            param_arity_check 1 0;
+            annot_arity_check 0 1 0;
+            let dtyp = List.hd dtyps in
+            Extension (MustFail dtyp)
 
         | _ -> (
             let args = args_to_mic args in

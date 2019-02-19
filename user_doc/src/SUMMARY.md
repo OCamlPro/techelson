@@ -8,6 +8,7 @@
     - [Creating and Calling Contracts](testing/contracts.md)
     - [Live Contract Inspection](testing/inspection.md)
     - [Anonymous Contracts](testing/anonymous.md)
+    - [Transfers](testing/transfers.md)
     - [Workflow](testing/workflow.md)
     - [Extensions](testing/extensions)
     - [Options](testing/options.md)

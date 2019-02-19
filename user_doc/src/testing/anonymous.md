@@ -14,7 +14,8 @@ except that the contract deployed is not given to the environment, it is inlined
 {{#include ../../rsc/simpleExample/okay/create4.techel}}
 ```
 
-This produces the exact same output (unless we increase verbosity) as for [`create3.techel`]:
+This produces the exact same output (modulo the testcase's name, and as long as we do not increase
+verbosity) as for [`create3.techel`]:
 
 ```
 $ techelson create4.techel

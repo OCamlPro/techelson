@@ -21,6 +21,9 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
         mutable typ_cxt : DtypCheck.t
     }
 
+    let expired_uids (self : t) : IntSet.t =
+        self.expired_uids
+
     let empty () : t = {
         defs = Hashtbl.create 47 ;
         key_map = Hashtbl.create 47 ;
@@ -31,10 +34,12 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
     }
 
     let clone (self : t) : t = {
-        self with
         defs = Hashtbl.copy self.defs ;
+        key_map = Hashtbl.copy self.key_map ;
         live = Hashtbl.copy self.live ;
+        next_op_uid = self.next_op_uid ;
         expired_uids = IntSet.clone self.expired_uids ;
+        typ_cxt = DtypCheck.clone self.typ_cxt
     }
 
     let add (contract : Contract.t) (self : t) : unit =

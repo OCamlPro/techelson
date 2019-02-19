@@ -176,9 +176,7 @@ module TestCxt (
 
     module Ops = struct
         let contract_env (self : apply_ops) : Env.t =
-            match self.outcome with
-            | Success _ -> RunTest.contract_env self.test
-            | Fail (_, _, env) -> env
+            RunTest.contract_env self.test
 
         let operations (self : apply_ops) : Env.operation list = self.ops
 
@@ -283,11 +281,20 @@ module TestCxt (
                 log_3 "while running operation %a@." Env.Op.fmt sub_op;
                 log_3 "failed with value %a : %a@." Theory.fmt value Dtyp.fmt dtyp;
 
+                log_0 "expired uids after fail:@.";
+                Env.expired_uids env |> IntSet.iter (
+                    fun i -> log_0 "  %i@." i
+                );
+
                 RunTest.set_contract_env env self.test;
 
                 stage_next_test_op self
             )
             | Some (sub_op, Protocol e), Fail (None, op, env) -> (
+                log_0 "expired uids after fail:@.";
+                Env.expired_uids env |> IntSet.iter (
+                    fun i -> log_0 "  %i@." i
+                );
                 log_2 "failure confirmed on test operation@.";
                 log_2 "  @[%a@]@." Env.Op.fmt op;
                 log_3 "while running operation %a@." Env.Op.fmt sub_op;
@@ -360,6 +367,10 @@ module TestCxt (
                             ]
                             | Success _ -> (
                                 let env = Env.clone contract_env in
+                                log_0 "expired uids:@.";
+                                Env.expired_uids env |> IntSet.iter (
+                                    fun i -> log_0 "  %i@." i
+                                );
                                 self.outcome <- Fail (value, op, env);
                                 Env.Op.mk sub_uid sub_op |> loop
                             )

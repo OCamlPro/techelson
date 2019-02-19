@@ -28,6 +28,8 @@ module type ContractEnv = sig
     *)
     val clone : t -> t
 
+    val expired_uids : t -> IntSet.t
+
     (** Functions over operations. *)
     module Op : sig
         (** Operation formatter. *)

@@ -365,7 +365,6 @@ instruction_leaf :
 
     | I_APPLY_OPERATIONS { Mic.Extension Mic.ApplyOps }
     | I_BALANCE_OF { Mic.Extension Mic.BalanceOf }
-    | I_MUST_FAIL { Mic.Extension Mic.MustFail }
     | I_PRINT_STACK { Mic.Extension Mic.PrintStack }
     | I_SET_SOURCE { Mic.Extension Mic.SetSource }
     | I_STEP
@@ -401,6 +400,9 @@ instruction_dtyp :
     }
     | I_STORAGE_OF {
         fun (dtyp : Dtyp.t) -> Mic.Extension (Mic.StorageOf dtyp)
+    }
+    | I_MUST_FAIL {
+        fun (dtyp : Dtyp.t) -> Mic.Extension (Mic.MustFail dtyp)
     }
 
 instruction_dtyp_2 :

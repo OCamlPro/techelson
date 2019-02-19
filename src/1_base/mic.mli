@@ -124,7 +124,7 @@ type extension =
 | BalanceOf
 | ApplyOps
 | PrintStack
-| MustFail
+| MustFail of Dtyp.t
 | Step of string option
 | SetSource
 

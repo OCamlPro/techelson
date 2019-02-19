@@ -173,6 +173,8 @@ module IntSet = struct
             Hashtbl.add set elm ();
             true
         )
+    let iter (f : int -> unit) (self : t) : unit =
+        Hashtbl.iter (fun key _ -> f key) self
 end
 
 module StrMap = struct

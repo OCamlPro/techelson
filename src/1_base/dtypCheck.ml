@@ -26,6 +26,9 @@ let fmt (fmt : formatter) (self : t) : unit =
 let empty () : t =
     { constraints = Hashtbl.create 17 }
 
+let clone (self : t) : t =
+    { constraints = Hashtbl.copy self.constraints }
+
 let annot_check (a_1 : 'a option) (a_2 : 'a option) (bail : unit -> 'b) : 'b =
     match a_1, a_2 with
     | Some a_1, Some a_2 when a_1 <> a_2 -> bail ()

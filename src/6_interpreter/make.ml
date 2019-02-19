@@ -1467,12 +1467,15 @@ module Interpreter (
                         Stack.push ~binding dtyp value self.stack;
                         None
                     
-                    | Mic.Extension Mic.MustFail ->
+                    | Mic.Extension (Mic.MustFail dtyp) ->
                         let expected, expected_dtyp = Stack.Pop.option self.stack in
                         let expected =
                             expected |> Opt.map (
-                                fun v ->
-                                    v, Dtyp.Inspect.option expected_dtyp
+                                fun v -> (
+                                    let inner = Dtyp.Inspect.option expected_dtyp in
+                                    Env.unify self.env dtyp inner;
+                                    v, inner
+                                )
                             )
                         in
                         let value =
@@ -1624,7 +1627,12 @@ module TestInterpreter (
     let testcase (self : t) : Testcase.t = self.tc
 
     let contract_env (self : t) : Env.t = self.interp |> Run.contract_env
-    let set_contract_env (env : Env.t) (self : t) = self.interp |> Run.set_contract_env env
+    let set_contract_env (env : Env.t) (self : t) =
+        log_0 "expired uids:@.";
+        Env.expired_uids env |> IntSet.iter (
+            fun i -> log_0 "  %i@." i
+        );
+        self.interp |> Run.set_contract_env env
 
     let is_done (self : t) : bool = Run.is_done self.interp
     let interp (self : t) : Run.t = self.interp
