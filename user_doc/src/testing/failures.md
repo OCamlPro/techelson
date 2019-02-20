@@ -35,7 +35,7 @@ editor]), we obtain [admins.tz]. Here are the `storage` and `parameter` types:
 {{#include ../../rsc/admins/contracts/admins.tz:1:5:}}
 ```
 
-We omit the contract's code (available [here](admins.tz)) as *i)* it is not very readable and *ii)*
+We omit the contract's code ([admins.tz]) as *i)* it is not very readable and *ii)*
 we do not need to know what the code precisely is to create the contract and call it, as long as we
 know the `storage` and `parameter` types.
 

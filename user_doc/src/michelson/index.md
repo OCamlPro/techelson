@@ -33,5 +33,5 @@ stack containing `<something>`". Likewise, "returns `<something>`" here means "l
 on the stack at the end (and **nothing else than** `<something>`)".
 
 [Michelson]: https://tezos.gitlab.io/master/whitedoc/michelson.html (Michelson documentation page)
-[tezos blockchain]: (https://tezos.com/) (Tezos official page)
+[tezos blockchain]: https://tezos.com (Tezos official page)
 

@@ -52,10 +52,10 @@ for test_dir in `ls "${root_dir}rsc"` ; do
                 bail "output file $output_file does not start with a '\$ <command>' line"
             fi
             command=`echo "$command" | sed -e "s:\$ techelson:$command_pref:"`
-            command_output=`timeout $timeout $command`
+            command_output=`timeout $timeout sh -c "$command"`
             exit_code="$?"
             if [ "$exit_code" != "0" ] ; then
-                bail "testcase was expected to succeed, ran into an error" "$command"
+                bail "testcase was expected to succeed, ran into an error ($exit_code)" "$command"
             fi
             diff <(tail -n +2 "$output_file") <(echo "$command_output")
             exit_code="$?"
@@ -75,10 +75,10 @@ for test_dir in `ls "${root_dir}rsc"` ; do
                 bail "output file $output_file does not start with a '\$ <command>' line"
             fi
             command=`echo "$command" | sed -e "s:\$ techelson:$command_pref:"`
-            command_output=`timeout $timeout $command`
+            command_output=`timeout $timeout sh -c "$command"`
             exit_code="$?"
             if [ "$exit_code" == "0" ] ; then
-                bail "testcase was expected to fail, but it succeeded" "$command"
+                bail "testcase was expected to fail, but it succeeded ($exit_code)" "$command"
             fi
             diff <(tail -n +2 "$output_file") <(echo "$command_output")
             exit_code="$?"

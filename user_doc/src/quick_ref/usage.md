@@ -29,4 +29,4 @@ chapter of this book is [Test Generation].
 {{#include ../../rsc/no_contract/okay/testgenOptions.techel.output}}
 ```
 
-[Test Generation]: ../testgen/README.md (Test Generation chapter)
+[Test Generation]: ../testgen/index.html (Test Generation chapter)

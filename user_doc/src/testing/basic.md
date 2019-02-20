@@ -55,4 +55,4 @@ Techelson will stop on all `STEP` instructions and ask you to press enter to kee
 [test1.techel]: ../../rsc/no_contract/okay/test1.techel (The Test1 testcase)
 [test2.techel]: ../../rsc/no_contract/okay/test2.techel (The Test2 testcase)
 [test3.techel]: ../../rsc/no_contract/okay/test3.techel (The Test3 testcase)
-[extensions]: extensions.md (Extension Section)
+[extensions]: ../quick_ref/extensions.md (Extension Section)
