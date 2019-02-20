@@ -13,9 +13,10 @@ $ techelson \
 ```
 
 Techelson will then run the testcases in sequence. All testcases will have access to all the
-contracts provided with `--contract`.
+contracts provided with `--contract`. For more information about command-line refer to the [Usage
+section].
 
-This section builds on the small example from the [Michelson Section], and a slightly more involved
+This section builds on the small example from the [Michelson section], and a slightly more involved
 example later on, to introduce techelson's workflow and its extended instruction set.
 
 - [First Steps] shows how to run a simple testcase with no contract.
@@ -41,7 +42,8 @@ example later on, to introduce techelson's workflow and its extended instruction
 
     Introduces `SET_SOURCE`.
 
-[Michelson Section]: ../michelson/simple_example.md (A simple example in michelson)
+[Michelson section]: ../michelson/simple_example.md (A simple example in michelson)
+[Usage section]: ../quick_ref/usage.md (Usage section)
 [First Steps]: basic.md (First steps section)
 [Creating and Calling Contracts]: contracts.md (Creating and calling contracts section)
 [Live Contract Inspection]: inspection.md (Live contract inspection section)

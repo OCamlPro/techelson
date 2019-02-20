@@ -11,6 +11,9 @@ The full list of options (for the nominal mode) is obtained with `--help`:
 
 ## Modes
 
+Modes available:
+- `testgen`: [Test Generation](#test-generation)
+
 Techelson's modes are triggered by simply passing the name of the mode as an argument. For
 instance,
 
