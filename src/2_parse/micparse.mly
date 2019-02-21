@@ -88,6 +88,7 @@
     I_CREATE_CONTRACT
 
     I_GET_STORAGE I_GET_BALANCE I_APPLY_OPERATIONS I_PRINT_STACK I_MUST_FAIL I_STEP I_SET_SOURCE
+    I_SPAWN_CONTRACT
 %token <Base.Mic.hash_fun> I_HASH
 
 (* Tokens for macros. *)
@@ -402,6 +403,9 @@ instruction_dtyp :
     }
     | I_MUST_FAIL {
         fun (dtyp : Dtyp.t) -> Mic.Extension (Mic.MustFail dtyp)
+    }
+    | I_SPAWN_CONTRACT {
+        fun (dtyp : Dtyp.t) -> Mic.Extension (Mic.SpawnContract dtyp)
     }
 
 instruction_dtyp_2 :

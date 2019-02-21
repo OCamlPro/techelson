@@ -241,6 +241,9 @@ end
 module type KeyH = sig
     include TFmt
 
+    (** Conversion from native strings. *)
+    val of_native : string -> t
+
     (** Key hash comparison. *)
     val compare : t -> t -> int
 end

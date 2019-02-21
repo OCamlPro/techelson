@@ -1437,6 +1437,51 @@ module Interpreter (
 
                     (* # Extensions. *)
 
+                    | Mic.Extension (Mic.SpawnContract dtyp) -> (
+                        let name, _ = Stack.Pop.string self.stack in
+                        let name = Theory.Str.to_string name in
+                        let contract = Env.get name self.env in
+                        let address = Theory.Address.fresh binding in
+                        let params, storage_val_dtyp =
+                            Stack.Pop.contract_params address self.stack
+                        in
+
+                        (* Type check. *)
+                        (
+                            Env.(fun () -> unify self.env dtyp contract.storage)
+                            |> Exc.chain_err (
+                                fun () ->
+                                    asprintf
+                                        "storage type for `SPAWN_CONTRACT` %a \
+                                        and storage type for contract `%s` %a differ"
+                                        Dtyp.fmt dtyp name Dtyp.fmt contract.storage
+                            )
+                            |> ignore
+                        );
+                        (
+                            Env.(fun () -> unify self.env contract.storage storage_val_dtyp)
+                            |> Exc.chain_err (
+                                fun () -> "storage value does not typecheck"
+                            )
+                            |> ignore
+                        );
+
+                        (* Push address. *)
+                        Stack.Push.address ~binding address self.stack;
+
+                        (* Get binding for the operation. *)
+                        let binding = Lst.tl mic.vars |> Opt.and_then Lst.hd in
+
+                        (* Push operation. *)
+                        let dtyp = Dtyp.Operation |> Dtyp.mk_leaf ~alias in
+                        let uid = Env.get_uid self.env in
+                        let operation =
+                            Theory.Of.Operation.create_named uid params contract
+                        in
+                        Stack.push ~binding dtyp operation self.stack;
+                        None
+                    )
+
                     | Mic.Extension (Mic.GetStorage storage_dtyp) ->
                         let binding = Lst.hd mic.vars in
                         let alias = Lst.hd mic.typs in

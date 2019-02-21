@@ -34,6 +34,9 @@ where `<string>` is the name of a contract with storage type `'g` in the environ
 of the stack parameters is the same as in michelson: manager, optional delegate, the two spendable
 and delegatable flags, and the balance and storage of the contract created.
 
+> **NB**: techelson also provides the `SPAWN_CONTRACT` extension which takes the name of the
+> contract on the stack. See techelson's [Extensions] for more details.
+
 Say we have the following contract in file [simpleExample.tz].
 
 ```mic,ignore
@@ -84,3 +87,4 @@ information as to which contracts are deployed, but let's see how to inspect the
 [simpleExample.tz]: ../../rsc/simpleExample/contracts/simpleExample.tz (The SimpleExample contract)
 [create1.techel]: ../../rsc/simpleExample/okay/create1.techel (The Create1 testcase)
 [create2.techel]: ../../rsc/simpleExample/okay/create2.techel (The Create2 testcase)
+[Extensions]: ../quick_ref/extensions.md (Extension section)

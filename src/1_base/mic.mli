@@ -128,6 +128,7 @@ type extension =
 | MustFail of Dtyp.t
 | Step of string option
 | SetSource of t
+| SpawnContract of Dtyp.t
 
 (** Instructions. *)
 and 'sub ins =

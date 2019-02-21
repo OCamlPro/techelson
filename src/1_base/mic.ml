@@ -340,6 +340,7 @@ type extension =
 | MustFail of Dtyp.t
 | Step of string option
 | SetSource of t
+| SpawnContract of Dtyp.t
 
 and 'sub ins =
 | Leaf of leaf
@@ -516,11 +517,12 @@ let rec fmt_extension
     match e with
     | GetStorage dtyp -> fprintf fmtt "GET_STORAGE%a %a" annots () Dtyp.fmt dtyp
     | GetBalance -> fprintf fmtt "GET_BALANCE%a" annots ()
-    | ApplyOps -> fprintf fmtt "APPLY_OPERATIONS"
-    | PrintStack -> fprintf fmtt  "PRINT_STACK"
+    | ApplyOps -> fprintf fmtt "APPLY_OPERATIONS%a" annots ()
+    | PrintStack -> fprintf fmtt  "PRINT_STACK%a" annots ()
     | MustFail dtyp -> fprintf fmtt "MUST_FAIL%a %a" annots () Dtyp.fmt dtyp
     | Step opt -> unwrap_or "<none>" opt |> fprintf fmtt "STEP %s"
-    | SetSource code -> fprintf fmtt "SET_SOURCE %a" fmt code
+    | SetSource code -> fprintf fmtt "SET_SOURCE%a %a" annots () fmt code
+    | SpawnContract dtyp -> fprintf fmtt "SPAWN_CONTRACT%a %a" annots () Dtyp.fmt dtyp
 
 (* Formats contracts. *)
 and fmt_contract (fmtt : formatter) ({ storage ; param ; entry } : contract) : unit =

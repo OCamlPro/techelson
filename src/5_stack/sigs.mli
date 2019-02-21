@@ -224,6 +224,9 @@ module type Stack = sig
         (** Pops some bytes. *)
         val bytes : t -> Theory.Bytes.t * Dtyp.t
 
+        (** Pops a string. *)
+        val string : t -> Theory.Str.t * Dtyp.t
+
         (** Pops a key hash. *)
         val key_hash : t -> Theory.KeyH.t * Dtyp.t
 

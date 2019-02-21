@@ -158,6 +158,7 @@
         "IFCMPGE", I_M_IF_CMP Base.Mic.Macro.Ge ;
         "IFCMPGT", I_M_IF_CMP Base.Mic.Macro.Gt ;
 
+        "SPAWN_CONTRACT", I_SPAWN_CONTRACT ;
         "GET_STORAGE", I_GET_STORAGE ;
         "GET_BALANCE", I_GET_BALANCE ;
         "APPLY_OPERATIONS", I_APPLY_OPERATIONS ;

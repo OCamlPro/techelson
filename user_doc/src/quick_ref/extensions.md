@@ -44,6 +44,27 @@ The following instructions are legal in **testcases and contracts**:
 
 The following instructions are **only** legal in testcases:
 
+- `CREATE_CONTRACT <string>`:
+
+    `:: key_hash : option key_hash : bool : bool : mutez : 'g : 'S`
+    `->` `operation : address : 'S`
+
+    Relevant section of this book: [Creating and Calling Contracts].
+
+    Creates an instance of the contract named after the string parameter. The type of the storage
+    of the contract must be `'g`.
+
+- `SPAWN_CONTRACT 'g`:
+
+    `:: string : key_hash : option key_hash : bool : bool : mutez : 'g : 'S`
+    `->` `operation : address : 'S`
+
+    Relevant section of this book: [Creating and Calling Contracts].
+
+    Exactly the same as the `CREATE_CONTRACT` extension above but the name of the contract is
+    passed as a stack parameter, and the type of the storage is an explicit parameter of the
+    instruction.
+
 - `APPLY_OPERATIONS`:
 
     `(list operation) : 'S` `->` `'S`
