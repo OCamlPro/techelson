@@ -167,6 +167,6 @@ for directory in `find "$root_dir" -type d -maxdepth 1` ; do
     run_tests "$directory"
 done
 
-run_testgen
+# run_testgen
 
 exit $zero_if_no_error

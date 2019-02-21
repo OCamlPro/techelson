@@ -23,7 +23,7 @@
 
     DUP ;
 
-    BALANCE_OF ;
+    GET_BALANCE ;
     PRINT_STACK ;
     STEP "retrieved the balance of the contract" ;
 
@@ -33,7 +33,7 @@
         FAILWITH
     } {} ;
 
-    STORAGE_OF nat ;
+    GET_STORAGE nat ;
 
     IF_NONE {
         PUSH string "unable to retrieve storage of contract" ;

@@ -86,7 +86,7 @@
             DUP ;
             DIP {
                 NONE string ;
-                MUST_FAIL ;
+                MUST_FAIL string ;
                 CONS
             } ;
             CONS
@@ -108,7 +108,7 @@
         FAILWITH
     } ;
     DUP ;
-    BALANCE_OF ;
+    GET_BALANCE ;
     PUSH mutez 55 ;
     SWAP ;
     SUB ;
@@ -116,7 +116,7 @@
         PUSH string "Test1 does not have a balance of 55tz" ;
         FAILWITH
     } {} ;
-    STORAGE_OF (pair string
+    GET_STORAGE (pair string
         (pair timestamp
               (pair (pair mutez mutez)
                     (pair (contract :UnitContract unit)

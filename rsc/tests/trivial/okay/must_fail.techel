@@ -15,7 +15,7 @@
         CREATE_CONTRACT @add "Add" ;
         DUP ;
         NONE string ;
-        MUST_FAIL ;
+        MUST_FAIL string ;
         NIL operation ;
         SWAP ;
         CONS ;
@@ -44,7 +44,7 @@
     TRANSFER_TOKENS ;
     DUP ;
     NONE string ;
-    MUST_FAIL ;
+    MUST_FAIL string ;
     NIL operation ;
     SWAP ;
     CONS ;
@@ -59,7 +59,7 @@
     DUP ;
 
     # Check balance.
-    BALANCE_OF ;
+    GET_BALANCE ;
     PUSH mutez 17 ;
     SUB ;
     IFNEQ {
@@ -70,7 +70,7 @@
     # Contract `Add` is on top of the stack.
 
     # Check storage.
-    STORAGE_OF int ;
+    GET_STORAGE int ;
     IF_NONE {
         PUSH string "failed to retrieve storage for \"Add\"" ;
         FAILWITH

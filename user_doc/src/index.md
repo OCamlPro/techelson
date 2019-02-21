@@ -27,7 +27,7 @@ The chapters of this book are
 - [Test Generation], discusses techelson's test generation features.
 - [Quick Reference], quick reminders of techelson's features, such as extensions.
 
-[Michelson smart contract]: https://tezos.gitlab.io/master/whitedoc/michelson.html (Michelson documentation page)
+[Michelson smart contracts]: https://tezos.gitlab.io/master/whitedoc/michelson.html (Michelson documentation page)
 [tezos]: https://tezos.com (Tezos official page)
 [Liquidity]: http://www.liquidity-lang.org (Liquidity official page)
 [Michelson]: michelson/index.md (Michelson chapter)

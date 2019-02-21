@@ -87,7 +87,7 @@
     I_LOOP_LEFT I_DIP I_PUSH I_LAMBDA I_ITER I_MAP I_IF_NONE I_IF_LEFT I_IF_RIGHT I_IF_CONS
     I_CREATE_CONTRACT
 
-    I_STORAGE_OF I_BALANCE_OF I_APPLY_OPERATIONS I_PRINT_STACK I_MUST_FAIL I_STEP I_SET_SOURCE
+    I_GET_STORAGE I_GET_BALANCE I_APPLY_OPERATIONS I_PRINT_STACK I_MUST_FAIL I_STEP I_SET_SOURCE
 %token <Base.Mic.hash_fun> I_HASH
 
 (* Tokens for macros. *)
@@ -364,7 +364,7 @@ instruction_leaf :
     | I_NAT { Mic.Cast (Dtyp.Nat |> Dtyp.mk_leaf) }
 
     | I_APPLY_OPERATIONS { Mic.Extension Mic.ApplyOps }
-    | I_BALANCE_OF { Mic.Extension Mic.BalanceOf }
+    | I_GET_BALANCE { Mic.Extension Mic.GetBalance }
     | I_PRINT_STACK { Mic.Extension Mic.PrintStack }
     | I_STEP
     ; blah = C_STR { Mic.Extension (Mic.Step (Some blah)) }
@@ -397,8 +397,8 @@ instruction_dtyp :
     | I_CONTRACT {
         fun (dtyp : Dtyp.t) -> Mic.Contract dtyp
     }
-    | I_STORAGE_OF {
-        fun (dtyp : Dtyp.t) -> Mic.Extension (Mic.StorageOf dtyp)
+    | I_GET_STORAGE {
+        fun (dtyp : Dtyp.t) -> Mic.Extension (Mic.GetStorage dtyp)
     }
     | I_MUST_FAIL {
         fun (dtyp : Dtyp.t) -> Mic.Extension (Mic.MustFail dtyp)

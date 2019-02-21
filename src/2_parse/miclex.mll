@@ -158,8 +158,8 @@
         "IFCMPGE", I_M_IF_CMP Base.Mic.Macro.Ge ;
         "IFCMPGT", I_M_IF_CMP Base.Mic.Macro.Gt ;
 
-        "STORAGE_OF", I_STORAGE_OF ;
-        "BALANCE_OF", I_BALANCE_OF ;
+        "GET_STORAGE", I_GET_STORAGE ;
+        "GET_BALANCE", I_GET_BALANCE ;
         "APPLY_OPERATIONS", I_APPLY_OPERATIONS ;
         "PRINT_STACK", I_PRINT_STACK ;
         "MUST_FAIL", I_MUST_FAIL ;

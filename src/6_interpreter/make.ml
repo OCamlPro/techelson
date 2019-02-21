@@ -1437,7 +1437,7 @@ module Interpreter (
 
                     (* # Extensions. *)
 
-                    | Mic.Extension (Mic.StorageOf storage_dtyp) ->
+                    | Mic.Extension (Mic.GetStorage storage_dtyp) ->
                         let binding = Lst.hd mic.vars in
                         let alias = Lst.hd mic.typs in
                         let address, _ = Stack.Pop.contract self.stack in
@@ -1475,7 +1475,7 @@ module Interpreter (
                         Stack.push ~binding dtyp value self.stack;
                         None
 
-                    | Mic.Extension Mic.BalanceOf ->
+                    | Mic.Extension Mic.GetBalance ->
                         let address, _ = Stack.Pop.contract self.stack in
                         let address =
                             match address with

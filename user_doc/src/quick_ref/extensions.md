@@ -56,7 +56,7 @@ The following instructions are **only** legal in testcases:
         applied too)
     - resumes the execution of the testcase
 
-- `STORAGE_OF 'storage`:
+- `GET_STORAGE 'storage`:
 
     `contract 'a : 'S` `->` `(option 'storage) : 'S`
 
@@ -66,13 +66,13 @@ The following instructions are **only** legal in testcases:
     - pushes `Some` of the current value of the storage of the contract if its storage has type
         `'storage`, `None` otherwise
 
-- `BALANCE_OF`:
+- `GET_BALANCE`:
 
     `contract 'a : 'S` `->` `mutez : 'S`
 
     Relevant section of this book: [Live Contract Inspection].
 
-    Same as `STORAGE_OF`, but pushes the balance of the contract instead of its storage
+    Same as `GET_STORAGE`, but pushes the balance of the contract instead of its storage
 
 - `MUST_FAIL 'a`:
 

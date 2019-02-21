@@ -29,7 +29,7 @@ example later on, to introduce techelson's workflow and its extended instruction
 - [Live Contract Inspection] deals with recovering the balance and the storage of live (deployed)
     contracts.
 
-    Introduces `BALANCE_OF` and `STORAGE_OF`.
+    Introduces `GET_BALANCE` and `GET_STORAGE`.
 - [Anonymous Contracts] details how to create anonymous contracts.
 - [Transfers] introduces the creation of transfers to a contract.
 - [Testing for Failures] shows how to test that an operation fails and how. This section is the

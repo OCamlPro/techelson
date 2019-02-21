@@ -1,0 +1,192 @@
+{
+  # deploying contract `Bug_annot0`
+  {
+    # creating contract creation parameters
+    {
+      # creating storage for contract `Bug_annot0`
+      {
+        PUSH unit Unit ;
+        EMPTY_MAP string int ;
+        CAST (big_map string int) ;
+        PAIR
+      } ;
+      # money transferred
+      PUSH mutez 770381652951844 ;
+      # delegatable
+      PUSH bool True ;
+      # spendable
+      PUSH bool False ;
+      # delegate
+      NONE key_hash ;
+      # manager
+      {
+        PUSH key "" ;
+        HASH_KEY
+      }
+    } ;
+    CREATE_CONTRACT "Bug_annot0"
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT unit ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Bug_annot0`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 316449286337723 ;
+    PUSH unit Unit ;
+    TRANSFER_TOKENS ;
+    UNIT ;
+    SOME ;
+    MUST_FAIL unit
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT unit ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Bug_annot0`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 170793564929942 ;
+    PUSH unit Unit ;
+    TRANSFER_TOKENS ;
+    UNIT ;
+    SOME ;
+    MUST_FAIL unit
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT unit ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Bug_annot0`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 851423515688435 ;
+    PUSH unit Unit ;
+    TRANSFER_TOKENS ;
+    UNIT ;
+    SOME ;
+    MUST_FAIL unit
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT unit ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Bug_annot0`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 594351728073145 ;
+    PUSH unit Unit ;
+    TRANSFER_TOKENS ;
+    UNIT ;
+    SOME ;
+    MUST_FAIL unit
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT unit ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Bug_annot0`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 450121393591490 ;
+    PUSH unit Unit ;
+    TRANSFER_TOKENS ;
+    UNIT ;
+    SOME ;
+    MUST_FAIL unit
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT unit ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Bug_annot0`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 496172939025405 ;
+    PUSH unit Unit ;
+    TRANSFER_TOKENS ;
+    UNIT ;
+    SOME ;
+    MUST_FAIL unit
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  }
+}

@@ -121,8 +121,8 @@ val annot_arity_of_leaf : leaf -> int * int * int
 
 (** Extensions. *)
 type extension =
-| StorageOf of Dtyp.t
-| BalanceOf
+| GetStorage of Dtyp.t
+| GetBalance
 | ApplyOps
 | PrintStack
 | MustFail of Dtyp.t

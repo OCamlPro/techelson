@@ -163,16 +163,16 @@ let rec parse
         )
 
         (* Extensions. *)
-        | "STORAGE_OF" -> (
+        | "GET_STORAGE" -> (
             param_arity_check 1 0;
             annot_arity_check 0 1 0;
             let dtyp = List.hd dtyps in
-            Extension (StorageOf dtyp)
+            Extension (GetStorage dtyp)
         )
-        | "BALANCE_OF" ->
+        | "GET_BALANCE" ->
             param_arity_check 0 0;
             annot_arity_check 0 1 0;
-            Extension BalanceOf
+            Extension GetBalance
         | "APPLY_OPERATIONS" ->
             param_arity_check 0 0;
             annot_arity_check 0 0 0;

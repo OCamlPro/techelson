@@ -333,8 +333,8 @@ let annot_arity_of_leaf (leaf : leaf) : (int * int * int) = match leaf with
 | Rename -> (0, 1, 0)
 
 type extension =
-| StorageOf of Dtyp.t
-| BalanceOf
+| GetStorage of Dtyp.t
+| GetBalance
 | ApplyOps
 | PrintStack
 | MustFail of Dtyp.t
@@ -514,8 +514,8 @@ let rec fmt_extension
     : unit
 =
     match e with
-    | StorageOf dtyp -> fprintf fmtt "STORAGE_OF%a %a" annots () Dtyp.fmt dtyp
-    | BalanceOf -> fprintf fmtt "BALANCE_OF%a" annots ()
+    | GetStorage dtyp -> fprintf fmtt "GET_STORAGE%a %a" annots () Dtyp.fmt dtyp
+    | GetBalance -> fprintf fmtt "GET_BALANCE%a" annots ()
     | ApplyOps -> fprintf fmtt "APPLY_OPERATIONS"
     | PrintStack -> fprintf fmtt  "PRINT_STACK"
     | MustFail dtyp -> fprintf fmtt "MUST_FAIL%a %a" annots () Dtyp.fmt dtyp

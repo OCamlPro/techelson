@@ -99,7 +99,7 @@
     TRANSFER_TOKENS ;
     UNIT ;
     SOME ;
-    MUST_FAIL
+    MUST_FAIL unit
   } ;
   # create a list of operations and apply
   {
