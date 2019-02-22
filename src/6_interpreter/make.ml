@@ -349,7 +349,7 @@ module Interpreter (
                             if alias = None then dtyp
                             else Dtyp.rename alias dtyp
                         in
-                        let value = Theory.Of.const const |> Theory.cast dtyp in
+                        let value = Theory.Of.const dtyp const |> Theory.cast dtyp in
                         self.stack |> Stack.push ~binding dtyp value;
                         None
 
@@ -1485,7 +1485,7 @@ module Interpreter (
                     | Mic.Extension (Mic.GetStorage storage_dtyp) ->
                         let binding = Lst.hd mic.vars in
                         let alias = Lst.hd mic.typs in
-                        let address, _ = Stack.Pop.contract self.stack in
+                        let address = Stack.Pop.address_or_contract self.stack in
                         let address =
                             match address with
                             | Some address -> address
@@ -1521,7 +1521,7 @@ module Interpreter (
                         None
 
                     | Mic.Extension Mic.GetBalance ->
-                        let address, _ = Stack.Pop.contract self.stack in
+                        let address = Stack.Pop.address_or_contract self.stack in
                         let address =
                             match address with
                             | Some address -> address

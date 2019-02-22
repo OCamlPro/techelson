@@ -281,6 +281,19 @@ module Stack (S : Sigs.StackBase)
                 fun () -> "while popping a contract from the stack"
             )
 
+        let address_or_contract (self : t) : Theory.Address.t option =
+            let run () =
+                match pop self with
+                | Theory.Contract (a, _), _ -> a
+                | Theory.Address a, _ -> Some a
+                | v, dtyp ->
+                    asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v
+                    |> Exc.throw
+            in
+            run |> Exc.chain_err (
+                fun () -> "while popping a contract or an address from the stack"
+            )
+
         let either (self : t) : (Theory.value, Theory.value) Theory.Either.t * Dtyp.t =
             let run () =
                 match pop self with

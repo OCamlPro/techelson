@@ -670,7 +670,7 @@ module Theory (
             reverse order.
         *)
 
-        let const (c : Mic.const) : value =
+        let const (dtyp : Dtyp.t) (c : Mic.const) : value =
             let rec go_down (stack : frame list) (c : Mic.const) : value =
                 match c with
                 | Mic.U -> U |> go_up stack
@@ -688,12 +688,21 @@ module Theory (
                 | Mic.Lft c -> go_down (Con (fun v -> Either (Either.Lft v)) :: stack) c
                 | Mic.Rgt c -> go_down (Con (fun v -> Either (Either.Rgt v)) :: stack) c
 
-                | Mic.Lst (hd :: tl) ->
+                | Mic.Lst (hd :: tl) -> (
                     let frame =
                         LstCon ((fun lst -> Lst (Lst.of_list lst)), tl, [])
                     in
                     go_down (frame :: stack) hd
-                | Mic.Lst [] -> Lst (Lst.of_list []) |> go_up stack
+                )
+                | Mic.Lst [] -> (
+                    match dtyp.typ with
+                    | Dtyp.List _ -> Lst (Lst.of_list [])
+                    | Dtyp.Set _ -> Set (Set.empty)
+                    | Dtyp.Map _ -> Map (Map.empty)
+                    | _ ->
+                        asprintf "cannot cast constant %a to %a" Mic.fmt_const c Dtyp.fmt dtyp
+                        |> Exc.throw
+                ) |> go_up stack
 
                 | Mic.Pr (fst, snd) ->
                     let frame =

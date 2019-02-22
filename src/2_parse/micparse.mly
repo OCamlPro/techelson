@@ -157,6 +157,24 @@ contract_sub :
         let (s, p ,e) = sub in
         s, p, (entry :: e)
     }
+    | sub = contract_sub
+    ; STORAGE
+    ; storage = datatype {
+        let (s, p ,e) = sub in
+        (storage :: s), p, e
+    }
+    | sub = contract_sub
+    ; PARAMETER
+    ; param = datatype {
+        let (s, p ,e) = sub in
+        s, (param :: p), e
+    }
+    | sub = contract_sub
+    ; CODE
+    ; entry = instruction {
+        let (s, p ,e) = sub in
+        s, p, (entry :: e)
+    }
     | { [], [], [] }
 
 instructions_semicol :
@@ -643,10 +661,8 @@ const :
         Mic.Pr (fst, snd)
     }
 
-    | OCURL
-    ; c = contract
-    ; CCURL {
-        Mic.Cont c
+    | OCURL ; CCURL {
+        Mic.Lst []
     }
 
     | OCURL

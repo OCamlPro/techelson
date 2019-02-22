@@ -79,7 +79,9 @@ The following instructions are **only** legal in testcases:
 
 - `GET_STORAGE 'storage`:
 
-    `contract 'a : 'S` `->` `(option 'storage) : 'S`
+    `contract _ : 'S` `->` `(option 'storage) : 'S`
+
+    `address : 'S` `->` `(option 'storage) : 'S`
 
     Relevant section of this book: [Live Contract Inspection].
 
@@ -89,7 +91,9 @@ The following instructions are **only** legal in testcases:
 
 - `GET_BALANCE`:
 
-    `contract 'a : 'S` `->` `mutez : 'S`
+    `contract _ : 'S` `->` `mutez : 'S`
+
+    `address : 'S` `->` `mutez : 'S`
 
     Relevant section of this book: [Live Contract Inspection].
 

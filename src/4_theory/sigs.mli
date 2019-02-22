@@ -882,7 +882,7 @@ module type Theory = sig
         val bool : bool -> value
 
         (** `Base.Mic` constant to value. *)
-        val const : Mic.const -> value
+        val const : Dtyp.t -> Mic.const -> value
 
         (** Comparable value to value. *)
         val cmp : Cmp.t -> value

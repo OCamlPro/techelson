@@ -10,9 +10,9 @@ stack.
 
 | instruction | parameter | stack |
 |:---|:---:|:---:|
-| `GET_STORAGE` | `'storage` | `::       contract 'a : 'S` |
+| `GET_STORAGE` | `'storage` | `:: contract _ : 'S` or `:: address : 'S` |
 |              |            | `-> (option 'storage) : 'S` |
-| `GET_BALANCE` | none       | `:: contract 'a : 'S` |
+| `GET_BALANCE` | none       | `:: contract _ : 'S` or `:: address : 'S` |
 |              |            | `->       mutez : 'S` |
 
 Let's extend the previous example to [inspection.techel] which checks that the balance and storage

@@ -275,6 +275,9 @@ module type Stack = sig
         (** Pops a list of operation. *)
         val operation_list : t -> Env.operation list * Dtyp.t
 
+        (** Pops an address or a contract. *)
+        val address_or_contract : t -> Theory.Address.t option
+
         (** Pops the result of a contract call.
 
             A list of operations and the new storage value. The datatype returned is that of the
