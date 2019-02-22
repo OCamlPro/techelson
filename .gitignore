@@ -4,3 +4,4 @@ _build
 .vscode
 /README.html
 /user_doc/book
+.DS_Store
