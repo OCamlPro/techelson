@@ -48,9 +48,14 @@ Techelson will stop on all `STEP` instructions and ask you to press enter to kee
 {{#include ../../rsc/no_contract/okay/test3.techel.output}}
 ```
 
-> **Pro tip**: passing `--skip on` to `techelson` will skip (but still display) all the steps. The
-> output of the commands reported in this book are all obtained by running techelson with `--skip
-> on`.
+> **Pro tip 1**: you can use `PRINT_STACK` and `STEP` in contracts too (see the [extensions]
+> section for details). Also, techelson treats `#>` as a whitespace. Hence, your can have `#> STEP
+> ;` and/or `#> PRINT_STACK ;` in your michelson contract, which lets you inspect it during tests.
+> Your contract remains legal michelson thanks to the leading `#` which comments the command.
+
+> **Pro tip 2**: passing `--skip on` to `techelson` will skip (but still display) all the steps.
+> The output of the commands reported in this book are all obtained by running techelson with
+> `--skip on`.
 
 [test1.techel]: ../../rsc/no_contract/okay/test1.techel (The Test1 testcase)
 [test2.techel]: ../../rsc/no_contract/okay/test2.techel (The Test2 testcase)

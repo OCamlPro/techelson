@@ -1,7 +1,8 @@
 # Techelson
 
 **Techelson** is a **T**est **E**xecution **E**nvironment (TEE) for [Michelson smart contracts].
-Michelson is the stack-based language used by the [tezos blockchain][tezos].
+Michelson is the stack-based language used by the [tezos blockchain][tezos]. Techelson is open
+source and [hosted on github].
 
 Techelson emulates just enough of the tezos blockchain protocol to be able to create smart
 contracts and make transfers between contracts. Currently, techelson only aims at testing
@@ -34,3 +35,4 @@ The chapters of this book are
 [Running Tests]: testing/index.md (Running Tests chapter)
 [Test Generation]: testgen/index.md (Test Generation chapter)
 [Quick Reference]: quick_ref/index.md (Quick Reference chapter)
+[hosted on github]: https://github.com/OCamlPro/techelson (Techelson on github.com)

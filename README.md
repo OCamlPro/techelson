@@ -4,6 +4,19 @@ TEst miCHELSON: `techelson`
 
 A test execution engine for Michelson smart contracts.
 
+# Features
+
+Techelson is currently in beta. The rough list of (planned) features is
+
+- [x] operation must-fail: specifies that a (chain of) operation(s) should fail
+- [x] inspection instruction: break points and stack inspection
+- [x] support for all data types (potentially with some liberty taken compared to tezos)
+- [ ] semantics as close to the tezos protocol as possible
+    - [x] for non-crypto operations (`int`, `nat`, `map`, *etc.*)
+    - [ ] for crypto operations
+- [x] support import of local michelson contracts
+- [ ] support retrieving the storage and code of contracts directly from the tezos blockchain
+
 # Build
 
 We recommend to use the latest version of the OCaml compiler. For example
@@ -35,7 +48,7 @@ A `<testcase>` is a (sequence of) michelson instruction(s) which produce(s) a li
 For example
 
 ```bash
-> techelson --contract rsc/test1/test1.liq.tz -- rsc/test1/test1.liq.tz.tst
+> techelson --contract rsc/tests/test0/contracts/test0.liq.tz -- rsc/tests/test0/okay/Test0Test1.techel
 ```
 
 [dune]:https://github.com/ocaml/dune (Dune project manager's Github page)
