@@ -1,0 +1,12 @@
+storage nat;
+parameter bool;
+code {
+    UNPAIR;        # Unpair parameter and storage.
+    IF {           # Asked not to count: storage is unchanged, nothing to do.
+    } {
+        PUSH nat 1;
+        ADD
+    };
+    NIL operation; # We don't want to perform any operations.
+    PAIR           # Aggregate the operation list and the new storage.
+};

@@ -1,0 +1,587 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Testing for Failures - Techelson User Documentation</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body class="navy">
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../";
+            var default_theme = "navy";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { } 
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            document.body.className = theme;
+            document.querySelector('html').className = theme + ' js';
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <ol class="chapter"><li><a href="../index.html"><strong aria-hidden="true">1.</strong> Techelson</a></li><li><a href="../michelson/index.html"><strong aria-hidden="true">2.</strong> Michelson</a></li><li><ol class="section"><li><a href="../michelson/simple_example.html"><strong aria-hidden="true">2.1.</strong> A Simple Example</a></li></ol></li><li><a href="../testing/index.html"><strong aria-hidden="true">3.</strong> Running Tests</a></li><li><ol class="section"><li><a href="../testing/basic.html"><strong aria-hidden="true">3.1.</strong> First Steps</a></li><li><a href="../testing/contracts.html"><strong aria-hidden="true">3.2.</strong> Creating and Calling Contracts</a></li><li><a href="../testing/inspection.html"><strong aria-hidden="true">3.3.</strong> Live Contract Inspection</a></li><li><a href="../testing/anonymous.html"><strong aria-hidden="true">3.4.</strong> Anonymous Contracts</a></li><li><a href="../testing/transfers.html"><strong aria-hidden="true">3.5.</strong> Transfers</a></li><li><a href="../testing/failures.html" class="active"><strong aria-hidden="true">3.6.</strong> Testing for Failures</a></li><li><a href="../testing/set_source.html"><strong aria-hidden="true">3.7.</strong> Usurpation of Identity</a></li></ol></li><li><a href="../testgen/index.html"><strong aria-hidden="true">4.</strong> Test Generation</a></li><li><ol class="section"><li><a href="../testgen/example.html"><strong aria-hidden="true">4.1.</strong> Example</a></li></ol></li><li><a href="../quick_ref/index.html"><strong aria-hidden="true">5.</strong> Quick Reference</a></li><li><ol class="section"><li><a href="../quick_ref/extensions.html"><strong aria-hidden="true">5.1.</strong> Extensions</a></li><li><a href="../quick_ref/usage.html"><strong aria-hidden="true">5.2.</strong> Command-Line Usage</a></li></ol></li></ol>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy (default)</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                            
+                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            
+                        </div>
+
+                        <h1 class="menu-title">Techelson User Documentation</h1> 
+
+                        <div class="right-buttons">
+                            <a href="../print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <a class="header" href="#testing-for-failures" id="testing-for-failures"><h1>Testing for Failures</h1></a>
+<p>This section is going to use a slightly more complex contract in order to showcase failures and how
+to test them. Even if you are not familiar with <a href="http://www.liquidity-lang.org/" title="Liquidity's official page">liquidity</a>, the contract's code will most likely
+be more readable in liquidity than in michelson. Here is the liquidity version, <a href="../../rsc/admins/admins.liq" title="The Admin liquidity contract">admins.liq</a>:</p>
+<pre><code class="language-ocaml ignore">[%%version 0.405] 
+
+type storage = {
+  admins : (string, address) map ;
+  (* Unused in this example. *)
+  nus : (string, (address * tez * UnitContract.instance)) map ;
+}
+
+let admin_check (storage : storage) (name : string) (a : address) : unit =
+  match Map.find name storage.admins with
+  | None -&gt; failwith &quot;only admins can perform administrative tasks&quot;
+  | Some address -&gt;
+      if address &lt;&gt; a then
+        failwith &quot;illegal access to admin account&quot;
+
+let%entry add_admin
+    ((admin_name, nu_name, nu_address) : string * string * address)
+    (storage : storage)
+  : operation list * storage 
+=
+  admin_check storage admin_name (Current.sender ()); 
+  let storage =
+    storage.admins &lt;- Map.update nu_name (Some nu_address) storage.admins
+  in
+  [], storage
+</code></pre>
+<p>Note that the <code>clients</code> field of the storage is unused in this example. The <code>admins</code> map maps
+administrator names to addresses. The only entry point (in this example) is <code>add_admin</code> which
+allows administrators to add new administrators by registering their name and their address. More
+precisely, calling this contract is only legal if the <code>SENDER</code> (<code>Current.sender ()</code>) of the call is
+an administrator (<em>c.f.</em> <code>admin_check</code>). If the call to the contract is not legal, the transfer
+fails:</p>
+<pre><code class="language-ocaml ignore">let admin_check (storage : storage) (name : string) (a : address) : unit =
+  match Map.find name storage.admins with
+  | None -&gt; failwith &quot;only admins can perform administrative tasks&quot;
+  | Some address -&gt;
+      if address &lt;&gt; a then
+        failwith &quot;illegal access to admin account&quot;
+</code></pre>
+<p>The parameters of the entry point are</p>
+<ul>
+<li><code>admin_name</code>: name associated with the <code>SENDER</code> administrator,</li>
+<li><code>nu_name</code>: name of the new administrator to add,</li>
+<li><code>nu_address</code>: the address of the new administrator.</li>
+</ul>
+<pre><code class="language-ocaml ignore">let%entry add_admin
+    ((admin_name, nu_name, nu_address) : string * string * address)
+</code></pre>
+<p>Using liquidity to compile the contract to michelson (for instance using <a href="http://www.liquidity-lang.org/zeronet/" title="Liquidity's online editor">liquidity's online
+editor</a>), we obtain <a href="../../rsc/admins/contracts/admins.tz" title="The Admin michelson contract">admins.tz</a>. Here are the <code>storage</code> and <code>parameter</code> types:</p>
+<pre><code class="language-mic ignore">parameter (pair string (pair string address));
+storage
+  (pair :storage
+     (map %admins string address)
+     (map %clients string (pair address (pair mutez (contract :UnitContract unit)))));
+</code></pre>
+<p>We omit the contract's code (<a href="../../rsc/admins/contracts/admins.tz" title="The Admin michelson contract">admins.tz</a>) as <em>i)</em> it is not very readable and <em>ii)</em>
+we do not need to know what the code precisely is to create the contract and call it, as long as we
+know the <code>storage</code> and <code>parameter</code> types.</p>
+<a class="header" href="#creation" id="creation"><h2>Creation</h2></a>
+<p>Creating a contract has been covered in previous sections, so let's give ourselves some code to
+create the contract with one administrator called <code>root</code>. In fact, let's make an account for <code>root</code>
+and register it as an administrator. The new administrator <code>new_admin</code> is also deployed as an
+account. Testcase <a href="../../rsc/admins/okay/create.techel" title="The Create testcase">create.techel</a> does exactly that:</p>
+<pre><code class="language-mic ignore">{
+    NIL operation ;
+
+    {   # Create an account for `root`.
+        PUSH @balance mutez 0 ;
+        PUSH @delegatable bool True ;
+        PUSH @delegate (option key_hash) None ;
+        PUSH @manager key &quot;@root_manager&quot; ;
+        SHA512 ;
+        CREATE_ACCOUNT @root ;
+    } ;
+
+    SWAP ;
+    DIP { CONS } ;
+
+    {   # Create an account for `new_admin`.
+        PUSH @balance mutez 0 ;
+        PUSH @delegatable bool True ;
+        PUSH @delegate (option key_hash) None ;
+        PUSH @manager key &quot;@new_admin_manager&quot; ;
+        SHA512 ;
+        CREATE_ACCOUNT @new_admin ;
+    } ;
+
+    SWAP ;
+    DIP { SWAP ; DIP CONS } ;
+
+    {   # Create an `admins` contract.
+
+        # Create the storage's (empty) `clients` field.
+        EMPTY_MAP @clients string (pair address (pair mutez (contract unit))) ;
+
+        # Create the storage's `admins` field and register `root`.
+        EMPTY_MAP @admins string address ;
+        DUUUUP ; # Retrieve root's address.
+        SOME @address ;
+        PUSH @name string &quot;root&quot; ;
+        PRINT_STACK ;
+        UPDATE ;
+
+        PAIR @storage ;
+        PUSH @balance mutez 0 ;
+        PUSH @delegatable bool True ;
+        PUSH @spendable bool False ;
+        PUSH @delegate (option key_hash) None ;
+        PUSH @manager key &quot;@contract_manager&quot; ;
+        SHA512 ;
+
+        CREATE_CONTRACT @admins &quot;Admins&quot;
+    } ;
+
+    SWAP ;
+    DIP { SWAP ; DIP { SWAP ; DIP CONS } } ;
+
+    DIIIP { APPLY_OPERATIONS } ;
+
+    PRINT_STACK ;
+    STEP &quot;after applying creation operations.&quot;
+}
+</code></pre>
+<p>Running this test produces the following output</p>
+<pre><code>$ techelson --contract rsc/admins/contracts/admins.tz -- rsc/admins/okay/create.techel
+Running test `Create`
+Running test script...
+stack:
+|==================================================================================================|
+| [ CREATE[uid:1] (@address[2]@new_admin, &quot;sha512:@new_admin_manager&quot;, None, true, true, 0utz) 
+      {
+          storage unit ;
+          parameter unit ;
+          code {
+                 DROP ;
+                 UNIT ;
+                 NIL operation ;
+                 PAIR
+               } ;
+      }, CREATE[uid:0] (@address[1]@root, &quot;sha512:@root_manager&quot;, None, true, true, 0utz) 
+             {
+                 storage unit ;
+                 parameter unit ;
+                 code {
+                        DROP ;
+                        UNIT ;
+                        NIL operation ;
+                        PAIR
+                      } ;
+             } ] |
+| (list operation)                                                                                 |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                            @root |
+| address[1]@root                                                                                  |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                       @new_admin |
+| address[2]@new_admin                                                                             |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                         @clients |
+| Map { }                                                                                          |
+| (map string (pair address (pair mutez (contract unit))))                                         |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                          @admins |
+| Map { }                                                                                          |
+| (map string address)                                                                             |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                         @address |
+| (Some address[1]@root)                                                                           |
+| (option address)                                                                                 |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                            @name |
+| &quot;root&quot;                                                                                           |
+| string                                                                                           |
+|==================================================================================================|
+Running test script...
+
+Applying Operations...
+Running test script...
+stack:
+|==================================================================================================|
+|                                                                                            @root |
+| address[1]@root                                                                                  |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                       @new_admin |
+| address[2]@new_admin                                                                             |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                          @admins |
+| address[3]@admins                                                                                |
+| address                                                                                          |
+|==================================================================================================|
+Running test script...
+stopping [after applying creation operations.] press `return` to continue
+
+Running test script...
+Done running test `Create`
+
+</code></pre>
+<a class="header" href="#transfer-failures" id="transfer-failures"><h2>Transfer Failures</h2></a>
+<p>Let's now add <code>new_admin</code> as a new administrator. Testcase <a href="../../rsc/admins/error/addAdmin.techel" title="The AddAdmin testcase">addAdmin.techel</a> only adds the
+following few instructions at the end of <a href="../../rsc/admins/okay/create.techel" title="The Create testcase">create.techel</a>:</p>
+<pre><code class="language-mic ignore">    # Retrieve the actual contract.
+    CONTRACT (pair string (pair string address)) ;
+    IF_NONE {
+        PUSH string &quot;failed to retrieve `admins` contract&quot; ;
+        STEP
+    } {} ;
+
+    # Saving the contract for later.
+    DUP ;
+
+    PUSH @amount mutez 0 ;
+
+    # New admin's address.
+    DUUUUP ;
+    # New admin's name.
+    PUSH @new_name string &quot;new_admin&quot; ;
+    PAIR ;
+    # Root's name.
+    PUSH @name string &quot;root&quot; ;
+    PAIR @storage ;
+
+    TRANSFER_TOKENS ;
+
+    DIP { NIL operation } ;
+    CONS ;
+    APPLY_OPERATIONS ;
+</code></pre>
+<p>What should the result of applying this transfer be? Remember than before adding an administrator, the contract checks that the sender is an admin.</p>
+<pre><code class="language-ocaml ignore">let admin_check (storage : storage) (name : string) (a : address) : unit =
+  match Map.find name storage.admins with
+  | None -&gt; failwith &quot;only admins can perform administrative tasks&quot;
+  | Some address -&gt;
+      if address &lt;&gt; a then
+        failwith &quot;illegal access to admin account&quot;
+
+let%entry add_admin
+    ((admin_name, nu_name, nu_address) : string * string * address)
+...
+=
+  admin_check storage admin_name (Current.sender ()); 
+...
+</code></pre>
+<p>So, if everything goes well, the transfer should fail: the sender here is not <code>root</code>, but the
+testcase. In techelson, the testcase currently running has its own address. It is in particular
+not the address of <code>root</code>. Hence, the transfer fails as it should and so does the whole testcase.
+The (relevant part of the) output is</p>
+<pre><code>
+Applying Operations...
+Test `AddAdmin` failed:
+    Error
+        operation TRANSFER[uid:3] address[0]@AddAdmin -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin)) was expected to succeed
+        but failed on operation TRANSFER[uid:3] address[0]@AddAdmin -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin))
+        operation failed on &quot;illegal access to admin account&quot; : string
+Error
+</code></pre>
+<p>You can see in the transfer the sender and the target of the transfer:</p>
+<pre><code>TRANSFER[uid:3] address[0]@Create2 -&gt; address[3]@admins
+</code></pre>
+<p><code>Create2</code> is the name of our testcase, and <code>address[0]@Create2</code> is its address. Name <code>&quot;root&quot;</code> does
+not map to this address in the contract and the transfer fails.</p>
+<a class="header" href="#handling-failures" id="handling-failures"><h2>Handling Failures</h2></a>
+<p>Before getting into making this transfer work (next section), note that this (failing) testcase is
+actually useful. Or at least it should be: the transfer we are trying to make is illegal indeed. We
+do want the transfer to fail, but the testcase should</p>
+<ul>
+<li>succeed if the transfer does fail,</li>
+<li>fail if the transfer succeeds: anyone can add admins, which is <strong>bad</strong>.</li>
+</ul>
+<p>This is what the <code>MUST_FAIL</code> techelson extension does. It takes an operation wraps it in a
+construct telling techelson that this operation must fail: either the operation itself or, if it is
+a transfer, the operations created by this transfer. Here is its signature:</p>
+<table><thead><tr><th align="left"> instruction </th><th align="center"> parameter </th><th align="center"> stack </th></tr></thead><tbody>
+<tr><td align="left"> <code>MUST_FAIL</code> </td><td align="center"> <code>&lt;type&gt;</code> </td><td align="center"> <code>:: option &lt;type&gt; : operation : 'S</code> </td></tr>
+<tr><td align="left">             </td><td align="center">          </td><td align="center"> <code>-&gt; operation : 'S</code>                 </td></tr>
+</tbody></table>
+<p>Let's ignore the <code>&lt;type&gt;</code> parameter and the first stack argument for now and just use this
+instruction right away. Testcase <a href="../../rsc/admins/okay/mustFail.techel" title="The MustFail testcase">mustFail.techel</a> is the same as <a href="../../rsc/admins/error/addAdmin.techel" title="The AddAdmin testcase">addAdmin.techel</a> except for a
+few lines after the transfer:</p>
+<pre><code class="language-mich ignore">    TRANSFER_TOKENS ;
+    PUSH (option string) None ;
+    MUST_FAIL @this_must_fail string ;
+    PRINT_STACK ;
+</code></pre>
+<p>The test now passes successfully:</p>
+<pre><code>$ techelson --contract rsc/admins/contracts/admins.tz -- rsc/admins/okay/mustFail.techel
+Running test `MustFail`
+Running test script...
+
+Applying Operations...
+Running test script...
+stack:
+|==================================================================================================|
+|                                                                                            @root |
+| address[1]@root                                                                                  |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                       @new_admin |
+| address[2]@new_admin                                                                             |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+| address[3]@admins                                                                                |
+| (contract (pair string (pair string address)))                                                   |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                  @this_must_fail |
+| MUST_FAIL[uid:4] _ (TRANSFER[uid:3] address[0]@MustFail -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin))) |
+| operation                                                                                        |
+|==================================================================================================|
+Running test script...
+
+Applying Operations...
+
+Contract Transfer...
+
+Applying Operations...
+Running test script...
+Done running test `MustFail`
+
+</code></pre>
+<a class="header" href="#more-precise-failure-testing" id="more-precise-failure-testing"><h2>(More) Precise Failure Testing</h2></a>
+<p>Now, <code>MUST_FAIL</code> (as it is used here) succeeds if the transfer ends in a <em>tezos protocol</em> failure.
+This include explicit failures in the code, illegal transfers due to insufficient funds, duplicate
+operations, <em>etc.</em> It does <strong>not</strong> include type-checking errors and internal techelson errors.</p>
+<p>This means in particular that if the transfer above fails for a reason different from <code>&quot;illegal access to admin account&quot;</code> then <code>MUST_FAIL</code> will consider the test a success. To make sure the cause
+for failure is actually the one we want, we must use <code>MUST_FAIL</code>'s optional stack parameter. A
+failure in michelson code always has a value of some type associated to it. In this case, the type
+of this value is <code>string</code> and its value is <code>&quot;illegal access to admin account&quot;</code>. Testcase
+<a href="../../rsc/admins/okay/preciseMustFail.techel" title="The PreciseMustFail testcase">preciseMustFail.techel</a> only changes <a href="../../rsc/admins/okay/mustFail.techel" title="The MustFail testcase">mustFail.techel</a> to pass the failure value expected to <code>MUST_FAIL</code>:</p>
+<pre><code class="language-mich">    TRANSFER_TOKENS ;
+    PUSH (option string) (Some &quot;illegal access to admin account&quot;) ;
+    MUST_FAIL @this_must_fail string ;
+    PRINT_STACK ;
+</code></pre>
+<p>As a consequence, if the transfer fails with anything else than an explicit failure with a value of
+type <code>string</code> equal to <code>&quot;illegal access to admin account&quot;</code>, then the whole testcase will fail.
+Everything works fine here, and the output is</p>
+<pre><code>$ techelson --contract rsc/admins/contracts/admins.tz -- rsc/admins/okay/preciseMustFail.techel
+Running test `PreciseMustFail`
+Running test script...
+
+Applying Operations...
+Running test script...
+stack:
+|==================================================================================================|
+|                                                                                            @root |
+| address[1]@root                                                                                  |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                       @new_admin |
+| address[2]@new_admin                                                                             |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+| address[3]@admins                                                                                |
+| (contract (pair string (pair string address)))                                                   |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                  @this_must_fail |
+| MUST_FAIL[uid:4] &quot;illegal access to admin account&quot; : string (TRANSFER[uid:3] address[0]@PreciseMustFail -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin))) |
+| operation                                                                                        |
+|==================================================================================================|
+Running test script...
+
+Applying Operations...
+
+Contract Transfer...
+
+Applying Operations...
+Running test script...
+Done running test `PreciseMustFail`
+
+</code></pre>
+<p>Notice that the <code>MUST_FAIL</code> operation now mentions the value expected:</p>
+<pre><code>MUST_FAIL[uid:4] &quot;illegal access to admin account&quot; : string (TRANSFER[uid:3] ...)
+</code></pre>
+<p>as opposed to the <code>_</code> wildcard from testcase <a href="../../rsc/admins/okay/mustFail.techel" title="The MustFail testcase">mustFail.techel</a>, which means no value was given:</p>
+<pre><code>MUST_FAIL[uid:4] _  (TRANSFER[uid:3] ...)
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="../testing/transfers.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+                            <a rel="next" href="../testing/set_source.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a href="../testing/transfers.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a href="../testing/set_source.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>
