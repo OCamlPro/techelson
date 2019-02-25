@@ -28,6 +28,8 @@ The chapters of this book are
 - [Test Generation], discusses techelson's test generation features.
 - [Quick Reference], quick reminders of techelson's features, such as extensions.
 
+All examples in this book are available in the [`rsc` directory of the github repository].
+
 [Michelson smart contracts]: https://tezos.gitlab.io/master/whitedoc/michelson.html (Michelson documentation page)
 [tezos]: https://tezos.com (Tezos official page)
 [Liquidity]: http://www.liquidity-lang.org (Liquidity official page)
@@ -36,3 +38,4 @@ The chapters of this book are
 [Test Generation]: testgen/index.md (Test Generation chapter)
 [Quick Reference]: quick_ref/index.md (Quick Reference chapter)
 [hosted on github]: https://github.com/OCamlPro/techelson (Techelson on github.com)
+[`rsc` directory of the github repository]: https://github.com/OCamlPro/techelson/tree/master/user_doc/rsc (rsc folder on techelson's github repository)
