@@ -1,16 +1,16 @@
 #! /bin/bash
 
-wget https://raw.github.com/ocaml/opam/master/shell/opam_installer.sh -O - | sh -s .
+sh <(curl -sL https://raw.githubusercontent.com/ocaml/opam/master/shell/install.sh)
 
-eval `./opam config env`
-./opam update
-eval `./opam config env`
-./opam switch create techelson 4.07.1
-eval `./opam config env`
-./opam install dune menhir zarith ptime
-eval `./opam config env`
+eval $(opam config env)
+opam update
+eval $(opam config env)
+opam switch create techelson 4.07.1
+eval $(opam config env)
+opam install dune menhir zarith ptime
+eval $(opam config env)
 
-./opam --version
+opam --version
 
 make
 
