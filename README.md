@@ -53,5 +53,13 @@ For example
 > techelson --contract rsc/tests/test0/contracts/test0.liq.tz -- rsc/tests/test0/okay/Test0Test1.techel
 ```
 
+# Documentation
+
+The user documentation is hosted here: [liquidity-lang.org/techelson/doc]. You can also access the bleeding edge version on [the main repo's git page]. Finally, there is a blog post by techelson's main developer on how to use techelson with [Liquidity]: [adrienchampion.github.io/blog].
+
 [dune]: https://github.com/ocaml/dune (Dune project manager's Github page)
-[mdbook]: https://github.com/rust-lang-nursery/mdBook (mdbook's github repository)
+[mdbook]: https://github.com/rust-lang-nursery/mdBook (Mdbook's github repository)
+[liquidity-lang.org/techelson/doc]: http://www.liquidity-lang.org/techelson/doc (Techelson's user documentation)
+[Liquidity]: http://www.liquidity-lang.org/ (Liquidity's official page)
+[adrienchampion.github.io/blog]: https://adrienchampion.github.io/blog/tezos/techelson/with_liquidity/index.html (Using techelson with Liquidity)
+[the main repo's git page]: https://ocamlpro.github.io/techelson/user_doc (Techelson's user documentation)

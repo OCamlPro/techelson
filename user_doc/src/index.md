@@ -22,6 +22,9 @@ Michelson is a fairly low-level language which makes it difficult to discuss com
 This book will sometimes give contracts as [Liquidity] contracts. Liquidity is a higher-level,
 OCaml-like language for tezos smart contracts which compiles to Michelson.
 
+> **NB**: if you are a Liquidity user, you should probably take a look at [this blog post] on how
+> to write tests directly in Liquidity, and run these tests using Techelson.
+
 The chapters of this book are
 - [Michelson], provides a very brief introduction to michelson smart contracts.
 - [Running Tests], describes techelson's workflow for running tests through examples.
@@ -39,3 +42,4 @@ All examples in this book are available in the [`rsc` directory of the github re
 [Quick Reference]: quick_ref/index.md (Quick Reference chapter)
 [hosted on github]: https://github.com/OCamlPro/techelson (Techelson on github.com)
 [`rsc` directory of the github repository]: https://github.com/OCamlPro/techelson/tree/master/user_doc/rsc (rsc folder on techelson's github repository)
+[this blog post]: https://adrienchampion.github.io/blog/tezos/techelson/with_liquidity/index.html (Using Techelson with Liquidity)
