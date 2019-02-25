@@ -1,3 +1,5 @@
+#! /bin/bash
+
 # Tests workflow
 #
 # All tests go to the "test directory" `rsc/tests`. The test directory must contain only

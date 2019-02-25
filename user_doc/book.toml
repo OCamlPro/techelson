@@ -5,6 +5,7 @@ src = "src"
 title = "Techelson User Documentation"
 
 [output.html]
+default-theme = "navy"
 
 [output.linkcheck]
 follow-web-links = true

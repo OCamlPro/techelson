@@ -666,6 +666,12 @@ const :
     }
 
     | OCURL
+    ; c = contract
+    ; CCURL {
+        Mic.Cont c
+    }
+
+    | OCURL
     ; lst = const_list
     ; CCURL {
         Mic.Lst lst
