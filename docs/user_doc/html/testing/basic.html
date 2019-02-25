@@ -1,0 +1,304 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>First Steps - Techelson User Documentation</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body class="navy">
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../";
+            var default_theme = "navy";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { } 
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            document.body.className = theme;
+            document.querySelector('html').className = theme + ' js';
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <ol class="chapter"><li><a href="../index.html"><strong aria-hidden="true">1.</strong> Techelson</a></li><li><a href="../michelson/index.html"><strong aria-hidden="true">2.</strong> Michelson</a></li><li><ol class="section"><li><a href="../michelson/simple_example.html"><strong aria-hidden="true">2.1.</strong> A Simple Example</a></li></ol></li><li><a href="../testing/index.html"><strong aria-hidden="true">3.</strong> Running Tests</a></li><li><ol class="section"><li><a href="../testing/basic.html" class="active"><strong aria-hidden="true">3.1.</strong> First Steps</a></li><li><a href="../testing/contracts.html"><strong aria-hidden="true">3.2.</strong> Creating and Calling Contracts</a></li><li><a href="../testing/inspection.html"><strong aria-hidden="true">3.3.</strong> Live Contract Inspection</a></li><li><a href="../testing/anonymous.html"><strong aria-hidden="true">3.4.</strong> Anonymous Contracts</a></li><li><a href="../testing/transfers.html"><strong aria-hidden="true">3.5.</strong> Transfers</a></li><li><a href="../testing/failures.html"><strong aria-hidden="true">3.6.</strong> Testing for Failures</a></li><li><a href="../testing/set_source.html"><strong aria-hidden="true">3.7.</strong> Usurpation of Identity</a></li></ol></li><li><a href="../testgen/index.html"><strong aria-hidden="true">4.</strong> Test Generation</a></li><li><ol class="section"><li><a href="../testgen/example.html"><strong aria-hidden="true">4.1.</strong> Example</a></li></ol></li><li><a href="../quick_ref/index.html"><strong aria-hidden="true">5.</strong> Quick Reference</a></li><li><ol class="section"><li><a href="../quick_ref/extensions.html"><strong aria-hidden="true">5.1.</strong> Extensions</a></li><li><a href="../quick_ref/usage.html"><strong aria-hidden="true">5.2.</strong> Command-Line Usage</a></li></ol></li></ol>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy (default)</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                            
+                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            
+                        </div>
+
+                        <h1 class="menu-title">Techelson User Documentation</h1> 
+
+                        <div class="right-buttons">
+                            <a href="../print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <a class="header" href="#first-steps" id="first-steps"><h1>First Steps</h1></a>
+<p>Let's give ourselves a testcase file <a href="../../rsc/no_contract/okay/test1.techel" title="The Test1 testcase">test1.techel</a></p>
+<pre><code class="language-mic ignore">{
+    PUSH string &quot;starting the test&quot; ;
+}
+</code></pre>
+<p>This testcase does not use any contract. To run it, simply run</p>
+<pre><code class="language-bash">$ techelson rsc/no_contract/okay/test1.techel
+Running test `Test1`
+Running test script...
+Done running test `Test1`
+
+</code></pre>
+<a class="header" href="#introspection" id="introspection"><h2>Introspection</h2></a>
+<p>This is not very informative, which is why techelson provides <a href="../quick_ref/extensions.html" title="Extension Section">extensions</a> such as <code>PRINT_STACK</code>.
+This instruction prints the state of the stack in a readable way. For example, if we change the
+example above to <a href="../../rsc/no_contract/okay/test2.techel" title="The Test2 testcase">test2.techel</a> to</p>
+<pre><code class="language-mic ignore">{
+    PUSH string &quot;starting the test&quot; ;
+    PRINT_STACK
+}
+</code></pre>
+<p>the output becomes</p>
+<pre><code>$ techelson rsc/no_contract/okay/test2.techel
+Running test `Test2`
+Running test script...
+stack:
+|==================================================================================================|
+| &quot;starting the test&quot;                                                                              |
+| string                                                                                           |
+|==================================================================================================|
+Running test script...
+Done running test `Test2`
+
+</code></pre>
+<a class="header" href="#steps" id="steps"><h2>Steps</h2></a>
+<p>When you run a complex testcase or contract, it can be useful to have break point that stop the
+execution. This gives you time to read a <code>PRINT_STACK</code> before the next step is actually performed,
+make one step, read the state of the stack, <em>etc.</em></p>
+<p>The <code>STEP</code> techelson extension allows to do just that. You can also provide a string that will be displayed when the <code>STEP</code> instruction is reached.</p>
+<p>The following example (<a href="../../rsc/no_contract/okay/test3.techel" title="The Test3 testcase">test3.techel</a>) showcases the <code>STEP</code> instruction:</p>
+<pre><code class="language-mic ignore">{
+    PUSH string &quot;starting the test&quot; ;
+    PRINT_STACK ;
+    STEP &quot;just started the test&quot; ; # The description string is optional, see below.
+    PUSH @not_important string &quot;a string with a variable name&quot; ;
+    PRINT_STACK ;
+    STEP ; # No description string.
+    DROP ;
+    PRINT_STACK ;
+    STEP &quot;The string should be gone. Also, we're done.&quot;
+}
+</code></pre>
+<p>Techelson will stop on all <code>STEP</code> instructions and ask you to press enter to keep going:</p>
+<pre><code>$ techelson rsc/no_contract/okay/test3.techel
+Running test `Test3`
+Running test script...
+stack:
+|==================================================================================================|
+| &quot;starting the test&quot;                                                                              |
+| string                                                                                           |
+|==================================================================================================|
+Running test script...
+stopping [just started the test] press `return` to continue
+
+Running test script...
+stack:
+|==================================================================================================|
+| &quot;starting the test&quot;                                                                              |
+| string                                                                                           |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                   @not_important |
+| &quot;a string with a variable name&quot;                                                                  |
+| string                                                                                           |
+|==================================================================================================|
+Running test script...
+stopping [no information] press `return` to continue
+
+Running test script...
+stack:
+|==================================================================================================|
+| &quot;starting the test&quot;                                                                              |
+| string                                                                                           |
+|==================================================================================================|
+Running test script...
+stopping [The string should be gone. Also, we're done.] press `return` to continue
+
+Running test script...
+Done running test `Test3`
+
+</code></pre>
+<blockquote>
+<p><strong>Pro tip 1</strong>: you can use <code>PRINT_STACK</code> and <code>STEP</code> in contracts too (see the <a href="../quick_ref/extensions.html" title="Extension Section">extensions</a>
+section for details). Also, techelson treats <code>#&gt;</code> as a whitespace. Hence, your can have <code>#&gt; STEP ;</code> and/or <code>#&gt; PRINT_STACK ;</code> in your michelson contract, which lets you inspect it during tests.
+Your contract remains legal michelson thanks to the leading <code>#</code> which comments the command.</p>
+</blockquote>
+<blockquote>
+<p><strong>Pro tip 2</strong>: passing <code>--skip on</code> to <code>techelson</code> will skip (but still display) all the steps.
+The output of the commands reported in this book are all obtained by running techelson with
+<code>--skip on</code>.</p>
+</blockquote>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="../testing/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+                            <a rel="next" href="../testing/contracts.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a href="../testing/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a href="../testing/contracts.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>

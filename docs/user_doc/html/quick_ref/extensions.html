@@ -1,0 +1,318 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Extensions - Techelson User Documentation</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body class="navy">
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../";
+            var default_theme = "navy";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { } 
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            document.body.className = theme;
+            document.querySelector('html').className = theme + ' js';
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <ol class="chapter"><li><a href="../index.html"><strong aria-hidden="true">1.</strong> Techelson</a></li><li><a href="../michelson/index.html"><strong aria-hidden="true">2.</strong> Michelson</a></li><li><ol class="section"><li><a href="../michelson/simple_example.html"><strong aria-hidden="true">2.1.</strong> A Simple Example</a></li></ol></li><li><a href="../testing/index.html"><strong aria-hidden="true">3.</strong> Running Tests</a></li><li><ol class="section"><li><a href="../testing/basic.html"><strong aria-hidden="true">3.1.</strong> First Steps</a></li><li><a href="../testing/contracts.html"><strong aria-hidden="true">3.2.</strong> Creating and Calling Contracts</a></li><li><a href="../testing/inspection.html"><strong aria-hidden="true">3.3.</strong> Live Contract Inspection</a></li><li><a href="../testing/anonymous.html"><strong aria-hidden="true">3.4.</strong> Anonymous Contracts</a></li><li><a href="../testing/transfers.html"><strong aria-hidden="true">3.5.</strong> Transfers</a></li><li><a href="../testing/failures.html"><strong aria-hidden="true">3.6.</strong> Testing for Failures</a></li><li><a href="../testing/set_source.html"><strong aria-hidden="true">3.7.</strong> Usurpation of Identity</a></li></ol></li><li><a href="../testgen/index.html"><strong aria-hidden="true">4.</strong> Test Generation</a></li><li><ol class="section"><li><a href="../testgen/example.html"><strong aria-hidden="true">4.1.</strong> Example</a></li></ol></li><li><a href="../quick_ref/index.html"><strong aria-hidden="true">5.</strong> Quick Reference</a></li><li><ol class="section"><li><a href="../quick_ref/extensions.html" class="active"><strong aria-hidden="true">5.1.</strong> Extensions</a></li><li><a href="../quick_ref/usage.html"><strong aria-hidden="true">5.2.</strong> Command-Line Usage</a></li></ol></li></ol>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy (default)</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                            
+                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            
+                        </div>
+
+                        <h1 class="menu-title">Techelson User Documentation</h1> 
+
+                        <div class="right-buttons">
+                            <a href="../print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <a class="header" href="#extensions" id="extensions"><h1>Extensions</h1></a>
+<blockquote>
+<p><strong>Warning</strong>: the following instructions can only be used in contracts, <strong>not testcases</strong>:</p>
+<ul>
+<li><code>SENDER</code></li>
+<li><code>SOURCE</code></li>
+</ul>
+</blockquote>
+<p>Techelson testcases have access to an extended instruction set to ease the process of writing
+tests. See <code>rsc/tests/</code> for more examples. Note that techelson treats <code>#&gt;</code> as whitespace, so you
+can use extensions in contracts (when <a href="#unrestricted-extensions">legal</a>) while keeping them pure
+michelson, like in the example below</p>
+<pre><code>DIP {
+    ...
+    CONS ;
+    #&gt; PRINT_STACK ;
+    #&gt; STEP &quot;after list cons&quot; ;
+    PUSH int 3 ;
+    ...
+}
+</code></pre>
+<a class="header" href="#unrestricted-extensions" id="unrestricted-extensions"><h2>Unrestricted Extensions</h2></a>
+<p>The following instructions are legal in <strong>testcases and contracts</strong>:</p>
+<ul>
+<li>
+<p><code>STEP</code> and <code>STEP &lt;string&gt;</code>:</p>
+<p><code>'S</code> <code>-&gt;</code> <code>'S</code></p>
+<p>Relevant section of this book: <a href="../testing/basic.html" title="First Steps section">First Steps</a>.</p>
+<p>suspends the evaluator and prints a string, if any.</p>
+</li>
+<li>
+<p><code>PRINT_STACK</code>:</p>
+<p><code>'S</code> <code>-&gt;</code> <code>'S</code></p>
+<p>Relevant section of this book: <a href="../testing/basic.html" title="First Steps section">First Steps</a>.</p>
+<p>prints the current state of the stack</p>
+</li>
+</ul>
+<a class="header" href="#testcase-only-extensions" id="testcase-only-extensions"><h2>Testcase-only Extensions</h2></a>
+<p>The following instructions are <strong>only</strong> legal in testcases:</p>
+<ul>
+<li>
+<p><code>CREATE_CONTRACT &lt;string&gt;</code>:</p>
+<p><code>:: key_hash : option key_hash : bool : bool : mutez : 'g : 'S</code>
+<code>-&gt;</code> <code>operation : address : 'S</code></p>
+<p>Relevant section of this book: <a href="../testing/contracts.html" title="Creating and Calling Contracts section">Creating and Calling Contracts</a>.</p>
+<p>Creates an instance of the contract named after the string parameter. The type of the storage
+of the contract must be <code>'g</code>.</p>
+</li>
+<li>
+<p><code>SPAWN_CONTRACT 'g</code>:</p>
+<p><code>:: string : key_hash : option key_hash : bool : bool : mutez : 'g : 'S</code>
+<code>-&gt;</code> <code>operation : address : 'S</code></p>
+<p>Relevant section of this book: <a href="../testing/contracts.html" title="Creating and Calling Contracts section">Creating and Calling Contracts</a>.</p>
+<p>Exactly the same as the <code>CREATE_CONTRACT</code> extension above but the name of the contract is
+passed as a stack parameter, and the type of the storage is an explicit parameter of the
+instruction.</p>
+</li>
+<li>
+<p><code>APPLY_OPERATIONS</code>:</p>
+<p><code>(list operation) : 'S</code> <code>-&gt;</code> <code>'S</code></p>
+<p>Relevant section of this book: <a href="../testing/contracts.html" title="Creating and Calling Contracts section">Creating and Calling Contracts</a>.</p>
+<ul>
+<li>consumes a list of operations</li>
+<li>suspends the execution of the testcase</li>
+<li>applies all the operations in the list (these operations can create operations which will be
+applied too)</li>
+<li>resumes the execution of the testcase</li>
+</ul>
+</li>
+<li>
+<p><code>GET_STORAGE 'storage</code>:</p>
+<p><code>contract _ : 'S</code> <code>-&gt;</code> <code>(option 'storage) : 'S</code></p>
+<p><code>address : 'S</code> <code>-&gt;</code> <code>(option 'storage) : 'S</code></p>
+<p>Relevant section of this book: <a href="../testing/inspection.html" title="Live Contract Inspection section">Live Contract Inspection</a>.</p>
+<ul>
+<li>consumes a contract</li>
+<li>pushes <code>Some</code> of the current value of the storage of the contract if its storage has type
+<code>'storage</code>, <code>None</code> otherwise</li>
+</ul>
+</li>
+<li>
+<p><code>GET_BALANCE</code>:</p>
+<p><code>contract _ : 'S</code> <code>-&gt;</code> <code>mutez : 'S</code></p>
+<p><code>address : 'S</code> <code>-&gt;</code> <code>mutez : 'S</code></p>
+<p>Relevant section of this book: <a href="../testing/inspection.html" title="Live Contract Inspection section">Live Contract Inspection</a>.</p>
+<p>Same as <code>GET_STORAGE</code>, but pushes the balance of the contract instead of its storage</p>
+</li>
+<li>
+<p><code>MUST_FAIL 'a</code>:</p>
+<p><code>(option 'a) : operation : 'S</code> <code>-&gt;</code> <code>'S</code></p>
+<p>Relevant section of this book: <a href="../testing/failures.html" title="Testing for Failures section">Testing for Failures</a>.</p>
+<p>Specifies that an operation (or the operation it creates recursively) must fail, and optionaly
+that it <code>FAIL</code>ed<code>WITH</code> a certain value. More precisely, the whole testcase will <strong>fail</strong> if the
+<code>operation</code> or the operations it creates recursively, <em>when applied</em>, either</p>
+<ul>
+<li>succeeds, or</li>
+<li>the <code>(option 'a)</code> parameter is <code>(Some value)</code> and the operation's failure was not caused by a
+<code>FAILWITH</code> on precisely <code>value</code></li>
+</ul>
+<blockquote>
+<p>Note that if the optional value is <code>NONE</code>, then <code>MUST_FAIL</code> accepts any kind of <em>protocol</em>
+failure, not just <code>FAILWITH</code>. For instance, it will also accept creation/transfer operations
+that fail because of insufficient balance, because this precise operation already ran (it was
+<code>DUP</code>-ed), <em>etc</em>.</p>
+</blockquote>
+</li>
+<li>
+<p><code>SET_SOURCE code</code>, with <code>code :: [ 'A -&gt; 'B ]</code></p>
+<p><code>address :: 'A</code> <code>-&gt;</code> <code>'B</code></p>
+<p>Relevant section of this book: <a href="../testing/set_source.html" title="Usurpation of Identity section">Usurpation of Identity</a>.</p>
+<p>Sets the source of the testcase. Without this extension, the source of all transfers can only
+be the testcase. This allows to run <code>code</code> while pretending the testcase is a different live
+contract.</p>
+</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="../quick_ref/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+                            <a rel="next" href="../quick_ref/usage.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a href="../quick_ref/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a href="../quick_ref/usage.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>

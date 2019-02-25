@@ -11,7 +11,14 @@ bin-test: compile
 doc-test: compile
 	(cd user_doc ; ./test.sh)
 
+user-doc:
+	(cd user_doc ; mdbook build)
+	mkdir -p docs/user_doc
+	rsync -a --delete user_doc/book/html/* docs/user_doc
+
 test: bin-test doc-test
+
+doc: user-doc
 
 clean:
 	dune clean

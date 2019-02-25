@@ -1,0 +1,1792 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Techelson User Documentation</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body class="navy">
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = "navy";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { } 
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            document.body.className = theme;
+            document.querySelector('html').className = theme + ' js';
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <ol class="chapter"><li><a href="index.html"><strong aria-hidden="true">1.</strong> Techelson</a></li><li><a href="michelson/index.html"><strong aria-hidden="true">2.</strong> Michelson</a></li><li><ol class="section"><li><a href="michelson/simple_example.html"><strong aria-hidden="true">2.1.</strong> A Simple Example</a></li></ol></li><li><a href="testing/index.html"><strong aria-hidden="true">3.</strong> Running Tests</a></li><li><ol class="section"><li><a href="testing/basic.html"><strong aria-hidden="true">3.1.</strong> First Steps</a></li><li><a href="testing/contracts.html"><strong aria-hidden="true">3.2.</strong> Creating and Calling Contracts</a></li><li><a href="testing/inspection.html"><strong aria-hidden="true">3.3.</strong> Live Contract Inspection</a></li><li><a href="testing/anonymous.html"><strong aria-hidden="true">3.4.</strong> Anonymous Contracts</a></li><li><a href="testing/transfers.html"><strong aria-hidden="true">3.5.</strong> Transfers</a></li><li><a href="testing/failures.html"><strong aria-hidden="true">3.6.</strong> Testing for Failures</a></li><li><a href="testing/set_source.html"><strong aria-hidden="true">3.7.</strong> Usurpation of Identity</a></li></ol></li><li><a href="testgen/index.html"><strong aria-hidden="true">4.</strong> Test Generation</a></li><li><ol class="section"><li><a href="testgen/example.html"><strong aria-hidden="true">4.1.</strong> Example</a></li></ol></li><li><a href="quick_ref/index.html"><strong aria-hidden="true">5.</strong> Quick Reference</a></li><li><ol class="section"><li><a href="quick_ref/extensions.html"><strong aria-hidden="true">5.1.</strong> Extensions</a></li><li><a href="quick_ref/usage.html"><strong aria-hidden="true">5.2.</strong> Command-Line Usage</a></li></ol></li></ol>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy (default)</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                            
+                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            
+                        </div>
+
+                        <h1 class="menu-title">Techelson User Documentation</h1> 
+
+                        <div class="right-buttons">
+                            <a href="print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <a class="header" href="#techelson" id="techelson"><h1>Techelson</h1></a>
+<p><strong>Techelson</strong> is a <strong>T</strong>est <strong>E</strong>xecution <strong>E</strong>nvironment (TEE) for <a href="https://tezos.gitlab.io/master/whitedoc/michelson.html" title="Michelson documentation page">Michelson smart contracts</a>.
+Michelson is the stack-based language used by the <a href="https://tezos.com" title="Tezos official page">tezos blockchain</a>. Techelson is open
+source and <a href="https://github.com/OCamlPro/techelson" title="Techelson on github.com">hosted on github</a>, where you can find the build instructions.</p>
+<p>Techelson emulates just enough of the tezos blockchain protocol to be able to create smart
+contracts and make transfers between contracts. Currently, techelson only aims at testing
+functional properties of smart contracts. In particular, it does not provide any information about
+the <em>gas</em> or <em>burn</em> of transfers/contracts. This is because computing the <em>burn</em>, and especially
+the <em>gas</em> of a transfer is rather complex and would require techelson to drop some of the
+abstractions it makes over the tezos protocol to run tests faster.</p>
+<p>Techelson can be used either as a command-line tool or as an <a href="http://www.ocaml.org/">OCaml</a>
+library. This book focuses on the former use case.</p>
+<p>Also, this book assumes the reader is fairly familiar with the michelson language. We will discuss
+what a contract is and how it behaves, but the reader should know what michelson types and
+instructions look like, and their semantics.</p>
+<p>Michelson is a fairly low-level language which makes it difficult to discuss complex contracts.
+This book will sometimes give contracts as <a href="http://www.liquidity-lang.org" title="Liquidity official page">Liquidity</a> contracts. Liquidity is a higher-level,
+OCaml-like language for tezos smart contracts which compiles to Michelson.</p>
+<p>The chapters of this book are</p>
+<ul>
+<li><a href="michelson/index.html" title="Michelson chapter">Michelson</a>, provides a very brief introduction to michelson smart contracts.</li>
+<li><a href="testing/index.html" title="Running Tests chapter">Running Tests</a>, describes techelson's workflow for running tests through examples.</li>
+<li><a href="testgen/index.html" title="Test Generation chapter">Test Generation</a>, discusses techelson's test generation features.</li>
+<li><a href="quick_ref/index.html" title="Quick Reference chapter">Quick Reference</a>, quick reminders of techelson's features, such as extensions.</li>
+</ul>
+<p>All examples in this book are available in the <a href="https://github.com/OCamlPro/techelson/tree/master/user_doc/rsc" title="rsc folder on techelson's github repository"><code>rsc</code> directory of the github repository</a>.</p>
+<a class="header" href="#michelson" id="michelson"><h1>Michelson</h1></a>
+<p><a href="https://tezos.gitlab.io/master/whitedoc/michelson.html" title="Michelson documentation page">Michelson</a> is the stack-based, strongly typed, low-level language supported by the <a href="https://tezos.com" title="Tezos official page">tezos
+blockchain</a> for smart contracts. We only provide a brief description of michelson here, and refer
+the reader to the official documentation for more details.</p>
+<p>A michelson contract is similar to transition system. The <strong>storage</strong> of a contract is its current
+state; the entry point (<strong>code</strong>) of a contract is a function which takes</p>
+<ul>
+<li>some tezos tokens (of type <code>mutez</code>),</li>
+<li>the current storage of the contract, and</li>
+<li>a <strong>parameter</strong> of a certain type provided by the client of the contract.</li>
+</ul>
+<p>It returns</p>
+<ul>
+<li>a list of <em>operations</em> (contract/account creation, transfers, <em>etc.</em>), and</li>
+<li>the new storage of the contract.</li>
+</ul>
+<p>In practice, a contract looks as follows:</p>
+<pre><code class="language-michelson ignore">storage &lt;type&gt; ;
+parameter &lt;type&gt; ;
+code &lt;instruction&gt; ;
+</code></pre>
+<p>Note that tokens are passed implicitely: they are credited to the contract before it starts running
+(although the amount of the transfer can be accessed with the <code>AMOUNT</code> instruction). Hence the code
+of the contract takes two parameters, which are aggregated in a pair <code>(parameter, storage)</code>. The
+same goes with the operations and the new storage returned by the contract, which are returned as a
+pair <code>(operations, new_storage)</code>.</p>
+<p>In the stack-based context of michelson, &quot;takes <code>&lt;something&gt;</code> as argument&quot; means &quot;starts with a
+stack containing <code>&lt;something&gt;</code>&quot;. Likewise, &quot;returns <code>&lt;something&gt;</code>&quot; here means &quot;leaves <code>&lt;something&gt;</code>
+on the stack at the end (and <strong>nothing else than</strong> <code>&lt;something&gt;</code>)&quot;.</p>
+<a class="header" href="#a-simple-example" id="a-simple-example"><h1>A Simple Example</h1></a>
+<p>Let us build a contract which counts how many time it was called. We will allow clients to specify
+that they do not want to be counted by passing a boolean <code>ghost</code>: if it is true, the contract will
+not count the transfer.</p>
+<p>Based on this description, we already have the <em>storage</em> and <em>parameter</em> types:</p>
+<pre><code class="language-mic ignore">storage nat;
+parameter bool;
+</code></pre>
+<p>The code of this contract should perform the following steps:</p>
+<ul>
+<li>destroy the parameter/storage pair</li>
+<li>branch on the <em>ghost</em> parameter: this consumes the parameter, meaning the storage is now on the
+top of the stack
+<ul>
+<li>do nothing if <em>ghost</em> is true: the storage is unchanged</li>
+<li>add <code>1</code> to the storage otherwise</li>
+</ul>
+</li>
+<li>pair an empty list of operations with the new storage</li>
+</ul>
+<p>The complete description of the contract, <a href="../../rsc/simpleExample/contracts/simpleExample.tz" title="The SimpleExample contract">simpleExample.tz</a>, is thus</p>
+<pre><code class="language-mic ignore">storage nat;
+parameter bool;
+code {
+    UNPAIR;        # Unpair parameter and storage.
+    IF {           # Asked not to count: storage is unchanged, nothing to do.
+    } {
+        PUSH nat 1;
+        ADD
+    };
+    NIL operation; # We don't want to perform any operations.
+    PAIR           # Aggregate the operation list and the new storage.
+};
+</code></pre>
+<a class="header" href="#running-tests" id="running-tests"><h1>Running Tests</h1></a>
+<p>Interaction with techelson is currently file-based. There are two kinds of files techelson works
+with. <em>Contract files</em> are just plain michelson smart contract files, and <em>testcase files</em> are
+files containing a Michelson instruction, usually a sequence of instructions <code>{ &lt;instructions&gt; }</code>.</p>
+<p>Omitting options, running techelson looks like (the <code>--</code> separator is optional):</p>
+<pre><code class="language-bash">$ techelson \
+    --contract &lt;contract_1&gt; .. --contract &lt;contract_n&gt; \
+    -- &lt;testcase_1&gt; ... &lt;testcase_m&gt;
+</code></pre>
+<p>Techelson will then run the testcases in sequence. All testcases will have access to all the
+contracts provided with <code>--contract</code>. For more information about command-line refer to the <a href="testing/../quick_ref/usage.html" title="Usage section">Usage
+section</a>.</p>
+<p>This section builds on the small example from the <a href="testing/../michelson/simple_example.html" title="A simple example in michelson">Michelson section</a>, and a slightly more involved
+example later on, to introduce techelson's workflow and its extended instruction set.</p>
+<ul>
+<li>
+<p><a href="testing/basic.html" title="First steps section">First Steps</a> shows how to run a simple testcase with no contract.</p>
+<p>Introduces <code>PRINT_STACK</code> and <code>STEP</code>.</p>
+</li>
+<li>
+<p><a href="testing/contracts.html" title="Creating and calling contracts section">Creating and Calling Contracts</a> discusses the contract environment and contract creation and
+transfers.</p>
+<p>Introduces <code>APPLY_OPERATIONS</code>.</p>
+</li>
+<li>
+<p><a href="testing/inspection.html" title="Live contract inspection section">Live Contract Inspection</a> deals with recovering the balance and the storage of live (deployed)
+contracts.</p>
+<p>Introduces <code>GET_BALANCE</code> and <code>GET_STORAGE</code>.</p>
+</li>
+<li>
+<p><a href="testing/anonymous.html" title="Anonymous contract section">Anonymous Contracts</a> details how to create anonymous contracts.</p>
+</li>
+<li>
+<p><a href="testing/transfers.html" title="Transfers section">Transfers</a> introduces the creation of transfers to a contract.</p>
+</li>
+<li>
+<p><a href="testing/failures.html" title="Testing for failures section">Testing for Failures</a> shows how to test that an operation fails and how. This section is the
+first to use the slightly more complex example <a href="../../rsc/admins/contracts/admins.tz" title="The Admin michelson contract">admins.tz</a>, and it's liquidity version
+<a href="../../rsc/admins/admins.liq" title="The Admin liquidity contract">admins.liq</a>.</p>
+<p>Introduces <code>MUST_FAIL</code>.</p>
+</li>
+<li>
+<p><a href="testing/set_source.html" title="Usurpation of identity section">Usurpation of Identity</a> illustrates how to have your testcases pretend they are a specific
+contract/account, and to create operations in their name.</p>
+<p>Introduces <code>SET_SOURCE</code>.</p>
+</li>
+</ul>
+<a class="header" href="#first-steps" id="first-steps"><h1>First Steps</h1></a>
+<p>Let's give ourselves a testcase file <a href="../../rsc/no_contract/okay/test1.techel" title="The Test1 testcase">test1.techel</a></p>
+<pre><code class="language-mic ignore">{
+    PUSH string &quot;starting the test&quot; ;
+}
+</code></pre>
+<p>This testcase does not use any contract. To run it, simply run</p>
+<pre><code class="language-bash">$ techelson rsc/no_contract/okay/test1.techel
+Running test `Test1`
+Running test script...
+Done running test `Test1`
+
+</code></pre>
+<a class="header" href="#introspection" id="introspection"><h2>Introspection</h2></a>
+<p>This is not very informative, which is why techelson provides <a href="testing/../quick_ref/extensions.html" title="Extension Section">extensions</a> such as <code>PRINT_STACK</code>.
+This instruction prints the state of the stack in a readable way. For example, if we change the
+example above to <a href="../../rsc/no_contract/okay/test2.techel" title="The Test2 testcase">test2.techel</a> to</p>
+<pre><code class="language-mic ignore">{
+    PUSH string &quot;starting the test&quot; ;
+    PRINT_STACK
+}
+</code></pre>
+<p>the output becomes</p>
+<pre><code>$ techelson rsc/no_contract/okay/test2.techel
+Running test `Test2`
+Running test script...
+stack:
+|==================================================================================================|
+| &quot;starting the test&quot;                                                                              |
+| string                                                                                           |
+|==================================================================================================|
+Running test script...
+Done running test `Test2`
+
+</code></pre>
+<a class="header" href="#steps" id="steps"><h2>Steps</h2></a>
+<p>When you run a complex testcase or contract, it can be useful to have break point that stop the
+execution. This gives you time to read a <code>PRINT_STACK</code> before the next step is actually performed,
+make one step, read the state of the stack, <em>etc.</em></p>
+<p>The <code>STEP</code> techelson extension allows to do just that. You can also provide a string that will be displayed when the <code>STEP</code> instruction is reached.</p>
+<p>The following example (<a href="../../rsc/no_contract/okay/test3.techel" title="The Test3 testcase">test3.techel</a>) showcases the <code>STEP</code> instruction:</p>
+<pre><code class="language-mic ignore">{
+    PUSH string &quot;starting the test&quot; ;
+    PRINT_STACK ;
+    STEP &quot;just started the test&quot; ; # The description string is optional, see below.
+    PUSH @not_important string &quot;a string with a variable name&quot; ;
+    PRINT_STACK ;
+    STEP ; # No description string.
+    DROP ;
+    PRINT_STACK ;
+    STEP &quot;The string should be gone. Also, we're done.&quot;
+}
+</code></pre>
+<p>Techelson will stop on all <code>STEP</code> instructions and ask you to press enter to keep going:</p>
+<pre><code>$ techelson rsc/no_contract/okay/test3.techel
+Running test `Test3`
+Running test script...
+stack:
+|==================================================================================================|
+| &quot;starting the test&quot;                                                                              |
+| string                                                                                           |
+|==================================================================================================|
+Running test script...
+stopping [just started the test] press `return` to continue
+
+Running test script...
+stack:
+|==================================================================================================|
+| &quot;starting the test&quot;                                                                              |
+| string                                                                                           |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                   @not_important |
+| &quot;a string with a variable name&quot;                                                                  |
+| string                                                                                           |
+|==================================================================================================|
+Running test script...
+stopping [no information] press `return` to continue
+
+Running test script...
+stack:
+|==================================================================================================|
+| &quot;starting the test&quot;                                                                              |
+| string                                                                                           |
+|==================================================================================================|
+Running test script...
+stopping [The string should be gone. Also, we're done.] press `return` to continue
+
+Running test script...
+Done running test `Test3`
+
+</code></pre>
+<blockquote>
+<p><strong>Pro tip 1</strong>: you can use <code>PRINT_STACK</code> and <code>STEP</code> in contracts too (see the <a href="testing/../quick_ref/extensions.html" title="Extension Section">extensions</a>
+section for details). Also, techelson treats <code>#&gt;</code> as a whitespace. Hence, your can have <code>#&gt; STEP ;</code> and/or <code>#&gt; PRINT_STACK ;</code> in your michelson contract, which lets you inspect it during tests.
+Your contract remains legal michelson thanks to the leading <code>#</code> which comments the command.</p>
+</blockquote>
+<blockquote>
+<p><strong>Pro tip 2</strong>: passing <code>--skip on</code> to <code>techelson</code> will skip (but still display) all the steps.
+The output of the commands reported in this book are all obtained by running techelson with
+<code>--skip on</code>.</p>
+</blockquote>
+<a class="header" href="#creating-and-calling-contracts" id="creating-and-calling-contracts"><h1>Creating and Calling Contracts</h1></a>
+<p>When you pass a contract to techelson using <code>techelson --contract &lt;file&gt; ...</code>, the contract becomes
+a <strong>named</strong> contract in the techelson environment. The name of the contract is the name of the file</p>
+<ul>
+<li>up to its first <code>.</code> character,</li>
+<li>with the first letter capitalized.</li>
+</ul>
+<p>So</p>
+<pre><code>techelson \
+    --contract my_contract.tz \
+    --contract myContract.tz  \
+    --contract my.contract.tz \
+    ...
+</code></pre>
+<p>defines three named contracts: <code>My_contract</code>, <code>MyContract</code> and <code>My</code>.</p>
+<blockquote>
+<p>Note that the naming convention is the same for testcases, based on the testcase file. The name
+of a testcase might be used in techelson's output to provide information, but it has no practical
+use currently.</p>
+</blockquote>
+<a class="header" href="#named-contract-creation" id="named-contract-creation"><h2>Named Contract Creation</h2></a>
+<p>Techelson extends the <code>CREATE_CONTRACT</code> michelson instruction with the following rule</p>
+<table><thead><tr><th align="left"> instruction </th><th align="center"> parameter </th><th align="center"> stack </th></tr></thead><tbody>
+<tr><td align="left"> <code>CREATE_CONTRACT</code> </td><td align="center"> <code>&lt;string&gt;</code> </td><td align="center"> <code>:: key_hash : option key_hash : bool : bool : mutez : 'g : 'S</code> </td></tr>
+<tr><td align="left">              </td><td align="center">            </td><td align="center"> <code>-&gt; operation : address : 'S</code> </td></tr>
+</tbody></table>
+<p>where <code>&lt;string&gt;</code> is the name of a contract with storage type <code>'g</code> in the environment. The semantics
+of the stack parameters is the same as in michelson: manager, optional delegate, the two spendable
+and delegatable flags, and the balance and storage of the contract created.</p>
+<blockquote>
+<p><strong>NB</strong>: techelson also provides the <code>SPAWN_CONTRACT</code> extension which takes the name of the
+contract on the stack. See techelson's <a href="testing/../quick_ref/extensions.html" title="Extension section">Extensions</a> for more details.</p>
+</blockquote>
+<p>Say we have the following contract in file <a href="../../rsc/simpleExample/contracts/simpleExample.tz" title="The SimpleExample contract">simpleExample.tz</a>.</p>
+<pre><code class="language-mic ignore">storage nat;
+parameter bool;
+code {
+    UNPAIR;        # Unpair parameter and storage.
+    IF {           # Asked not to count: storage is unchanged, nothing to do.
+    } {
+        PUSH nat 1;
+        ADD
+    };
+    NIL operation; # We don't want to perform any operations.
+    PAIR           # Aggregate the operation list and the new storage.
+};
+</code></pre>
+<p>We can craft a creation operation in file <a href="../../rsc/simpleExample/okay/create1.techel" title="The Create1 testcase">create1.techel</a> as follows</p>
+<pre><code class="language-mic ignore">{
+    PUSH @storage nat 0 ;
+    PUSH @amount mutez 3 ;
+    PUSH @delegatable bool True ;
+    PUSH @spendable bool True ;
+    NONE @delegate key_hash ;
+    PUSH key &quot;manager address&quot; ;
+    SHA512 @manager ;
+    PRINT_STACK ;
+    STEP &quot;before creation&quot; ;
+
+    CREATE_CONTRACT &quot;SimpleExample&quot; ;
+    PRINT_STACK ;
+    STEP &quot;after creation&quot; ;
+}
+</code></pre>
+<p>This produces the following output</p>
+<pre><code>$ techelson --contract rsc/simpleExample/contracts/simpleExample.tz -- rsc/simpleExample/okay/create1.techel
+Running test `Create1`
+Running test script...
+stack:
+|==================================================================================================|
+|                                                                                         @storage |
+| 0                                                                                                |
+| nat                                                                                              |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                          @amount |
+| 3utz                                                                                             |
+| mutez                                                                                            |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                     @delegatable |
+| True                                                                                             |
+| bool                                                                                             |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                       @spendable |
+| True                                                                                             |
+| bool                                                                                             |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                        @delegate |
+| None                                                                                             |
+| (option key_hash)                                                                                |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                         @manager |
+| &quot;sha512:manager address&quot;                                                                         |
+| key_hash                                                                                         |
+|==================================================================================================|
+Running test script...
+stopping [before creation] press `return` to continue
+
+Running test script...
+stack:
+|==================================================================================================|
+| address[1]                                                                                       |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+| CREATE[uid:0] (@address[1], &quot;sha512:manager address&quot;, None, true, true, 3utz) &quot;SimpleExample&quot;    |
+| operation                                                                                        |
+|==================================================================================================|
+Running test script...
+stopping [after creation] press `return` to continue
+
+Running test script...
+Done running test `Create1`
+
+</code></pre>
+<a class="header" href="#applying-operations" id="applying-operations"><h2>Applying Operations</h2></a>
+<p>Michelson operations (contract/account creation, transfers) cannot be applied directly in a
+michelson contract. Instead, a contract produces a list of operation which the tezos runtime
+applies after the contract is done running.</p>
+<p>A techelson test case needs to be able to apply operations however, which is why the
+<code>APPLY_OPERATIONS</code> extension exists. This instruction suspends the execution of the testcase to
+apply the list of operations on the top of the stack. When all these operations are done running,
+techelson resumes the execution of the testcase.</p>
+<blockquote>
+<p><strong>Warning</strong>: this instruction is only legal in testcases, not in contracts.</p>
+</blockquote>
+<p>Consider testcase <a href="../../rsc/simpleExample/okay/create2.techel" title="The Create2 testcase">create2.techel</a>:</p>
+<pre><code class="language-mic ignore">{
+    PUSH @storage nat 0 ;
+    PUSH @amount mutez 3 ;
+    PUSH @delegatable bool True ;
+    PUSH @spendable bool True ;
+    NONE @delegate key_hash ;
+    PUSH key &quot;manager address&quot; ;
+    SHA512 @manager ;
+
+    CREATE_CONTRACT @main @main_op &quot;SimpleExample&quot; ;
+
+    DIP { NIL operation } ;
+    CONS ;
+    PRINT_STACK ;
+    STEP &quot;operation is now in a list&quot; ;
+
+    APPLY_OPERATIONS ;
+
+    PRINT_STACK ;
+    STEP &quot;testing that contract exists&quot; ;
+    # Takes the address on the top of the stack, retrieves a contract of parameter `bool`.
+    CONTRACT bool ;
+    IF_NONE { # There is no hope, failing.
+        PUSH @err_msg string &quot;failed to retrieve contract&quot; ;
+        FAILWITH
+    } {
+        PUSH string &quot;success&quot; ;
+        PRINT_STACK
+    }
+}
+</code></pre>
+<p>Running it yields</p>
+<pre><code>$ techelson --contract rsc/simpleExample/contracts/simpleExample.tz -- rsc/simpleExample/okay/create2.techel
+Running test `Create2`
+Running test script...
+stack:
+|==================================================================================================|
+|                                                                                            @main |
+| address[1]@main                                                                                  |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+| [ CREATE[uid:0] (@address[1]@main, &quot;sha512:manager address&quot;, None, true, true, 3utz) &quot;SimpleExample&quot; ] |
+| (list operation)                                                                                 |
+|==================================================================================================|
+Running test script...
+stopping [operation is now in a list] press `return` to continue
+
+Running test script...
+
+Applying Operations...
+Running test script...
+stack:
+|==================================================================================================|
+|                                                                                            @main |
+| address[1]@main                                                                                  |
+| address                                                                                          |
+|==================================================================================================|
+Running test script...
+stopping [testing that contract exists] press `return` to continue
+
+Running test script...
+stack:
+|==================================================================================================|
+| address[1]@main                                                                                  |
+| (contract bool)                                                                                  |
+|--------------------------------------------------------------------------------------------------|
+| &quot;success&quot;                                                                                        |
+| string                                                                                           |
+|==================================================================================================|
+Running test script...
+Done running test `Create2`
+
+</code></pre>
+<p>Notice the line <code>Applying operations...</code>. We could increase techelson's verbosity to obtain more
+information as to which contracts are deployed, but let's see how to inspect the state of a <em>live</em>
+(deployed) contract instead.</p>
+<a class="header" href="#live-contract-inspection" id="live-contract-inspection"><h1>Live Contract Inspection</h1></a>
+<p>Michelson smart contracts cannot access each other's storage. They can only interact through
+transfers, during which the client of the contract provides a parameter that the contract runs its
+code on.</p>
+<p>As a test framework, techelson provides inspection instructions which give access to the balance
+and the storage of a <em>live</em> (deployed) contract. Both consume a <code>contract</code> from the top of the
+stack.</p>
+<table><thead><tr><th align="left"> instruction </th><th align="center"> parameter </th><th align="center"> stack </th></tr></thead><tbody>
+<tr><td align="left"> <code>GET_STORAGE</code> </td><td align="center"> <code>'storage</code> </td><td align="center"> <code>:: contract _ : 'S</code> or <code>:: address : 'S</code> </td></tr>
+<tr><td align="left">              </td><td align="center">            </td><td align="center"> <code>-&gt; (option 'storage) : 'S</code> </td></tr>
+<tr><td align="left"> <code>GET_BALANCE</code> </td><td align="center"> none       </td><td align="center"> <code>:: contract _ : 'S</code> or <code>:: address : 'S</code> </td></tr>
+<tr><td align="left">              </td><td align="center">            </td><td align="center"> <code>-&gt; mutez : 'S</code> </td></tr>
+</tbody></table>
+<p>Let's extend the previous example to <a href="../../rsc/simpleExample/okay/inspection.techel" title="The Inspection testcase">inspection.techel</a> which checks that the balance and storage
+of the contract deployed are correct.</p>
+<pre><code class="language-mic ignore">{
+    PUSH @storage nat 0 ;
+    PUSH @amount mutez 3 ;
+    PUSH @delegatable bool True ;
+    PUSH @spendable bool True ;
+    NONE @delegate key_hash ;
+    PUSH key &quot;manager address&quot; ;
+    SHA512 @manager ;
+
+    CREATE_CONTRACT @main @main_op &quot;SimpleExample&quot; ;
+
+    DIP { NIL operation } ;
+    CONS ;
+
+    APPLY_OPERATIONS ;
+
+    # Takes the address on the top of the stack, retrieves a contract of parameter `bool`.
+    CONTRACT bool ;
+    IF_NONE { # There is no hope, failing.
+        PUSH @err_msg string &quot;failed to retrieve contract&quot; ;
+        FAILWITH
+    } {} ;
+
+    DUP ;
+
+    GET_BALANCE ;
+    PRINT_STACK ;
+    STEP &quot;retrieved the balance of the contract&quot; ;
+
+    PUSH mutez 3 ;
+    IFCMPNEQ {
+        PUSH string &quot;balance should be 3utz&quot; ;
+        FAILWITH
+    } {} ;
+
+    GET_STORAGE nat ;
+
+    IF_NONE {
+        PUSH string &quot;unable to retrieve storage of contract&quot; ;
+        FAILWITH
+    } {
+        PRINT_STACK ;
+        STEP &quot;retrieved the storage of the contract&quot; ;
+        PUSH nat 0 ;
+        IFCMPNEQ {
+            PUSH string &quot;storage should be 0 (nat)&quot; ;
+            FAILWITH
+        } {} ;
+    }
+}
+</code></pre>
+<p>The testcase does not fail and produces the output</p>
+<pre><code>$ techelson --contract rsc/simpleExample/contracts/simpleExample.tz -- rsc/simpleExample/okay/inspection.techel
+Running test `Inspection`
+Running test script...
+
+Applying Operations...
+Running test script...
+stack:
+|==================================================================================================|
+| address[1]@main                                                                                  |
+| (contract bool)                                                                                  |
+|--------------------------------------------------------------------------------------------------|
+| 3utz                                                                                             |
+| mutez                                                                                            |
+|==================================================================================================|
+Running test script...
+stopping [retrieved the balance of the contract] press `return` to continue
+
+Running test script...
+stack:
+|==================================================================================================|
+| 0                                                                                                |
+| nat                                                                                              |
+|==================================================================================================|
+Running test script...
+stopping [retrieved the storage of the contract] press `return` to continue
+
+Running test script...
+Done running test `Inspection`
+
+</code></pre>
+<a class="header" href="#anonymous-contracts" id="anonymous-contracts"><h1>Anonymous Contracts</h1></a>
+<p>Techelson accepts contracts through its <code>--contract</code> option. These contracts are named as discussed
+in <a href="testing/contracts.html" title="Creating and calling contracts in techelson">Creating and Calling Contracts</a>. Contracts defined at michelson level in testcases and
+contracts however are considered <em>anonymous</em>. Anonymous contracts can also be deployed and
+inspected. In fact, they are not really different from named contracts apart from their lack of
+name, which (currently) prevent techelson from mentioning where they really come from in its debug
+output.</p>
+<p>The following <a href="../../rsc/no_contract/okay/anonymous.techel" title="The Anonymous testcase">anonymous.techel</a> testcase is similar to the one from the <a href="testing/inspection.html" title="Live contract inspection in techelson">Live Contract Inspection</a>
+except that the contract deployed is not given to the environment, it is inlined in the testcase.</p>
+<pre><code class="language-mic ignore">{
+    PUSH @storage nat 0 ;
+    PUSH @amount mutez 3 ;
+    PUSH @delegatable bool True ;
+    PUSH @spendable bool True ;
+    NONE @delegate key_hash ;
+    PUSH key &quot;manager address&quot; ;
+    SHA512 @manager ;
+
+    CREATE_CONTRACT @main @main_op {
+        storage nat;
+        parameter bool;
+        code {
+            UNPAIR ;
+            IF {
+            } {
+                PUSH nat 1;
+                ADD
+            } ;
+            NIL operation ;
+            PAIR
+        };
+    } ;
+
+    DIP { NIL operation } ;
+    CONS ;
+
+    APPLY_OPERATIONS ;
+
+    # Takes the address on the top of the stack, retrieves a contract of parameter `bool`.
+    CONTRACT bool ;
+    IF_NONE { # There is no hope, failing.
+        PUSH @err_msg string &quot;failed to retrieve contract&quot; ;
+        FAILWITH
+    } {} ;
+
+    DUP ;
+
+    GET_BALANCE ;
+    PRINT_STACK ;
+    STEP &quot;retrieved the balance of the contract&quot; ;
+
+    PUSH mutez 3 ;
+    IFCMPNEQ {
+        PUSH string &quot;balance should be 3utz&quot; ;
+        FAILWITH
+    } {} ;
+
+    GET_STORAGE nat ;
+
+    IF_NONE {
+        PUSH string &quot;unable to retrieve storage of contract&quot; ;
+        FAILWITH
+    } {
+        PRINT_STACK ;
+        STEP &quot;retrieved the storage of the contract&quot; ;
+        PUSH nat 0 ;
+        IFCMPNEQ {
+            PUSH string &quot;storage should be 0 (nat)&quot; ;
+            FAILWITH
+        } {} ;
+    }
+}
+</code></pre>
+<p>This produces the exact same output (modulo the testcase's name, and as long as we do not increase
+verbosity) as for <a href="../../rsc/simpleExample/okay/inspection.techel" title="The Inspection testcase">inspection.techel</a>:</p>
+<pre><code>$ techelson rsc/no_contract/okay/anonymous.techel
+Running test `Anonymous`
+Running test script...
+
+Applying Operations...
+Running test script...
+stack:
+|==================================================================================================|
+| address[1]@main                                                                                  |
+| (contract bool)                                                                                  |
+|--------------------------------------------------------------------------------------------------|
+| 3utz                                                                                             |
+| mutez                                                                                            |
+|==================================================================================================|
+Running test script...
+stopping [retrieved the balance of the contract] press `return` to continue
+
+Running test script...
+stack:
+|==================================================================================================|
+| 0                                                                                                |
+| nat                                                                                              |
+|==================================================================================================|
+Running test script...
+stopping [retrieved the storage of the contract] press `return` to continue
+
+Running test script...
+Done running test `Anonymous`
+
+</code></pre>
+<a class="header" href="#transfers" id="transfers"><h1>Transfers</h1></a>
+<p>At this point creating and applying a transfer should be relatively straightforward. Simply create
+the operation using michelson's <code>TRANSFER_TOKENS</code>, and apply it with <code>APPLY_OPERATIONS</code>. For
+instance, <a href="../../rsc/simpleExample/okay/transfer.techel" title="The Transfer testcase">transfer.techel</a> builds on <a href="../../rsc/simpleExample/okay/inspection.techel" title="The Inspection testcase">inspection.techel</a>. It creates an instance of
+<a href="../../rsc/simpleExample/contracts/simpleExample.tz" title="The SimpleExample contract">simpleExample.tz</a>, and creates and applies two operations: the first transfers <code>7</code> tokens with a
+parameter equal to <code>False</code>, and the second transfers <code>13</code> tokens with <code>True</code>. (Remember that
+<a href="../../rsc/simpleExample/contracts/simpleExample.tz" title="The SimpleExample contract">simpleExample.tz</a> will count transfers for which the parameter is <code>False</code>.)</p>
+<pre><code class="language-mich ignore">{
+    PUSH @storage nat 0 ;
+    PUSH @amount mutez 3 ;
+    PUSH @delegatable bool True ;
+    PUSH @spendable bool True ;
+    NONE @delegate key_hash ;
+    PUSH key &quot;manager address&quot; ;
+    SHA512 @manager ;
+
+    CREATE_CONTRACT @main @main_op &quot;SimpleExample&quot; ;
+
+    ... # Omitting code creating the contract.
+
+    {   # Making a non-ghost transfer.
+        DUP ;
+        PUSH @amount mutez 7 ;
+        PUSH @ghost bool False ;
+        TRANSFER_TOKENS ;
+    } ;
+
+    DIP {   # Making a ghost transfer.
+        DUP ;
+        PUSH @amount mutez 13 ;
+        PUSH @ghost bool True ;
+        TRANSFER_TOKENS ;
+    } ;
+
+    {   # Creating the list of all operations.
+        DIP { DIP {NIL operation } ; CONS } ;
+        CONS ;
+    } ;
+
+    APPLY_OPERATIONS ;
+</code></pre>
+<p>Finally, it checks that the balance and storage are the ones expected:</p>
+<pre><code class="language-mich ignore">    GET_BALANCE ;
+    PRINT_STACK ;
+    STEP &quot;retrieved the balance of the contract&quot; ;
+
+    PUSH mutez 23 ;
+    IFCMPNEQ {
+        PUSH string &quot;balance should be 23utz&quot; ;
+        FAILWITH
+    } {} ;
+
+    GET_STORAGE nat ;
+
+    IF_NONE {
+        PUSH string &quot;unable to retrieve storage of contract&quot; ;
+        FAILWITH
+    } {
+        PRINT_STACK ;
+        STEP &quot;retrieved the storage of the contract&quot; ;
+        PUSH nat 1 ;
+        IFCMPNEQ {
+            PUSH string &quot;storage should be 1 (nat)&quot; ;
+            FAILWITH
+        } {} ;
+    }
+}
+</code></pre>
+<p>The test passes and its output is</p>
+<pre><code>$ techelson --contract rsc/simpleExample/contracts/simpleExample.tz -- rsc/simpleExample/okay/transfer.techel
+Running test `Transfer`
+Running test script...
+
+Applying Operations...
+Running test script...
+
+Applying Operations...
+
+Contract Transfer...
+
+Applying Operations...
+
+Contract Transfer...
+
+Applying Operations...
+Running test script...
+stack:
+|==================================================================================================|
+| address[1]@main                                                                                  |
+| (contract bool)                                                                                  |
+|--------------------------------------------------------------------------------------------------|
+| 23utz                                                                                            |
+| mutez                                                                                            |
+|==================================================================================================|
+Running test script...
+stopping [retrieved the balance of the contract] press `return` to continue
+
+Running test script...
+stack:
+|==================================================================================================|
+| 1                                                                                                |
+| nat                                                                                              |
+|==================================================================================================|
+Running test script...
+stopping [retrieved the storage of the contract] press `return` to continue
+
+Running test script...
+Done running test `Transfer`
+
+</code></pre>
+<a class="header" href="#testing-for-failures" id="testing-for-failures"><h1>Testing for Failures</h1></a>
+<p>This section is going to use a slightly more complex contract in order to showcase failures and how
+to test them. Even if you are not familiar with <a href="http://www.liquidity-lang.org/" title="Liquidity's official page">liquidity</a>, the contract's code will most likely
+be more readable in liquidity than in michelson. Here is the liquidity version, <a href="../../rsc/admins/admins.liq" title="The Admin liquidity contract">admins.liq</a>:</p>
+<pre><code class="language-ocaml ignore">[%%version 0.405] 
+
+type storage = {
+  admins : (string, address) map ;
+  (* Unused in this example. *)
+  nus : (string, (address * tez * UnitContract.instance)) map ;
+}
+
+let admin_check (storage : storage) (name : string) (a : address) : unit =
+  match Map.find name storage.admins with
+  | None -&gt; failwith &quot;only admins can perform administrative tasks&quot;
+  | Some address -&gt;
+      if address &lt;&gt; a then
+        failwith &quot;illegal access to admin account&quot;
+
+let%entry add_admin
+    ((admin_name, nu_name, nu_address) : string * string * address)
+    (storage : storage)
+  : operation list * storage 
+=
+  admin_check storage admin_name (Current.sender ()); 
+  let storage =
+    storage.admins &lt;- Map.update nu_name (Some nu_address) storage.admins
+  in
+  [], storage
+</code></pre>
+<p>Note that the <code>clients</code> field of the storage is unused in this example. The <code>admins</code> map maps
+administrator names to addresses. The only entry point (in this example) is <code>add_admin</code> which
+allows administrators to add new administrators by registering their name and their address. More
+precisely, calling this contract is only legal if the <code>SENDER</code> (<code>Current.sender ()</code>) of the call is
+an administrator (<em>c.f.</em> <code>admin_check</code>). If the call to the contract is not legal, the transfer
+fails:</p>
+<pre><code class="language-ocaml ignore">let admin_check (storage : storage) (name : string) (a : address) : unit =
+  match Map.find name storage.admins with
+  | None -&gt; failwith &quot;only admins can perform administrative tasks&quot;
+  | Some address -&gt;
+      if address &lt;&gt; a then
+        failwith &quot;illegal access to admin account&quot;
+</code></pre>
+<p>The parameters of the entry point are</p>
+<ul>
+<li><code>admin_name</code>: name associated with the <code>SENDER</code> administrator,</li>
+<li><code>nu_name</code>: name of the new administrator to add,</li>
+<li><code>nu_address</code>: the address of the new administrator.</li>
+</ul>
+<pre><code class="language-ocaml ignore">let%entry add_admin
+    ((admin_name, nu_name, nu_address) : string * string * address)
+</code></pre>
+<p>Using liquidity to compile the contract to michelson (for instance using <a href="http://www.liquidity-lang.org/zeronet/" title="Liquidity's online editor">liquidity's online
+editor</a>), we obtain <a href="../../rsc/admins/contracts/admins.tz" title="The Admin michelson contract">admins.tz</a>. Here are the <code>storage</code> and <code>parameter</code> types:</p>
+<pre><code class="language-mic ignore">parameter (pair string (pair string address));
+storage
+  (pair :storage
+     (map %admins string address)
+     (map %clients string (pair address (pair mutez (contract :UnitContract unit)))));
+</code></pre>
+<p>We omit the contract's code (<a href="../../rsc/admins/contracts/admins.tz" title="The Admin michelson contract">admins.tz</a>) as <em>i)</em> it is not very readable and <em>ii)</em>
+we do not need to know what the code precisely is to create the contract and call it, as long as we
+know the <code>storage</code> and <code>parameter</code> types.</p>
+<a class="header" href="#creation" id="creation"><h2>Creation</h2></a>
+<p>Creating a contract has been covered in previous sections, so let's give ourselves some code to
+create the contract with one administrator called <code>root</code>. In fact, let's make an account for <code>root</code>
+and register it as an administrator. The new administrator <code>new_admin</code> is also deployed as an
+account. Testcase <a href="../../rsc/admins/okay/create.techel" title="The Create testcase">create.techel</a> does exactly that:</p>
+<pre><code class="language-mic ignore">{
+    NIL operation ;
+
+    {   # Create an account for `root`.
+        PUSH @balance mutez 0 ;
+        PUSH @delegatable bool True ;
+        PUSH @delegate (option key_hash) None ;
+        PUSH @manager key &quot;@root_manager&quot; ;
+        SHA512 ;
+        CREATE_ACCOUNT @root ;
+    } ;
+
+    SWAP ;
+    DIP { CONS } ;
+
+    {   # Create an account for `new_admin`.
+        PUSH @balance mutez 0 ;
+        PUSH @delegatable bool True ;
+        PUSH @delegate (option key_hash) None ;
+        PUSH @manager key &quot;@new_admin_manager&quot; ;
+        SHA512 ;
+        CREATE_ACCOUNT @new_admin ;
+    } ;
+
+    SWAP ;
+    DIP { SWAP ; DIP CONS } ;
+
+    {   # Create an `admins` contract.
+
+        # Create the storage's (empty) `clients` field.
+        EMPTY_MAP @clients string (pair address (pair mutez (contract unit))) ;
+
+        # Create the storage's `admins` field and register `root`.
+        EMPTY_MAP @admins string address ;
+        DUUUUP ; # Retrieve root's address.
+        SOME @address ;
+        PUSH @name string &quot;root&quot; ;
+        PRINT_STACK ;
+        UPDATE ;
+
+        PAIR @storage ;
+        PUSH @balance mutez 0 ;
+        PUSH @delegatable bool True ;
+        PUSH @spendable bool False ;
+        PUSH @delegate (option key_hash) None ;
+        PUSH @manager key &quot;@contract_manager&quot; ;
+        SHA512 ;
+
+        CREATE_CONTRACT @admins &quot;Admins&quot;
+    } ;
+
+    SWAP ;
+    DIP { SWAP ; DIP { SWAP ; DIP CONS } } ;
+
+    DIIIP { APPLY_OPERATIONS } ;
+
+    PRINT_STACK ;
+    STEP &quot;after applying creation operations.&quot;
+}
+</code></pre>
+<p>Running this test produces the following output</p>
+<pre><code>$ techelson --contract rsc/admins/contracts/admins.tz -- rsc/admins/okay/create.techel
+Running test `Create`
+Running test script...
+stack:
+|==================================================================================================|
+| [ CREATE[uid:1] (@address[2]@new_admin, &quot;sha512:@new_admin_manager&quot;, None, true, true, 0utz) 
+      {
+          storage unit ;
+          parameter unit ;
+          code {
+                 DROP ;
+                 UNIT ;
+                 NIL operation ;
+                 PAIR
+               } ;
+      }, CREATE[uid:0] (@address[1]@root, &quot;sha512:@root_manager&quot;, None, true, true, 0utz) 
+             {
+                 storage unit ;
+                 parameter unit ;
+                 code {
+                        DROP ;
+                        UNIT ;
+                        NIL operation ;
+                        PAIR
+                      } ;
+             } ] |
+| (list operation)                                                                                 |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                            @root |
+| address[1]@root                                                                                  |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                       @new_admin |
+| address[2]@new_admin                                                                             |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                         @clients |
+| Map { }                                                                                          |
+| (map string (pair address (pair mutez (contract unit))))                                         |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                          @admins |
+| Map { }                                                                                          |
+| (map string address)                                                                             |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                         @address |
+| (Some address[1]@root)                                                                           |
+| (option address)                                                                                 |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                            @name |
+| &quot;root&quot;                                                                                           |
+| string                                                                                           |
+|==================================================================================================|
+Running test script...
+
+Applying Operations...
+Running test script...
+stack:
+|==================================================================================================|
+|                                                                                            @root |
+| address[1]@root                                                                                  |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                       @new_admin |
+| address[2]@new_admin                                                                             |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                          @admins |
+| address[3]@admins                                                                                |
+| address                                                                                          |
+|==================================================================================================|
+Running test script...
+stopping [after applying creation operations.] press `return` to continue
+
+Running test script...
+Done running test `Create`
+
+</code></pre>
+<a class="header" href="#transfer-failures" id="transfer-failures"><h2>Transfer Failures</h2></a>
+<p>Let's now add <code>new_admin</code> as a new administrator. Testcase <a href="../../rsc/admins/error/addAdmin.techel" title="The AddAdmin testcase">addAdmin.techel</a> only adds the
+following few instructions at the end of <a href="../../rsc/admins/okay/create.techel" title="The Create testcase">create.techel</a>:</p>
+<pre><code class="language-mic ignore">    # Retrieve the actual contract.
+    CONTRACT (pair string (pair string address)) ;
+    IF_NONE {
+        PUSH string &quot;failed to retrieve `admins` contract&quot; ;
+        STEP
+    } {} ;
+
+    # Saving the contract for later.
+    DUP ;
+
+    PUSH @amount mutez 0 ;
+
+    # New admin's address.
+    DUUUUP ;
+    # New admin's name.
+    PUSH @new_name string &quot;new_admin&quot; ;
+    PAIR ;
+    # Root's name.
+    PUSH @name string &quot;root&quot; ;
+    PAIR @storage ;
+
+    TRANSFER_TOKENS ;
+
+    DIP { NIL operation } ;
+    CONS ;
+    APPLY_OPERATIONS ;
+</code></pre>
+<p>What should the result of applying this transfer be? Remember than before adding an administrator, the contract checks that the sender is an admin.</p>
+<pre><code class="language-ocaml ignore">let admin_check (storage : storage) (name : string) (a : address) : unit =
+  match Map.find name storage.admins with
+  | None -&gt; failwith &quot;only admins can perform administrative tasks&quot;
+  | Some address -&gt;
+      if address &lt;&gt; a then
+        failwith &quot;illegal access to admin account&quot;
+
+let%entry add_admin
+    ((admin_name, nu_name, nu_address) : string * string * address)
+...
+=
+  admin_check storage admin_name (Current.sender ()); 
+...
+</code></pre>
+<p>So, if everything goes well, the transfer should fail: the sender here is not <code>root</code>, but the
+testcase. In techelson, the testcase currently running has its own address. It is in particular
+not the address of <code>root</code>. Hence, the transfer fails as it should and so does the whole testcase.
+The (relevant part of the) output is</p>
+<pre><code>
+Applying Operations...
+Test `AddAdmin` failed:
+    Error
+        operation TRANSFER[uid:3] address[0]@AddAdmin -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin)) was expected to succeed
+        but failed on operation TRANSFER[uid:3] address[0]@AddAdmin -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin))
+        operation failed on &quot;illegal access to admin account&quot; : string
+Error
+</code></pre>
+<p>You can see in the transfer the sender and the target of the transfer:</p>
+<pre><code>TRANSFER[uid:3] address[0]@Create2 -&gt; address[3]@admins
+</code></pre>
+<p><code>Create2</code> is the name of our testcase, and <code>address[0]@Create2</code> is its address. Name <code>&quot;root&quot;</code> does
+not map to this address in the contract and the transfer fails.</p>
+<a class="header" href="#handling-failures" id="handling-failures"><h2>Handling Failures</h2></a>
+<p>Before getting into making this transfer work (next section), note that this (failing) testcase is
+actually useful. Or at least it should be: the transfer we are trying to make is illegal indeed. We
+do want the transfer to fail, but the testcase should</p>
+<ul>
+<li>succeed if the transfer does fail,</li>
+<li>fail if the transfer succeeds: anyone can add admins, which is <strong>bad</strong>.</li>
+</ul>
+<p>This is what the <code>MUST_FAIL</code> techelson extension does. It takes an operation wraps it in a
+construct telling techelson that this operation must fail: either the operation itself or, if it is
+a transfer, the operations created by this transfer. Here is its signature:</p>
+<table><thead><tr><th align="left"> instruction </th><th align="center"> parameter </th><th align="center"> stack </th></tr></thead><tbody>
+<tr><td align="left"> <code>MUST_FAIL</code> </td><td align="center"> <code>&lt;type&gt;</code> </td><td align="center"> <code>:: option &lt;type&gt; : operation : 'S</code> </td></tr>
+<tr><td align="left">             </td><td align="center">          </td><td align="center"> <code>-&gt; operation : 'S</code>                 </td></tr>
+</tbody></table>
+<p>Let's ignore the <code>&lt;type&gt;</code> parameter and the first stack argument for now and just use this
+instruction right away. Testcase <a href="../../rsc/admins/okay/mustFail.techel" title="The MustFail testcase">mustFail.techel</a> is the same as <a href="../../rsc/admins/error/addAdmin.techel" title="The AddAdmin testcase">addAdmin.techel</a> except for a
+few lines after the transfer:</p>
+<pre><code class="language-mich ignore">    TRANSFER_TOKENS ;
+    PUSH (option string) None ;
+    MUST_FAIL @this_must_fail string ;
+    PRINT_STACK ;
+</code></pre>
+<p>The test now passes successfully:</p>
+<pre><code>$ techelson --contract rsc/admins/contracts/admins.tz -- rsc/admins/okay/mustFail.techel
+Running test `MustFail`
+Running test script...
+
+Applying Operations...
+Running test script...
+stack:
+|==================================================================================================|
+|                                                                                            @root |
+| address[1]@root                                                                                  |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                       @new_admin |
+| address[2]@new_admin                                                                             |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+| address[3]@admins                                                                                |
+| (contract (pair string (pair string address)))                                                   |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                  @this_must_fail |
+| MUST_FAIL[uid:4] _ (TRANSFER[uid:3] address[0]@MustFail -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin))) |
+| operation                                                                                        |
+|==================================================================================================|
+Running test script...
+
+Applying Operations...
+
+Contract Transfer...
+
+Applying Operations...
+Running test script...
+Done running test `MustFail`
+
+</code></pre>
+<a class="header" href="#more-precise-failure-testing" id="more-precise-failure-testing"><h2>(More) Precise Failure Testing</h2></a>
+<p>Now, <code>MUST_FAIL</code> (as it is used here) succeeds if the transfer ends in a <em>tezos protocol</em> failure.
+This include explicit failures in the code, illegal transfers due to insufficient funds, duplicate
+operations, <em>etc.</em> It does <strong>not</strong> include type-checking errors and internal techelson errors.</p>
+<p>This means in particular that if the transfer above fails for a reason different from <code>&quot;illegal access to admin account&quot;</code> then <code>MUST_FAIL</code> will consider the test a success. To make sure the cause
+for failure is actually the one we want, we must use <code>MUST_FAIL</code>'s optional stack parameter. A
+failure in michelson code always has a value of some type associated to it. In this case, the type
+of this value is <code>string</code> and its value is <code>&quot;illegal access to admin account&quot;</code>. Testcase
+<a href="../../rsc/admins/okay/preciseMustFail.techel" title="The PreciseMustFail testcase">preciseMustFail.techel</a> only changes <a href="../../rsc/admins/okay/mustFail.techel" title="The MustFail testcase">mustFail.techel</a> to pass the failure value expected to <code>MUST_FAIL</code>:</p>
+<pre><code class="language-mich">    TRANSFER_TOKENS ;
+    PUSH (option string) (Some &quot;illegal access to admin account&quot;) ;
+    MUST_FAIL @this_must_fail string ;
+    PRINT_STACK ;
+</code></pre>
+<p>As a consequence, if the transfer fails with anything else than an explicit failure with a value of
+type <code>string</code> equal to <code>&quot;illegal access to admin account&quot;</code>, then the whole testcase will fail.
+Everything works fine here, and the output is</p>
+<pre><code>$ techelson --contract rsc/admins/contracts/admins.tz -- rsc/admins/okay/preciseMustFail.techel
+Running test `PreciseMustFail`
+Running test script...
+
+Applying Operations...
+Running test script...
+stack:
+|==================================================================================================|
+|                                                                                            @root |
+| address[1]@root                                                                                  |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                       @new_admin |
+| address[2]@new_admin                                                                             |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+| address[3]@admins                                                                                |
+| (contract (pair string (pair string address)))                                                   |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                  @this_must_fail |
+| MUST_FAIL[uid:4] &quot;illegal access to admin account&quot; : string (TRANSFER[uid:3] address[0]@PreciseMustFail -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin))) |
+| operation                                                                                        |
+|==================================================================================================|
+Running test script...
+
+Applying Operations...
+
+Contract Transfer...
+
+Applying Operations...
+Running test script...
+Done running test `PreciseMustFail`
+
+</code></pre>
+<p>Notice that the <code>MUST_FAIL</code> operation now mentions the value expected:</p>
+<pre><code>MUST_FAIL[uid:4] &quot;illegal access to admin account&quot; : string (TRANSFER[uid:3] ...)
+</code></pre>
+<p>as opposed to the <code>_</code> wildcard from testcase <a href="../../rsc/admins/okay/mustFail.techel" title="The MustFail testcase">mustFail.techel</a>, which means no value was given:</p>
+<pre><code>MUST_FAIL[uid:4] _  (TRANSFER[uid:3] ...)
+</code></pre>
+<a class="header" href="#usurpation-of-identity" id="usurpation-of-identity"><h1>Usurpation of Identity</h1></a>
+<p>The previous section used the liquidity contract <a href="../../rsc/admins/admins.liq" title="The Admin liquidity contract">admins.liq</a> and its techelson version
+<a href="../../rsc/admins/contracts/admins.tz" title="The Admin michelson contract">admins.tz</a>. It showcased how to handle expected transfer failures and turn them into test
+objectives. The failure used to demonstrate the example was that we tried to add a new
+administrator by calling the contract from the testcase, which failed because only administrators
+can add other administrators, and the (address of the) testcase was not registered as such.</p>
+<pre><code class="language-mich ignore">    PUSH @amount mutez 0 ;
+
+    # New admin's address.
+    DUUUUP ;
+    # New admin's name.
+    PUSH @new_name string &quot;new_admin&quot; ;
+    PAIR ;
+    # Root's name.
+    PUSH @name string &quot;root&quot; ;
+    PAIR @storage ;
+
+    TRANSFER_TOKENS ;
+    PUSH (option string) (Some &quot;illegal access to admin account&quot;) ;
+    MUST_FAIL @this_must_fail string ;
+    PRINT_STACK ;
+
+    DIP {NIL operation } ;
+    CONS ;
+    APPLY_OPERATIONS ;
+</code></pre>
+<p>One solution would be to register the testcase directly, but it would be more natural and more
+generic to be able to apply a transfer as someone else. Hence the <code>SET_SOURCE</code> extension:</p>
+<table><thead><tr><th align="left"> instruction </th><th align="center"> parameter </th><th align="center"> stack </th></tr></thead><tbody>
+<tr><td align="left"> <code>SET_SOURCE</code> </td><td align="center"> <code>code</code> </td><td align="center"> <code>:: address : 'A</code> </td></tr>
+<tr><td align="left">              </td><td align="center">        </td><td align="center"> <code>-&gt; 'B</code> </td></tr>
+<tr><td align="left"> </td><td align="center"> </td><td align="center"> iff <code>code :: [ A -&gt; B ]</code> </td></tr>
+</tbody></table>
+<blockquote>
+<p><strong>Warning</strong>: the <code>SET_SOURCE</code> extension is only legal in testcases.</p>
+</blockquote>
+<p>This extension allows to pretend the testcase is a live contract or account from the environment.
+More precisely, all operations created in the <code>code</code> under the <code>SET_SOURCE</code> will have their source
+and sender be the address from the stack. Testcase <a href="../../rsc/admins/okay/setSource.techel" title="The SetSource testcase">setSource.techel</a> uses this instruction to
+pretend that <code>root</code> is the one adding a new administrator.</p>
+<pre><code class="language-mich ignore">    # New admin's address.
+    DUUUUP ;
+    # New admin's name.
+    PUSH @new_name string &quot;new_admin&quot; ;
+    PAIR ;
+    # Root's name.
+    PUSH @name string &quot;root&quot; ;
+    PAIR @storage ;
+
+    {   # Pretending to be `root`.
+        DUUUUUUP ;
+        PRINT_STACK ;
+        STEP ;
+        SET_SOURCE {
+            TRANSFER_TOKENS
+        }
+    } ;
+
+    PRINT_STACK ;
+
+    DIP { NIL operation } ;
+    CONS ;
+
+    APPLY_OPERATIONS
+</code></pre>
+<p>The testcase now succeeds, and its output is</p>
+<pre><code>$ techelson --contract rsc/admins/contracts/admins.tz -- rsc/admins/okay/setSource.techel
+Running test `SetSource`
+Running test script...
+
+Applying Operations...
+Running test script...
+stack:
+|==================================================================================================|
+|                                                                                            @root |
+| address[1]@root                                                                                  |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                       @new_admin |
+| address[2]@new_admin                                                                             |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+| address[3]@admins                                                                                |
+| (contract (pair string (pair string address)))                                                   |
+|--------------------------------------------------------------------------------------------------|
+| address[3]@admins                                                                                |
+| (contract (pair string (pair string address)))                                                   |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                          @amount |
+| 0utz                                                                                             |
+| mutez                                                                                            |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                         @storage |
+| (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin))                                                    |
+| (pair string (pair string address))                                                              |
+|--------------------------------------------------------------------------------------------------|
+| address[1]@root                                                                                  |
+| address                                                                                          |
+|==================================================================================================|
+Running test script...
+stopping [no information] press `return` to continue
+
+Running test script...
+stack:
+|==================================================================================================|
+|                                                                                            @root |
+| address[1]@root                                                                                  |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+|                                                                                       @new_admin |
+| address[2]@new_admin                                                                             |
+| address                                                                                          |
+|--------------------------------------------------------------------------------------------------|
+| address[3]@admins                                                                                |
+| (contract (pair string (pair string address)))                                                   |
+|--------------------------------------------------------------------------------------------------|
+| TRANSFER[uid:3] address[1]@root -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin)) |
+| operation                                                                                        |
+|==================================================================================================|
+Running test script...
+
+Applying Operations...
+
+Contract Transfer...
+
+Applying Operations...
+Running test script...
+Done running test `SetSource`
+
+</code></pre>
+<p>Notice how, in the last <code>PRINT_STACK</code>, the sender of the transfer is now <code>root</code>:</p>
+<pre><code>TRANSFER[uid:3] address[1]@root -&gt; address[3]@admins ...
+</code></pre>
+<a class="header" href="#test-generation" id="test-generation"><h1>Test Generation</h1></a>
+<p>Techelson has a test generation feature. It is relatively naive: the testcases it generates do not
+really take the semantics of your contract into account. Given a contract, it will generate a
+random storage for that contract and deploy it. Then, it will create a random number of transfers
+to that contract with random parameters.</p>
+<blockquote>
+<p>Note that while test generation is random, it is expected to be deterministic: the same test
+generation command on a contract should always generate the same test cases.</p>
+</blockquote>
+<p>It is <em>naive</em> in the sense that it can (and statistically will) generate testcases which are not
+successful. Still, this feature is useful to generate a <em>testcase skeleton</em> with random contract
+creation and transfers that you can edit to test the behavior of your contract.</p>
+<a class="header" href="#example" id="example"><h1>Example</h1></a>
+<p>Let's showcase testgeneration on <a href="../../rsc/simpleExample/contracts/simpleExample.tz" title="The SimpleExample contract">simpleExample.tz</a>:</p>
+<pre><code class="language-mic ignore">storage nat;
+parameter bool;
+code {
+    UNPAIR;        # Unpair parameter and storage.
+    IF {           # Asked not to count: storage is unchanged, nothing to do.
+    } {
+        PUSH nat 1;
+        ADD
+    };
+    NIL operation; # We don't want to perform any operations.
+    PAIR           # Aggregate the operation list and the new storage.
+};
+</code></pre>
+<p>Test generation is activated by passing to techelson a <code>testgen</code> argument triggering the test
+generation mode. You can read more about modes in the <a href="testgen/../quick_ref/usage.html" title="Usage section">Usage section</a>. First, let's generate a
+single testcase (<code>-n 1</code>, or <code>--count 1</code>) and let techelson run it:</p>
+<pre><code>$ techelson --contract rsc/simpleExample/contracts/simpleExample.tz testgen -n 1
+done generating test for contract SimpleExample
+Running test `SimpleExampleTest1`
+Running test script...
+
+Applying Operations...
+Running test script...
+
+Applying Operations...
+
+Contract Transfer...
+
+Applying Operations...
+Running test script...
+Done running test `SimpleExampleTest1`
+
+</code></pre>
+<p>While this can be useful for simple contracts, usually you want to retrieve the testcase directly
+so that you can modify it to suit your needs. So let's still generate one testcase but this time we
+will dump it in the current directory (trailing <code>.</code> in the <code>techelson</code> command).</p>
+<pre><code class="language-mic">$ techelson --contract rsc/simpleExample/contracts/simpleExample.tz testgen -n 1 . ; echo ; echo &quot;testcase:&quot; ; echo ; cat SimpleExampleTest1.techel ; rm SimpleExampleTest1.techel
+done generating test for contract SimpleExample
+dumping testcases to `.`
+
+testcase:
+
+{
+  # deploying contract `SimpleExample`
+  {
+    # creating contract creation parameters
+    {
+      # creating storage for contract `SimpleExample`
+      PUSH nat 807338681362247 ;
+      # money transferred
+      PUSH mutez 638557938255190 ;
+      # delegatable
+      PUSH bool False ;
+      # spendable
+      PUSH bool False ;
+      # delegate
+      NONE key_hash ;
+      # manager
+      {
+        PUSH key &quot;11a6ffbc9fb85&quot; ;
+        BLAKE2B
+      }
+    } ;
+    CREATE_CONTRACT &quot;SimpleExample&quot;
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT bool ;
+      IF_NONE {
+                PUSH string &quot;unable to spawn contract `SimpleExample`&quot; ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 120584798270008 ;
+    PUSH bool True ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  }
+}
+
+</code></pre>
+<a class="header" href="#quick-reference" id="quick-reference"><h1>Quick Reference</h1></a>
+<p>This section provides a quick overview of some of techelson's features:</p>
+<ul>
+<li>list of all the <a href="quick_ref/extensions.html" title="Extensions quick reference">extensions</a></li>
+<li>(brief) discussion on techelson's <a href="quick_ref/usage.html" title="CLI usage quick reference">command-line usage</a></li>
+</ul>
+<p>These sections try to provide relatively raw, brief and crucial information about the features they
+discuss. They will usually point to the relevant sections of this book if you need more details.</p>
+<a class="header" href="#extensions" id="extensions"><h1>Extensions</h1></a>
+<blockquote>
+<p><strong>Warning</strong>: the following instructions can only be used in contracts, <strong>not testcases</strong>:</p>
+<ul>
+<li><code>SENDER</code></li>
+<li><code>SOURCE</code></li>
+</ul>
+</blockquote>
+<p>Techelson testcases have access to an extended instruction set to ease the process of writing
+tests. See <code>rsc/tests/</code> for more examples. Note that techelson treats <code>#&gt;</code> as whitespace, so you
+can use extensions in contracts (when <a href="#unrestricted-extensions">legal</a>) while keeping them pure
+michelson, like in the example below</p>
+<pre><code>DIP {
+    ...
+    CONS ;
+    #&gt; PRINT_STACK ;
+    #&gt; STEP &quot;after list cons&quot; ;
+    PUSH int 3 ;
+    ...
+}
+</code></pre>
+<a class="header" href="#unrestricted-extensions" id="unrestricted-extensions"><h2>Unrestricted Extensions</h2></a>
+<p>The following instructions are legal in <strong>testcases and contracts</strong>:</p>
+<ul>
+<li>
+<p><code>STEP</code> and <code>STEP &lt;string&gt;</code>:</p>
+<p><code>'S</code> <code>-&gt;</code> <code>'S</code></p>
+<p>Relevant section of this book: <a href="quick_ref/../testing/basic.html" title="First Steps section">First Steps</a>.</p>
+<p>suspends the evaluator and prints a string, if any.</p>
+</li>
+<li>
+<p><code>PRINT_STACK</code>:</p>
+<p><code>'S</code> <code>-&gt;</code> <code>'S</code></p>
+<p>Relevant section of this book: <a href="quick_ref/../testing/basic.html" title="First Steps section">First Steps</a>.</p>
+<p>prints the current state of the stack</p>
+</li>
+</ul>
+<a class="header" href="#testcase-only-extensions" id="testcase-only-extensions"><h2>Testcase-only Extensions</h2></a>
+<p>The following instructions are <strong>only</strong> legal in testcases:</p>
+<ul>
+<li>
+<p><code>CREATE_CONTRACT &lt;string&gt;</code>:</p>
+<p><code>:: key_hash : option key_hash : bool : bool : mutez : 'g : 'S</code>
+<code>-&gt;</code> <code>operation : address : 'S</code></p>
+<p>Relevant section of this book: <a href="quick_ref/../testing/contracts.html" title="Creating and Calling Contracts section">Creating and Calling Contracts</a>.</p>
+<p>Creates an instance of the contract named after the string parameter. The type of the storage
+of the contract must be <code>'g</code>.</p>
+</li>
+<li>
+<p><code>SPAWN_CONTRACT 'g</code>:</p>
+<p><code>:: string : key_hash : option key_hash : bool : bool : mutez : 'g : 'S</code>
+<code>-&gt;</code> <code>operation : address : 'S</code></p>
+<p>Relevant section of this book: <a href="quick_ref/../testing/contracts.html" title="Creating and Calling Contracts section">Creating and Calling Contracts</a>.</p>
+<p>Exactly the same as the <code>CREATE_CONTRACT</code> extension above but the name of the contract is
+passed as a stack parameter, and the type of the storage is an explicit parameter of the
+instruction.</p>
+</li>
+<li>
+<p><code>APPLY_OPERATIONS</code>:</p>
+<p><code>(list operation) : 'S</code> <code>-&gt;</code> <code>'S</code></p>
+<p>Relevant section of this book: <a href="quick_ref/../testing/contracts.html" title="Creating and Calling Contracts section">Creating and Calling Contracts</a>.</p>
+<ul>
+<li>consumes a list of operations</li>
+<li>suspends the execution of the testcase</li>
+<li>applies all the operations in the list (these operations can create operations which will be
+applied too)</li>
+<li>resumes the execution of the testcase</li>
+</ul>
+</li>
+<li>
+<p><code>GET_STORAGE 'storage</code>:</p>
+<p><code>contract _ : 'S</code> <code>-&gt;</code> <code>(option 'storage) : 'S</code></p>
+<p><code>address : 'S</code> <code>-&gt;</code> <code>(option 'storage) : 'S</code></p>
+<p>Relevant section of this book: <a href="quick_ref/../testing/inspection.html" title="Live Contract Inspection section">Live Contract Inspection</a>.</p>
+<ul>
+<li>consumes a contract</li>
+<li>pushes <code>Some</code> of the current value of the storage of the contract if its storage has type
+<code>'storage</code>, <code>None</code> otherwise</li>
+</ul>
+</li>
+<li>
+<p><code>GET_BALANCE</code>:</p>
+<p><code>contract _ : 'S</code> <code>-&gt;</code> <code>mutez : 'S</code></p>
+<p><code>address : 'S</code> <code>-&gt;</code> <code>mutez : 'S</code></p>
+<p>Relevant section of this book: <a href="quick_ref/../testing/inspection.html" title="Live Contract Inspection section">Live Contract Inspection</a>.</p>
+<p>Same as <code>GET_STORAGE</code>, but pushes the balance of the contract instead of its storage</p>
+</li>
+<li>
+<p><code>MUST_FAIL 'a</code>:</p>
+<p><code>(option 'a) : operation : 'S</code> <code>-&gt;</code> <code>'S</code></p>
+<p>Relevant section of this book: <a href="quick_ref/../testing/failures.html" title="Testing for Failures section">Testing for Failures</a>.</p>
+<p>Specifies that an operation (or the operation it creates recursively) must fail, and optionaly
+that it <code>FAIL</code>ed<code>WITH</code> a certain value. More precisely, the whole testcase will <strong>fail</strong> if the
+<code>operation</code> or the operations it creates recursively, <em>when applied</em>, either</p>
+<ul>
+<li>succeeds, or</li>
+<li>the <code>(option 'a)</code> parameter is <code>(Some value)</code> and the operation's failure was not caused by a
+<code>FAILWITH</code> on precisely <code>value</code></li>
+</ul>
+<blockquote>
+<p>Note that if the optional value is <code>NONE</code>, then <code>MUST_FAIL</code> accepts any kind of <em>protocol</em>
+failure, not just <code>FAILWITH</code>. For instance, it will also accept creation/transfer operations
+that fail because of insufficient balance, because this precise operation already ran (it was
+<code>DUP</code>-ed), <em>etc</em>.</p>
+</blockquote>
+</li>
+<li>
+<p><code>SET_SOURCE code</code>, with <code>code :: [ 'A -&gt; 'B ]</code></p>
+<p><code>address :: 'A</code> <code>-&gt;</code> <code>'B</code></p>
+<p>Relevant section of this book: <a href="quick_ref/../testing/set_source.html" title="Usurpation of Identity section">Usurpation of Identity</a>.</p>
+<p>Sets the source of the testcase. Without this extension, the source of all transfers can only
+be the testcase. This allows to run <code>code</code> while pretending the testcase is a different live
+contract.</p>
+</li>
+</ul>
+<a class="header" href="#command-line-options" id="command-line-options"><h1>Command-Line Options</h1></a>
+<blockquote>
+<p><strong>Warning</strong>: so-called <em>contract initializers</em> are mentioned in the <code>--help</code> but are not
+currently supported.</p>
+</blockquote>
+<p>The full list of options (for the nominal mode) is obtained with <code>--help</code>:</p>
+<pre><code>$ techelson --help
+USAGE:
+    ../bin/techelson [OPTIONS] -- [FILES]*
+    ../bin/techelson [OPTIONS] testgen [TESTGEN_OPTIONS] [-- DIR]?
+
+OPTIONS:
+    -h, --help
+            prints this help message
+    -v, --verb &lt;int&gt;?
+            increases or sets verbosity [default: 1]
+    -q
+            decreases verbosity
+    -s, --step (on|true|True|no|off|false|False)?
+            (de)activates step-by-step evaluation [default: false]
+    --skip (on|true|True|no|off|false|False)?
+            if true, all steps will automatically advance (and `--step` will be set to
+            false) [default: false]
+    --contract &lt;string&gt; ',' &lt;string&gt;?
+            adds a contract to the test environment. The second optional argument is the
+            contract's initializer.
+
+MODES:
+    testgen
+        activates and controls test generation
+    run `../bin/techelson &lt;MODE&gt; --help` to obtain help on a specific mode. For example: `../bin/techelson testgen --help`
+
+</code></pre>
+<a class="header" href="#modes" id="modes"><h2>Modes</h2></a>
+<p>Modes available:</p>
+<ul>
+<li><code>testgen</code>: <a href="#test-generation">Test Generation</a></li>
+</ul>
+<p>Techelson's modes are triggered by simply passing the name of the mode as an argument. For
+instance,</p>
+<pre><code>$ techelson --contract rsc/simpleExample/contracts/simpleExample.tz testgen -n 2
+done generating tests for contract SimpleExample
+Running test `SimpleExampleTest1`
+Running test script...
+
+Applying Operations...
+Running test script...
+
+Applying Operations...
+
+Contract Transfer...
+
+Applying Operations...
+Running test script...
+Done running test `SimpleExampleTest1`
+Running test `SimpleExampleTest2`
+Running test script...
+
+Applying Operations...
+Running test script...
+
+Applying Operations...
+
+Contract Transfer...
+
+Applying Operations...
+Running test script...
+
+Applying Operations...
+
+Contract Transfer...
+
+Applying Operations...
+Running test script...
+Done running test `SimpleExampleTest2`
+
+</code></pre>
+<p>You can have techelson print the options for mode <code>&lt;mode&gt;</code> with <code>techelson &lt;mode&gt; --help</code>.</p>
+<a class="header" href="#test-generation-1" id="test-generation-1"><h3>Test Generation</h3></a>
+<p>Given a contract, this mode is in charge of generating a testcase automatically. The relevant
+chapter of this book is <a href="../testgen/index.html" title="Test Generation chapter">Test Generation</a>.</p>
+<pre><code>$ techelson testgen --help
+Generates testcases for some contract(s). If a directory is provided, the testcases will
+be dumped there. Otherwise techelson will just run the testcases it generated.
+
+USAGE:
+    ../bin/techelson [OPTIONS] testgen [TESTGEN_OPTIONS] [-- DIR]?
+
+TESTGEN_OPTIONS:
+    -h, --help
+            prints this help message
+    -n, --count &lt;int&gt;
+            sets the number of testcases to generate [default: 1]
+
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+        
+        <script type="text/javascript">
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+        
+        
+
+    </body>
+</html>
