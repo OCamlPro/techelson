@@ -1,5 +1,7 @@
 #! /bin/bash
 
+sudo apt-get update -y -qq
+
 export OPAMYES=1
 wget https://raw.githubusercontent.com/ocaml/opam/master/shell/install.sh
 yes "" | sh install.sh
