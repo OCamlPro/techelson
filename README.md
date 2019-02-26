@@ -1,4 +1,4 @@
-# techelson
+# Techelson
 
 TEst miCHELSON: `techelson`
 
@@ -27,19 +27,19 @@ We recommend to use the latest version of the OCaml compiler. For example
 > opam switch create techelson 4.07.1
 ```
 
-`techelson`relies on the [dune] build system and a few other libraries:
+Techelson relies on the [dune] build system and a few other libraries:
 
 ```bash
 > opam install dune menhir zarith ptime
 ```
 
-(This list of dependencies might be out-of-date. Check `.travis.sh` for the latest version.) Finally, build `techelson` with `make`. The binary will be `./bin/techelson`.
+(This list of dependencies might be out-of-date. Check `.travis.sh` for the latest version.) Finally, build Techelson with `make`. The binary will be `./bin/techelson`.
 
-You can also run `make test` to make sure there is no problem with the techelson binary. The user documentation's root is `docs/user_doc/index.html`. You can regenerate it with `make user-doc`, as long as you have [mdbook] installed.
+You can also run `make test` to make sure there is no problem with the Techelson binary. The user documentation's root is `docs/user_doc/index.html`. You can regenerate it with `make user-doc`, as long as you have [mdbook] installed.
 
 # Usage
 
-Assuming the binary `techelson` is in you path, you can run it with
+Assuming the binary Techelson is in you path, you can run it with
 
 ```bash
 > techelson [ --contract <contract_file> <optional_init_file> ]* -- [ <testcase> ]*
@@ -57,7 +57,7 @@ For example
 
 # Documentation
 
-The user documentation is hosted here: [liquidity-lang.org/techelson/doc]. You can also access the bleeding edge version on [the main repo's git page]. Finally, there is a blog post by techelson's main developer on how to use techelson with [Liquidity]: [adrienchampion.github.io/blog].
+The user documentation is hosted here: [liquidity-lang.org/techelson/doc]. You can also access the bleeding edge version on [the main repo's git page]. Finally, there is a blog post by Techelson's main developer on how to use Techelson with [Liquidity]: [adrienchampion.github.io/blog].
 
 [dune]: https://github.com/ocaml/dune (Dune project manager's Github page)
 [mdbook]: https://github.com/rust-lang-nursery/mdBook (Mdbook's github repository)
