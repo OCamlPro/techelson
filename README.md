@@ -10,7 +10,9 @@ Techelson is currently in beta. The rough list of (planned) features is
 
 - [x] operation must-fail: specifies that a (chain of) operation(s) should fail
 - [x] inspection instruction: break points and stack inspection
-- [x] support for all data types (potentially with some liberty taken compared to tezos)
+- [ ] support for all data types (potentially with some liberty taken compared to tezos)
+    - [x] everything but `signature`
+    - [ ] `signature`
 - [ ] semantics as close to the tezos protocol as possible
     - [x] for non-crypto operations (`int`, `nat`, `map`, *etc.*)
     - [ ] for crypto operations
