@@ -60,10 +60,10 @@ For example
 > techelson --contract rsc/tests/test0/contracts/test0.liq.tz -- rsc/tests/test0/okay/Test0Test1.techel
 ```
 
-[opam installed]: https://opam.ocaml.org/doc/Install.html (Opam install instructions)
-[dune]: https://github.com/ocaml/dune (Dune project manager's Github page)
-[mdbook]: https://github.com/rust-lang-nursery/mdBook (Mdbook's github repository)
-[liquidity-lang.org/techelson/doc]: http://www.liquidity-lang.org/techelson/doc (Techelson's user documentation)
-[Liquidity]: http://www.liquidity-lang.org/ (Liquidity's official page)
-[adrienchampion.github.io/blog]: https://adrienchampion.github.io/blog/tezos/techelson/with_liquidity/index.html (Using techelson with Liquidity)
-[the main repo's git page]: https://ocamlpro.github.io/techelson/user_doc (Techelson's user documentation)
+[opam installed]: https://opam.ocaml.org/doc/Install.html
+[dune]: https://github.com/ocaml/dune
+[mdbook]: https://github.com/rust-lang-nursery/mdBook
+[liquidity-lang.org/techelson/doc]: http://www.liquidity-lang.org/techelson/doc
+[Liquidity]: http://www.liquidity-lang.org/
+[adrienchampion.github.io/blog]: https://adrienchampion.github.io/blog/tezos/techelson/with_liquidity/index.html
+[the main repo's git page]: https://ocamlpro.github.io/techelson/user_doc
