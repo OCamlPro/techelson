@@ -18,8 +18,10 @@ Techelson is currently in beta. The rough list of (planned) features is
     - [x] everything but `signature`
     - [ ] `signature`
 - [ ] semantics as close to the tezos protocol as possible
-    - [x] for non-crypto operations (`int`, `nat`, `map`, *etc.*)
+    - [x] for non-crypto, non-packing-related operations (`int`, `nat`, `map`, *etc.*)
     - [ ] for crypto operations
+    - [x] internal packing and unpacking (packed and unpacked by Techelson)
+    - [ ] arbitrary byte unpacking
 - [x] support import of local michelson contracts
 - [ ] support retrieving the storage and code of contracts directly from the tezos blockchain
 
