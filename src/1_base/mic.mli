@@ -182,6 +182,7 @@ and const =
 
 | Pr of const * const
 | Lst of const list
+| Mapping of (const * const) list
 
 and contract = {
     storage : Dtyp.t ;

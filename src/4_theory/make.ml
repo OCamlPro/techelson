@@ -509,7 +509,7 @@ module Theory (
                 go_up stack
 
             | Set set ->
-                fprintf fmt "AASet {";
+                fprintf fmt "Set {";
                 let elms =
                     Set.fold (
                         fun (is_first, acc) value ->
@@ -622,6 +622,43 @@ module Theory (
 
         go_down [] v
 
+    module Inspect = struct
+        let cmp (v : value) : Cmp.t =
+            match v with
+            | C cmp -> cmp
+            | _ -> asprintf "expected a comparable value, found `%a`" fmt v |> Exc.throw
+
+        let str (v : value) : Str.t =
+            match v with
+            | C (Cmp.S s) -> s
+            | _ -> asprintf "expected a string value, found `%a`" fmt v |> Exc.throw
+
+        let bytes (v : value) : Bytes.t =
+            match v with
+            | C (Cmp.By by) -> by
+            | _ -> asprintf "expected some bytes, found `%a`" fmt v |> Exc.throw
+
+        let key (v : value) : Key.t =
+            match v with
+            | Key k -> k
+            | _ -> asprintf "expected a key, found `%a`" fmt v |> Exc.throw
+
+        let pair (v : value) : value * value =
+            match v with
+            | Pair (v_1, v_2) -> v_1, v_2
+            | _ -> asprintf "expected a pair, found `%a`" fmt v |> Exc.throw
+
+        let list (v : value) : value Lst.t =
+            match v with
+            | Lst l -> l
+            | _ -> asprintf "expected a list value, found `%a`" fmt v |> Exc.throw
+
+        let map (v : value) : value Map.t =
+            match v with
+            | Map map -> map
+            | _ -> asprintf "expected a map value, found `%a`" fmt v |> Exc.throw
+    end
+
     module Of = struct
         let int (i : Int.t) : value = C (Cmp.I i)
         let nat (i : Nat.t) : value = C (Cmp.N i)
@@ -660,18 +697,35 @@ module Theory (
 
         type constructor = value -> value
         type list_constructor = value list -> value
+        type map_constructor = (value * value) list -> value
         type frame =
         | Con of constructor
         (* A simple constructor. Takes a value and produces a value. *)
-        | LstCon of list_constructor * Mic.const list * value list
+        | LstCon of Dtyp.t * list_constructor * Mic.const list * value list
         (* Constructs a value from a list.
 
-            First is the constructor, then the constants to transpose, values already processed in
-            reverse order.
+            First is type of the elements, then  the constructor, then the constants to transpose,
+            values already processed in reverse order.
+        *)
+        | MapCon of
+            (Dtyp.t * Dtyp.t)
+            * map_constructor
+            * (value, Mic.const) Either.t
+            * (Mic.const * Mic.const) list
+            * (value * value) list
+        (* Constructs a value from a mapping.
+
+            First is type of the keys and values, then the constructor, then either `Lft key` if
+            we're converting a value (and `key` is the key), or `Rgt val` if we're converting a key
+            (and `val` is the value). Then the mappings to process. Last are the values already
+            processed.
         *)
 
-        let const (dtyp : Dtyp.t) (c : Mic.const) : value =
-            let rec go_down (stack : frame list) (c : Mic.const) : value =
+        let const (dt : Dtyp.t) (c : Mic.const) : value =
+            let bail_msg () =
+                asprintf "cannot cast constant %a to type %a" Mic.fmt_const c Dtyp.fmt dt
+            in
+            let rec go_down (stack : frame list) (dtyp : Dtyp.t) (c : Mic.const) : value =
                 match c with
                 | Mic.U -> U |> go_up stack
 
@@ -684,30 +738,54 @@ module Theory (
 
                 | Mic.No -> Option None |> go_up stack
 
-                | Mic.So c -> go_down (Con (fun v -> Option (Some v)) :: stack) c
-                | Mic.Lft c -> go_down (Con (fun v -> Either (Either.Lft v)) :: stack) c
-                | Mic.Rgt c -> go_down (Con (fun v -> Either (Either.Rgt v)) :: stack) c
+                | Mic.So c -> (
+                    let dtyp = Dtyp.Inspect.option dtyp in
+                    go_down (Con (fun v -> Option (Some v)) :: stack) dtyp c
+                )
+                | Mic.Lft c -> (
+                    let dtyp = Dtyp.Inspect.either dtyp |> fst in
+                    go_down (Con (fun v -> Either (Either.Lft v)) :: stack) dtyp c
+                )
+                | Mic.Rgt c -> (
+                    let dtyp = Dtyp.Inspect.either dtyp |> snd in
+                    go_down (Con (fun v -> Either (Either.Rgt v)) :: stack) dtyp c
+                )
 
                 | Mic.Lst (hd :: tl) -> (
-                    let frame =
-                        LstCon ((fun lst -> Lst (Lst.of_list lst)), tl, [])
+                    let set_of_list (l : value list) : value =
+                        Set (
+                            l |> List.fold_left (
+                                fun set elm ->
+                                    let elm = Inspect.cmp elm in
+                                    Set.update elm true set
+                            ) Set.empty
+                        )
                     in
-                    go_down (frame :: stack) hd
+                    let frame, dtyp =
+                        match dtyp.typ with
+                        | Dtyp.List sub ->
+                            LstCon (sub, (fun lst -> Lst (Lst.of_list lst)), tl, []), sub
+                        | Dtyp.Set sub ->
+                            LstCon (sub, set_of_list, tl, []), sub
+                        | _ -> bail_msg () |> Exc.throw
+                    in
+                    go_down (frame :: stack) dtyp hd
                 )
                 | Mic.Lst [] -> (
                     match dtyp.typ with
                     | Dtyp.List _ -> Lst (Lst.of_list [])
                     | Dtyp.Set _ -> Set (Set.empty)
                     | Dtyp.Map _ -> Map (Map.empty)
-                    | _ ->
-                        asprintf "cannot cast constant %a to %a" Mic.fmt_const c Dtyp.fmt dtyp
-                        |> Exc.throw
+                    | Dtyp.BigMap _ -> BigMap (BigMap.empty)
+                    | _ -> bail_msg () |> Exc.throw
                 ) |> go_up stack
 
-                | Mic.Pr (fst, snd) ->
+                | Mic.Pr (fst, snd) -> (
+                    let fst_dtyp, snd_dtyp = Dtyp.Inspect.pair dtyp in
                     let frame =
                         (fun () ->
                             LstCon (
+                                snd_dtyp,
                                 (function
                                     | [ fst ; snd ] -> pair fst snd
                                     | l ->
@@ -729,19 +807,87 @@ module Theory (
                                     Mic.fmt_const c
                         )
                     in
-                    go_down (frame :: stack) fst
+                    go_down (frame :: stack) fst_dtyp fst
+                )
+
+                | Mic.Mapping [] -> (
+                    match dtyp.typ with
+                    | Dtyp.Map _ -> Map Map.empty
+                    | Dtyp.BigMap _ -> BigMap BigMap.empty
+                    | _ -> bail_msg () |> Exc.throw
+                ) |> go_up stack
+
+                | Mic.Mapping ((first_key, first_value) :: tail) -> (
+                    let of_list
+                        (empty : 'a)
+                        (update : Cmp.t -> value option -> 'a -> 'a)
+                        (map : (value * value) list)
+                        : 'a
+                    =
+                        List.fold_left (
+                            fun map (key, value) ->
+                                let key = Inspect.cmp key in
+                                let value = Some value in
+                                update key value map
+                        ) empty map
+                    in
+                    let map_of_list, key_dtyp, value_dtyp =
+                        match dtyp.typ with
+                        | Dtyp.Map (k, v) ->
+                            (
+                                fun (map : (value * value) list) ->
+                                    Map (of_list Map.empty Map.update map)
+                            ), k, v
+                        | Dtyp.BigMap (k, v) ->
+                            (
+                                fun (map : (value * value) list) ->
+                                    BigMap (of_list BigMap.empty BigMap.update map)
+                            ), k, v
+                        | _ -> bail_msg () |> Exc.throw
+                    in 
+                    let frame =
+                        MapCon (
+                            (key_dtyp, value_dtyp), map_of_list, Either.Rgt first_value, tail, []
+                        )
+                    in
+                    go_down (frame :: stack) key_dtyp first_key
+                )
 
             and go_up (stack : frame list) (v : value) : value =
                 match stack with
                 | [] -> v
                 | (Con constructor) :: stack -> constructor v |> go_up stack
-                | (LstCon (constructor, [], tail)) :: stack ->
+                | (LstCon (_, constructor, [], tail)) :: stack ->
                     v :: tail |> List.rev |> constructor |> go_up stack
-                | (LstCon (constructor, cst :: cst_tail, values)) ::  stack ->
-                    let stack = (LstCon (constructor, cst_tail, v :: values)) :: stack in
-                    go_down stack cst
+                | (LstCon (dtyp, constructor, cst :: cst_tail, values)) :: stack ->
+                    let stack = (LstCon (dtyp, constructor, cst_tail, v :: values)) :: stack in
+                    go_down stack dtyp cst
+                | (
+                    MapCon ((key_dtyp, value_dtyp), cons, Either.Lft key, to_do, values)
+                ) :: stack -> (
+                    let values = (key, v) :: values in
+                    match to_do with
+                    | [] -> List.rev values |> cons |> go_up stack
+                    | (key, value) :: to_do ->
+                        let stack =
+                            (MapCon
+                                ((key_dtyp, value_dtyp), cons, Either.Rgt value, to_do, values)
+                            ) :: stack
+                        in
+                        go_down stack key_dtyp key
+                )
+                | (
+                    MapCon ((key_dtyp, value_dtyp), cons, Either.Rgt value, to_do, values)
+                ) :: stack ->
+                    let key = v in
+                    let stack =
+                        (
+                            MapCon ((key_dtyp, value_dtyp), cons, Either.Lft key, to_do, values)
+                        ) :: stack
+                    in
+                    go_down stack value_dtyp value
             in
-            go_down [] c
+            go_down [] dt c
 
         module Operation = struct
             let create (uid : int) (params : contract_params) (contract : Mic.contract) : value =
@@ -774,43 +920,6 @@ module Theory (
             let set_delegate (uid : int) (address : Address.t) (delegate : KeyH.t option) : value =
                 Operation (uid, SetDelegate (address, delegate))
         end
-    end
-
-    module Inspect = struct
-        let cmp (v : value) : Cmp.t =
-            match v with
-            | C cmp -> cmp
-            | _ -> asprintf "expected a comparable value, found `%a`" fmt v |> Exc.throw
-
-        let str (v : value) : Str.t =
-            match v with
-            | C (Cmp.S s) -> s
-            | _ -> asprintf "expected a string value, found `%a`" fmt v |> Exc.throw
-
-        let bytes (v : value) : Bytes.t =
-            match v with
-            | C (Cmp.By by) -> by
-            | _ -> asprintf "expected some bytes, found `%a`" fmt v |> Exc.throw
-
-        let key (v : value) : Key.t =
-            match v with
-            | Key k -> k
-            | _ -> asprintf "expected a key, found `%a`" fmt v |> Exc.throw
-
-        let pair (v : value) : value * value =
-            match v with
-            | Pair (v_1, v_2) -> v_1, v_2
-            | _ -> asprintf "expected a pair, found `%a`" fmt v |> Exc.throw
-
-        let list (v : value) : value Lst.t =
-            match v with
-            | Lst l -> l
-            | _ -> asprintf "expected a list value, found `%a`" fmt v |> Exc.throw
-
-        let map (v : value) : value Map.t =
-            match v with
-            | Map map -> map
-            | _ -> asprintf "expected a map value, found `%a`" fmt v |> Exc.throw
     end
 
     (*  # TODO
@@ -853,6 +962,18 @@ module Theory (
                     let lft = cast lft.inner l in
                     let rgt = cast rgt.inner r in
                     Pair (lft, rgt)
+            )
+            |> Exc.chain_err bail_msg
+
+        | Dtyp.Set elms, Set s ->
+            (
+                fun () -> Set (
+                    s |> Set.fold (
+                        fun set elm ->
+                            let elm = Cmp.cast elms elm in
+                            Set.update elm true set
+                    ) Set.empty
+                )
             )
             |> Exc.chain_err bail_msg
 

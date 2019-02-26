@@ -176,6 +176,7 @@
         "Left", C_LEFT ;
         "Right", C_RIGHT ;
         "Pair", C_PAIR ;
+        "Elt", C_ELT ;
 
         (* Contract's fields. *)
         "parameter", PARAMETER ;

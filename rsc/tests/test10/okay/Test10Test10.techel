@@ -1,0 +1,179 @@
+{
+  # deploying contract `Test10`
+  {
+    # creating contract creation parameters
+    {
+      # creating storage for contract `Test10`
+      {
+        EMPTY_MAP string int ;
+        {
+          PUSH int 8204566 ;
+          NEG
+        } ;
+        SOME ;
+        PAIR ;
+        PUSH bool True ;
+        PAIR
+      } ;
+      # money transferred
+      PUSH mutez 99434295055929 ;
+      # delegatable
+      PUSH bool True ;
+      # spendable
+      PUSH bool True ;
+      # delegate
+      NONE key_hash ;
+      # manager
+      {
+        PUSH key "" ;
+        HASH_KEY
+      }
+    } ;
+    CREATE_CONTRACT "Test10"
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT bool ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test10`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 596541464919763 ;
+    PUSH bool False ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT bool ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test10`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 61459686312147 ;
+    PUSH bool False ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT bool ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test10`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 864327024082596 ;
+    PUSH bool True ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT bool ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test10`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 693147382050554 ;
+    PUSH bool False ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT bool ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test10`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 462610424179834 ;
+    PUSH bool False ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT bool ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test10`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 558773253034993 ;
+    PUSH bool False ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  }
+}

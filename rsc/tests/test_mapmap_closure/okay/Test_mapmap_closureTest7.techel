@@ -1,0 +1,182 @@
+{
+  # deploying contract `Test_mapmap_closure`
+  {
+    # creating contract creation parameters
+    {
+      # creating storage for contract `Test_mapmap_closure`
+      EMPTY_MAP string bool ;
+      # money transferred
+      PUSH mutez 454673604486430 ;
+      # delegatable
+      PUSH bool True ;
+      # spendable
+      PUSH bool False ;
+      # delegate
+      {
+        PUSH key "" ;
+        SHA256 ;
+        SOME
+      } ;
+      # manager
+      {
+        PUSH key "2" ;
+        BLAKE2B
+      }
+    } ;
+    CREATE_CONTRACT "Test_mapmap_closure"
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (map string mutez) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_mapmap_closure`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 293455639682873 ;
+    EMPTY_MAP string mutez ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (map string mutez) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_mapmap_closure`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 272592481956243 ;
+    EMPTY_MAP string mutez ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (map string mutez) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_mapmap_closure`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 646025984468161 ;
+    {
+      EMPTY_MAP string mutez ;
+      PUSH mutez 203529331436090 ;
+      SOME ;
+      PUSH string "" ;
+      UPDATE ;
+      PUSH mutez 160740135253806 ;
+      SOME ;
+      PUSH string "" ;
+      UPDATE ;
+      PUSH mutez 319273421614070 ;
+      SOME ;
+      PUSH string "" ;
+      UPDATE ;
+      PUSH mutez 654664771873364 ;
+      SOME ;
+      PUSH string "" ;
+      UPDATE
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (map string mutez) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_mapmap_closure`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 489085499918065 ;
+    EMPTY_MAP string mutez ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT (map string mutez) ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_mapmap_closure`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 541709923573730 ;
+    {
+      EMPTY_MAP string mutez ;
+      PUSH mutez 247524686370217 ;
+      SOME ;
+      PUSH string "" ;
+      UPDATE ;
+      PUSH mutez 637441964176430 ;
+      SOME ;
+      PUSH string "" ;
+      UPDATE ;
+      PUSH mutez 314218685013063 ;
+      SOME ;
+      PUSH string "" ;
+      UPDATE
+    } ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  }
+}

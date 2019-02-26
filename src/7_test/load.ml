@@ -46,7 +46,7 @@ let test (name : string) (source : Source.t) (chan : in_channel) : Testcase.t =
             let code = contract.entry in
             if DtypCheck.is_compatible env unit contract.entry_param |> not then (
                 Exc.throws [
-                    asprintf "contract parameter must have type unit, found %a"
+                    asprintf "testcase contract parameter must have type unit, found %a"
                         Dtyp.fmt contract.entry_param ;
                     "while parsing a contract as a testcase" ;
                 ]

@@ -1,0 +1,306 @@
+{
+  # deploying contract `Test_if`
+  {
+    # creating contract creation parameters
+    {
+      # creating storage for contract `Test_if`
+      {
+        NIL int ;
+        {
+          PUSH int 4746 ;
+          NEG
+        } ;
+        CONS ;
+        {
+          PUSH int 43571467 ;
+          NEG
+        } ;
+        CONS ;
+        PUSH int 15675285686 ;
+        CONS ;
+        PUSH int 273720 ;
+        CONS ;
+        {
+          PUSH int 123778174513536255 ;
+          NEG
+        } ;
+        CONS ;
+        {
+          PUSH int 4330277075255 ;
+          NEG
+        } ;
+        CONS ;
+        {
+          PUSH int 173 ;
+          NEG
+        } ;
+        CONS ;
+        PUSH int 0 ;
+        CONS ;
+        {
+          PUSH int 38 ;
+          NEG
+        } ;
+        CONS ;
+        PUSH int 880 ;
+        CONS ;
+        {
+          PUSH int 74 ;
+          NEG
+        } ;
+        CONS ;
+        {
+          PUSH int 700211816818020 ;
+          NEG
+        } ;
+        CONS ;
+        {
+          PUSH int 61 ;
+          NEG
+        } ;
+        CONS ;
+        {
+          PUSH int 4225731623167531856720116547 ;
+          NEG
+        } ;
+        CONS ;
+        PUSH int 845347 ;
+        CONS ;
+        PUSH int 0 ;
+        CONS ;
+        {
+          PUSH int 35 ;
+          NEG
+        } ;
+        CONS ;
+        PUSH int 2253 ;
+        CONS ;
+        PUSH int 0 ;
+        CONS ;
+        PUSH int 53171782 ;
+        CONS ;
+        {
+          PUSH int 3321441334028 ;
+          NEG
+        } ;
+        CONS ;
+        {
+          PUSH int 836 ;
+          NEG
+        } ;
+        CONS ;
+        PUSH int 0 ;
+        CONS ;
+        PUSH int 6 ;
+        CONS ;
+        PUSH int 45065726706 ;
+        CONS ;
+        {
+          PUSH int 38656715012181324777833341 ;
+          NEG
+        } ;
+        CONS ;
+        {
+          PUSH int 860751 ;
+          NEG
+        } ;
+        CONS ;
+        PUSH int 65887177463122604848318428068560521567013 ;
+        CONS ;
+        PUSH int 0 ;
+        CONS ;
+        PUSH int 0 ;
+        CONS ;
+        {
+          PUSH int 1416265 ;
+          NEG
+        } ;
+        CONS ;
+        {
+          PUSH int 53714472824363 ;
+          NEG
+        } ;
+        CONS ;
+        {
+          PUSH int 23134 ;
+          NEG
+        } ;
+        CONS ;
+        PUSH int 3254 ;
+        CONS ;
+        {
+          PUSH int 8 ;
+          NEG
+        } ;
+        CONS ;
+        PUSH int 0 ;
+        CONS ;
+        {
+          PUSH int 351885 ;
+          NEG
+        } ;
+        CONS ;
+        PUSH int 0 ;
+        CONS ;
+        PUSH int 4761 ;
+        CONS ;
+        {
+          PUSH int 24207210061652118 ;
+          NEG
+        } ;
+        CONS ;
+        EMPTY_SET int ;
+        PUSH bool True ;
+        {
+          PUSH int 63638 ;
+          NEG
+        } ;
+        UPDATE ;
+        PUSH bool True ;
+        {
+          PUSH int 64268825678407 ;
+          NEG
+        } ;
+        UPDATE ;
+        PUSH bool True ;
+        PUSH int 0 ;
+        UPDATE ;
+        PUSH bool True ;
+        PUSH int 2702078 ;
+        UPDATE ;
+        PUSH bool True ;
+        {
+          PUSH int 4402 ;
+          NEG
+        } ;
+        UPDATE ;
+        PUSH bool True ;
+        {
+          PUSH int 6840674 ;
+          NEG
+        } ;
+        UPDATE ;
+        PUSH bool True ;
+        {
+          PUSH int 7285322465744 ;
+          NEG
+        } ;
+        UPDATE ;
+        PUSH bool True ;
+        PUSH int 6 ;
+        UPDATE ;
+        PUSH bool True ;
+        PUSH int 28622132764538418017728845017641117771831716345577 ;
+        UPDATE ;
+        PUSH bool True ;
+        {
+          PUSH int 732431 ;
+          NEG
+        } ;
+        UPDATE ;
+        PUSH bool True ;
+        PUSH int 0 ;
+        UPDATE ;
+        PUSH bool True ;
+        {
+          PUSH int 15 ;
+          NEG
+        } ;
+        UPDATE ;
+        PUSH bool True ;
+        {
+          PUSH int 5221084 ;
+          NEG
+        } ;
+        UPDATE ;
+        PUSH bool True ;
+        PUSH int 26284616685 ;
+        UPDATE ;
+        PUSH bool True ;
+        PUSH int 0 ;
+        UPDATE ;
+        PUSH bool True ;
+        {
+          PUSH int 748680 ;
+          NEG
+        } ;
+        UPDATE ;
+        PAIR ;
+        EMPTY_MAP string int ;
+        PUSH int 5 ;
+        SOME ;
+        PUSH string "qb|H6<@R'#3x[ww3K6*D#]3ltGd*" ;
+        UPDATE ;
+        NONE int ;
+        PUSH string "{7" ;
+        UPDATE ;
+        NONE int ;
+        PUSH string "" ;
+        UPDATE ;
+        PUSH int 0 ;
+        SOME ;
+        PUSH string "86" ;
+        UPDATE ;
+        {
+          PUSH int 635 ;
+          NEG
+        } ;
+        SOME ;
+        PUSH string "" ;
+        UPDATE ;
+        NONE int ;
+        PUSH string "" ;
+        UPDATE ;
+        PAIR ;
+        NONE int ;
+        PAIR ;
+        PUSH bool True ;
+        PAIR
+      } ;
+      # money transferred
+      PUSH mutez 655522157421055 ;
+      # delegatable
+      PUSH bool False ;
+      # spendable
+      PUSH bool True ;
+      # delegate
+      NONE key_hash ;
+      # manager
+      {
+        PUSH key "" ;
+        HASH_KEY
+      }
+    } ;
+    CREATE_CONTRACT "Test_if"
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT bool ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_if`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 270996506348010 ;
+    PUSH bool False ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  }
+}

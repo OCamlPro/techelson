@@ -388,6 +388,7 @@ and const =
 
 | Pr of const * const
 | Lst of const list
+| Mapping of (const * const) list
 
 and contract = {
     storage : Dtyp.t ;
@@ -552,7 +553,12 @@ and fmt_const (fmtt : formatter) (c : const) : unit =
     | Lst l -> (
         fprintf fmtt "{";
         l |> List.iter (fprintf fmtt " %a ;" fmt_const);
-        fprintf fmtt "}"
+        fprintf fmtt " }"
+    )
+    | Mapping map -> (
+        fprintf fmtt "{";
+        map |> List.iter (fun (k, v) -> fprintf fmtt " Elt %a %a ;" fmt_const k fmt_const v);
+        fprintf fmtt " }"
     )
 
 (* Formats instructions.

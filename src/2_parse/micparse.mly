@@ -73,7 +73,7 @@
 %token C_UNIT
 %token <bool> C_BOOL
 %token <string> C_INT C_STR C_BYTES
-%token C_NONE C_SOME C_LEFT C_RIGHT C_PAIR
+%token C_NONE C_SOME C_LEFT C_RIGHT C_PAIR C_ELT
 
 (* Tokens for instructions. *)
 %token
@@ -672,6 +672,12 @@ const :
     }
 
     | OCURL
+    ; lst = const_map
+    ; CCURL {
+        Mic.Mapping lst
+    }
+
+    | OCURL
     ; lst = const_list
     ; CCURL {
         Mic.Lst lst
@@ -686,4 +692,18 @@ const_list :
     }
     | c = const {
         [c]
+    }
+
+const_map :
+    | C_ELT
+    ; key = const
+    ; value = const
+    ; SEMICOL
+    ; tail = const_map {
+        (key, value) :: tail
+    }
+    | C_ELT
+    ; key = const
+    ; value = const {
+        [key, value]
     }

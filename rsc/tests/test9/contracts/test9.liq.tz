@@ -34,6 +34,8 @@ code { DUP ;
           { DUUUUP @parameter ;
             IF { PUSH (map string int) { Elt "string" 1 } }
                { PUSH (map string int) { Elt "string" 1 ; Elt "toto" 2 } } } ;
+       # PRINT_STACK ;
+       # STEP "blah" ;
        RENAME @map ;
        PAIR ;
        SWAP ;

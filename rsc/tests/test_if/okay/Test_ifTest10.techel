@@ -1,0 +1,295 @@
+{
+  # deploying contract `Test_if`
+  {
+    # creating contract creation parameters
+    {
+      # creating storage for contract `Test_if`
+      {
+        NIL int ;
+        EMPTY_SET int ;
+        PAIR ;
+        EMPTY_MAP string int ;
+        PUSH int 0 ;
+        SOME ;
+        PUSH string "ZzV;G$0]MO>g|t?odI!D?" ;
+        UPDATE ;
+        {
+          PUSH int 417326 ;
+          NEG
+        } ;
+        SOME ;
+        PUSH string "" ;
+        UPDATE ;
+        NONE int ;
+        PUSH string "" ;
+        UPDATE ;
+        {
+          PUSH int 657843461532887857 ;
+          NEG
+        } ;
+        SOME ;
+        PUSH string "J#]3SPU]c@kUI';" ;
+        UPDATE ;
+        NONE int ;
+        PUSH string "77$)i!K/@/+" ;
+        UPDATE ;
+        {
+          PUSH int 62 ;
+          NEG
+        } ;
+        SOME ;
+        PUSH string "" ;
+        UPDATE ;
+        PUSH int 0 ;
+        SOME ;
+        PUSH string "#_uG" ;
+        UPDATE ;
+        NONE int ;
+        PUSH string "" ;
+        UPDATE ;
+        PUSH int 3634343436880087208775208502432050200024368 ;
+        SOME ;
+        PUSH string "" ;
+        UPDATE ;
+        NONE int ;
+        PUSH string "" ;
+        UPDATE ;
+        {
+          PUSH int 12718334480006167772548334375 ;
+          NEG
+        } ;
+        SOME ;
+        PUSH string "" ;
+        UPDATE ;
+        NONE int ;
+        PUSH string "" ;
+        UPDATE ;
+        NONE int ;
+        PUSH string "o?2{|(M'']:" ;
+        UPDATE ;
+        NONE int ;
+        PUSH string "Jzt" ;
+        UPDATE ;
+        NONE int ;
+        PUSH string "" ;
+        UPDATE ;
+        PUSH int 83685 ;
+        SOME ;
+        PUSH string "" ;
+        UPDATE ;
+        {
+          PUSH int 1 ;
+          NEG
+        } ;
+        SOME ;
+        PUSH string "" ;
+        UPDATE ;
+        NONE int ;
+        PUSH string "" ;
+        UPDATE ;
+        NONE int ;
+        PUSH string "?" ;
+        UPDATE ;
+        NONE int ;
+        PUSH string "" ;
+        UPDATE ;
+        {
+          PUSH int 75 ;
+          NEG
+        } ;
+        SOME ;
+        PUSH string "" ;
+        UPDATE ;
+        PUSH int 62674507807346437676482 ;
+        SOME ;
+        PUSH string "#g~oYK" ;
+        UPDATE ;
+        PUSH int 74662 ;
+        SOME ;
+        PUSH string "" ;
+        UPDATE ;
+        NONE int ;
+        PUSH string "" ;
+        UPDATE ;
+        NONE int ;
+        PUSH string "" ;
+        UPDATE ;
+        PUSH int 6 ;
+        SOME ;
+        PUSH string "zO~_'" ;
+        UPDATE ;
+        {
+          PUSH int 504 ;
+          NEG
+        } ;
+        SOME ;
+        PUSH string "" ;
+        UPDATE ;
+        PAIR ;
+        NONE int ;
+        PAIR ;
+        PUSH bool True ;
+        PAIR
+      } ;
+      # money transferred
+      PUSH mutez 30983914268009 ;
+      # delegatable
+      PUSH bool False ;
+      # spendable
+      PUSH bool False ;
+      # delegate
+      NONE key_hash ;
+      # manager
+      {
+        PUSH key "" ;
+        SHA256
+      }
+    } ;
+    CREATE_CONTRACT "Test_if"
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT bool ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_if`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 916751017176841 ;
+    PUSH bool True ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT bool ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_if`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 253148220144610 ;
+    PUSH bool False ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT bool ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_if`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 674894063830200 ;
+    PUSH bool True ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT bool ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_if`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 794588391604576 ;
+    PUSH bool True ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT bool ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_if`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 712163890537269 ;
+    PUSH bool False ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT bool ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test_if`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 362607862042044 ;
+    PUSH bool True ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  }
+}
