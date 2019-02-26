@@ -4,6 +4,10 @@ TEst miCHELSON: `techelson`
 
 A test execution engine for Michelson smart contracts.
 
+# Documentation
+
+The user documentation is hosted here: [liquidity-lang.org/techelson/doc]. You can also access the bleeding edge version on [the main repo's git page]. Finally, there is a blog post by Techelson's main developer on how to use Techelson with [Liquidity]: [adrienchampion.github.io/blog].
+
 # Features
 
 Techelson is currently in beta. The rough list of (planned) features is
@@ -54,10 +58,6 @@ For example
 ```bash
 > techelson --contract rsc/tests/test0/contracts/test0.liq.tz -- rsc/tests/test0/okay/Test0Test1.techel
 ```
-
-# Documentation
-
-The user documentation is hosted here: [liquidity-lang.org/techelson/doc]. You can also access the bleeding edge version on [the main repo's git page]. Finally, there is a blog post by Techelson's main developer on how to use Techelson with [Liquidity]: [adrienchampion.github.io/blog].
 
 [dune]: https://github.com/ocaml/dune (Dune project manager's Github page)
 [mdbook]: https://github.com/rust-lang-nursery/mdBook (Mdbook's github repository)
