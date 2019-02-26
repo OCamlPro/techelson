@@ -25,7 +25,8 @@ Techelson is currently in beta. The rough list of (planned) features is
 
 # Build
 
-We recommend to use the latest version of the OCaml compiler. For example
+We recommend to use the latest version of the OCaml compiler. Make sure you have [opam installed],
+and run
 
 ```bash
 > opam switch create techelson 4.07.1
@@ -59,6 +60,7 @@ For example
 > techelson --contract rsc/tests/test0/contracts/test0.liq.tz -- rsc/tests/test0/okay/Test0Test1.techel
 ```
 
+[opam installed]: https://opam.ocaml.org/doc/Install.html (Opam install instructions)
 [dune]: https://github.com/ocaml/dune (Dune project manager's Github page)
 [mdbook]: https://github.com/rust-lang-nursery/mdBook (Mdbook's github repository)
 [liquidity-lang.org/techelson/doc]: http://www.liquidity-lang.org/techelson/doc (Techelson's user documentation)
