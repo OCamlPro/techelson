@@ -921,7 +921,6 @@ applying operation TRANSFER[uid:2] address[0]@Transfer -&gt; address[1]@main 13u
 running TRANSFER[uid:2] address[0]@Transfer -&gt; address[1]@main 13utz True
 =&gt; live contracts: SimpleExample (23utz) address[1]@main
 
-=&gt; live contracts: SimpleExample (23utz) address[1]@main
 
 running test script...
 stack:
@@ -1129,24 +1128,6 @@ running test script...
 
 applying operation CREATE[uid:2] (@address[3]@admins, &quot;sha512:@contract_manager&quot;, None, false, true, 0utz) &quot;Admins&quot;
    live contracts: none
-=&gt; live contracts: Admins (0utz) address[3]@admins
-applying operation CREATE[uid:1] (@address[2]@new_admin, &quot;sha512:@new_admin_manager&quot;, None, true, true, 0utz) 
-                       {
-                           storage unit ;
-                           parameter unit ;
-                           code ...;
-                       }
-   live contracts: Admins (0utz) address[3]@admins
-=&gt; live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
-                   Admins (0utz) address[3]@admins
-applying operation CREATE[uid:0] (@address[1]@root, &quot;sha512:@root_manager&quot;, None, true, true, 0utz) 
-                       {
-                           storage unit ;
-                           parameter unit ;
-                           code ...;
-                       }
-   live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
-                   Admins (0utz) address[3]@admins
 =&gt; live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
                    Admins (0utz) address[3]@admins
                    &lt;anonymous&gt; (0utz) address[1]@root
@@ -1266,24 +1247,6 @@ running test script...
 
 applying operation CREATE[uid:2] (@address[3]@admins, &quot;sha512:@contract_manager&quot;, None, false, true, 0utz) &quot;Admins&quot;
    live contracts: none
-=&gt; live contracts: Admins (0utz) address[3]@admins
-applying operation CREATE[uid:1] (@address[2]@new_admin, &quot;sha512:@new_admin_manager&quot;, None, true, true, 0utz) 
-                       {
-                           storage unit ;
-                           parameter unit ;
-                           code ...;
-                       }
-   live contracts: Admins (0utz) address[3]@admins
-=&gt; live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
-                   Admins (0utz) address[3]@admins
-applying operation CREATE[uid:0] (@address[1]@root, &quot;sha512:@root_manager&quot;, None, true, true, 0utz) 
-                       {
-                           storage unit ;
-                           parameter unit ;
-                           code ...;
-                       }
-   live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
-                   Admins (0utz) address[3]@admins
 =&gt; live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
                    Admins (0utz) address[3]@admins
                    &lt;anonymous&gt; (0utz) address[1]@root
@@ -1323,13 +1286,16 @@ failure confirmed on test operation
   MUST_FAIL[uid:4] _ (TRANSFER[uid:3] address[0]@MustFail -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin)))
 while running operation TRANSFER[uid:3] address[0]@MustFail -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin))
 failed with value &quot;illegal access to admin account&quot; : string
-=&gt; live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
-                   Admins (0utz) address[3]@admins
-                   &lt;anonymous&gt; (0utz) address[1]@root
 
 running test script...
 Done running test `MustFail`
 
+</code></pre>
+<p>Notice that Techelson lets you know the failure is confirmed:</p>
+<pre><code>failure confirmed on test operation
+  MUST_FAIL[uid:4] _ (TRANSFER[uid:3] address[0]@MustFail -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin)))
+while running operation TRANSFER[uid:3] address[0]@MustFail -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin))
+failed with value &quot;illegal access to admin account&quot; : string
 </code></pre>
 <a class="header" href="#more-precise-failure-testing" id="more-precise-failure-testing"><h2>(More) Precise Failure Testing</h2></a>
 <p>Now, <code>MUST_FAIL</code> (as it is used here) succeeds if the transfer ends in a <em>tezos protocol</em> failure.
@@ -1355,24 +1321,6 @@ running test script...
 
 applying operation CREATE[uid:2] (@address[3]@admins, &quot;sha512:@contract_manager&quot;, None, false, true, 0utz) &quot;Admins&quot;
    live contracts: none
-=&gt; live contracts: Admins (0utz) address[3]@admins
-applying operation CREATE[uid:1] (@address[2]@new_admin, &quot;sha512:@new_admin_manager&quot;, None, true, true, 0utz) 
-                       {
-                           storage unit ;
-                           parameter unit ;
-                           code ...;
-                       }
-   live contracts: Admins (0utz) address[3]@admins
-=&gt; live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
-                   Admins (0utz) address[3]@admins
-applying operation CREATE[uid:0] (@address[1]@root, &quot;sha512:@root_manager&quot;, None, true, true, 0utz) 
-                       {
-                           storage unit ;
-                           parameter unit ;
-                           code ...;
-                       }
-   live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
-                   Admins (0utz) address[3]@admins
 =&gt; live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
                    Admins (0utz) address[3]@admins
                    &lt;anonymous&gt; (0utz) address[1]@root
@@ -1413,9 +1361,6 @@ failure confirmed on test operation
   MUST_FAIL[uid:4] &quot;illegal access to admin account&quot; : string (TRANSFER[uid:3] address[0]@PreciseMustFail -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin)))
 while running operation TRANSFER[uid:3] address[0]@PreciseMustFail -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin))
 failed with value &quot;illegal access to admin account&quot; : string
-=&gt; live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
-                   Admins (0utz) address[3]@admins
-                   &lt;anonymous&gt; (0utz) address[1]@root
 
 running test script...
 Done running test `PreciseMustFail`
@@ -1500,24 +1445,6 @@ running test script...
 
 applying operation CREATE[uid:2] (@address[3]@admins, &quot;sha512:@contract_manager&quot;, None, false, true, 0utz) &quot;Admins&quot;
    live contracts: none
-=&gt; live contracts: Admins (0utz) address[3]@admins
-applying operation CREATE[uid:1] (@address[2]@new_admin, &quot;sha512:@new_admin_manager&quot;, None, true, true, 0utz) 
-                       {
-                           storage unit ;
-                           parameter unit ;
-                           code ...;
-                       }
-   live contracts: Admins (0utz) address[3]@admins
-=&gt; live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
-                   Admins (0utz) address[3]@admins
-applying operation CREATE[uid:0] (@address[1]@root, &quot;sha512:@root_manager&quot;, None, true, true, 0utz) 
-                       {
-                           storage unit ;
-                           parameter unit ;
-                           code ...;
-                       }
-   live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
-                   Admins (0utz) address[3]@admins
 =&gt; live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
                    Admins (0utz) address[3]@admins
                    &lt;anonymous&gt; (0utz) address[1]@root
@@ -1585,9 +1512,6 @@ running TRANSFER[uid:3] address[1]@root -&gt; address[3]@admins 0utz (&quot;root
                    Admins (0utz) address[3]@admins
                    &lt;anonymous&gt; (0utz) address[1]@root
 
-=&gt; live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
-                   Admins (0utz) address[3]@admins
-                   &lt;anonymous&gt; (0utz) address[1]@root
 
 running test script...
 Done running test `SetSource`
@@ -1644,7 +1568,6 @@ applying operation TRANSFER[uid:1] address[0]@SimpleExampleTest1 -&gt; address[1
 running TRANSFER[uid:1] address[0]@SimpleExampleTest1 -&gt; address[1] 120584798270008utz True
 =&gt; live contracts: SimpleExample (759142736525198utz) address[1]
 
-=&gt; live contracts: SimpleExample (759142736525198utz) address[1]
 
 running test script...
 Done running test `SimpleExampleTest1`
@@ -1896,7 +1819,6 @@ applying operation TRANSFER[uid:1] address[0]@SimpleExampleTest1 -&gt; address[1
 running TRANSFER[uid:1] address[0]@SimpleExampleTest1 -&gt; address[1] 120584798270008utz True
 =&gt; live contracts: SimpleExample (759142736525198utz) address[1]
 
-=&gt; live contracts: SimpleExample (759142736525198utz) address[1]
 
 running test script...
 Done running test `SimpleExampleTest1`
@@ -1916,7 +1838,6 @@ applying operation TRANSFER[uid:1] address[2]@SimpleExampleTest2 -&gt; address[3
 running TRANSFER[uid:1] address[2]@SimpleExampleTest2 -&gt; address[3] 520090578679187utz True
 =&gt; live contracts: SimpleExample (810126422944596utz) address[3]
 
-=&gt; live contracts: SimpleExample (810126422944596utz) address[3]
 
 running test script...
 
@@ -1926,7 +1847,6 @@ applying operation TRANSFER[uid:2] address[2]@SimpleExampleTest2 -&gt; address[3
 running TRANSFER[uid:2] address[2]@SimpleExampleTest2 -&gt; address[3] 845034275504874utz False
 =&gt; live contracts: SimpleExample (1655160698449470utz) address[3]
 
-=&gt; live contracts: SimpleExample (1655160698449470utz) address[3]
 
 running test script...
 Done running test `SimpleExampleTest2`
