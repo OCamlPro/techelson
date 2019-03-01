@@ -143,22 +143,18 @@ module PairHelp = struct
             (to_do : Mic.Macro.pair_op list)
             : tree
         =
-            (* log_1 "down (%i)@." (List.length to_do); *)
             match to_do with
 
             (* Going up from the left branch. *)
             | A :: to_do ->
-                (* log_1 "  A@."; *)
                 go_up stack to_do LeafA
 
             (* Going up from the right branch. *)
             | I :: to_do ->
-                (* log_1 "  I@."; *)
                 go_up stack to_do LeafI
 
             (* Go down the left part of a pair constructor. *)
             | P :: to_do ->
-                (* log_1 "  P@."; *)
                 go_down (PairLeft :: stack) to_do
 
             | [] -> bail_pair 1
@@ -170,17 +166,14 @@ module PairHelp = struct
             (tree : tree)
             : tree
         =
-            (* log_1 "up %a@." fmt_tree tree; *)
             match stack with
 
             (* Going up a left branch, need to go down the left branch now. *)
             | PairLeft :: stack ->
-                (* log_1 "  P left@."; *)
                 go_down ((PairRight tree) :: stack) to_do
 
             (* Going up a right branch from a pair constructor. *)
             | (PairRight left_branch) :: stack -> 
-                (* log_1 "  P right@."; *)
                 go_up stack to_do (Pair (left_branch, tree))
 
             (* Reached the top of the stack, there should be no operator left. *)

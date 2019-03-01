@@ -77,6 +77,28 @@ let rec handle_events (conf : Conf.t) (stack : Cxt.Run.Stack.t) (events : Cxt.ev
             ] else true
         ) else handle_events conf stack events
 
+(* Handles a confirmed failure.
+
+    Arguments:
+    - `MustFail` operation that was confirmed
+    - actual operation that caused the failure
+    - either the value (and its type) on which the failure occured, or the protocl error that
+      caused the failure
+*)
+let handle_confirmed_failure : Cxt.Ops.handle_confirmed_failure = fun op sub_op -> (
+    function
+    | Either.Lft (value, dtyp) ->
+        log_0 "failure confirmed on test operation@.";
+        log_0 "  @[%a@]@." Cxt.Env.Op.fmt op;
+        log_0 "while running operation %a@." Cxt.Env.Op.fmt sub_op;
+        log_0 "failed with value %a : %a@." Cxt.Theory.fmt value Dtyp.fmt dtyp
+    | Either.Rgt e ->
+        log_0 "failure confirmed on test operation@.";
+        log_0 "  @[%a@]@." Cxt.Env.Op.fmt op;
+        log_0 "while running operation %a@." Cxt.Env.Op.fmt sub_op;
+        log_0 "%a@." Exc.Protocol.fmt e
+)
+
 let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
     Tests.get_tests cxt |> Lst.fold (
         fun (err_count : int) (test : Testcase.t) ->
@@ -111,7 +133,7 @@ let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
                         | None -> log_2 "no operations left@."
                     );
                     cond_step conf;
-                    let res = Cxt.Ops.apply cxt in
+                    let res = Cxt.Ops.apply handle_confirmed_failure cxt in
                     match res with
                     | Some (Either.Lft test) ->
                         log_1 "=> %a@." Cxt.Ops.fmt_contracts cxt;
@@ -288,35 +310,29 @@ let run_testgen (conf : Conf.t) (gen_conf : Conf.testgen_mode) (cxt : Test.Testc
 let run () : unit =
     let conf = conf () in
 
-    match conf.Conf.mode with
-    | Conf.Inactive ->
-        log_2 "loading context...@.";
-        let context, errs =
-            Test.Load.context
-                ~contract_files:conf.contracts
-                ~test_files:conf.args
-        in
-        log_2 "done loading context@.%a@.@." (Tests.fmt ~full:false) context;
+    let contract_files, test_files, run =
+        match conf.Conf.mode with
+        | Conf.Inactive ->
+            conf.contracts, conf.args,
+            fun conf context -> run_tests conf context
+        | Conf.Testgen testgen_conf ->
+            conf.contracts, [],
+            fun conf context -> run_testgen conf testgen_conf context
+    in
 
-        if errs > 0 then (
-            sprintf "encountered %i error%s while loading context" errs (Fmt.plurify errs)
-            |> Exc.throw
-        );
-        run_tests conf context
-    | Conf.Testgen testgen_conf ->
     log_2 "loading context...@.";
-        let context, errs =
-            Test.Load.context
-                ~contract_files:conf.contracts
-                ~test_files:[]
-        in
-        log_2 "done loading context@.%a@.@." (Tests.fmt ~full:false) context;
+    let context, errors =
+        Test.Load.context ~contract_files ~test_files
+    in
+    log_2 "done loading context@.%a@.@." (Tests.fmt ~full:false) context;
 
-        if errs > 0 then (
-            sprintf "encountered %i error%s while loading context" errs (Fmt.plurify errs)
-            |> Exc.throw
-        );
-        (fun () -> run_testgen conf testgen_conf context)
-        |> Exc.chain_err (
-            fun () -> "while running test generation"
-        )
+    if Test.Load.has_errors errors then (
+        log_0 "@[<v 4>Error(s) during contract/testcase loading:@ %a@]@."
+            Test.Load.fmt_errors errors;
+        let count = Test.Load.error_count errors in
+        sprintf "encountered %i error%s while loading contracts/testcases"
+            count (Fmt.plurify count)
+        |> Exc.throw
+    );
+
+    run conf context

@@ -87,7 +87,6 @@ and generate_contract (param : Dtyp.t) : Mic.t list =
 let generate (contract : Contract.t) (name : string) : Testcase.t =
     (* Creates a storage value. *)
     let make_storage () : Mic.t =
-        (* log_0 "making storage for %a@." Dtyp.fmt contract.storage; *)
         Values.from generate_contract generate_address contract.storage
         |> Mic.mk_seq
         |> Mic.comments [ sprintf "creating storage for contract `%s`" contract.name ]

@@ -3,16 +3,42 @@
 open Base
 open Common
 
-type error_count = int
+type error_list = Exc.exc list
+let fmt_error_list (fmt : formatter) (errs : error_list) : unit =
+    errs |> List.iter (
+        fun e -> fprintf fmt "@[<v>%a@]" Exc.fmt (Exc.Exc e)
+    )
 
-let of_source (src : Source.t list) : in_channel list * error_count =
+type errors = {
+    contracts : error_list ;
+    testcases : error_list ;
+}
+let has_errors (self : errors) : bool =
+    self.contracts <> [] || self.testcases <> []
+let fmt_errors (fmt : formatter) (self : errors) : unit =
+    let sep =
+        if self.contracts <> [] then (
+            fprintf fmt "on contracts: %a" fmt_error_list self.contracts;
+            fun () -> fprintf fmt "@ "
+        ) else (
+            ignore
+        )
+    in
+    if self.testcases <> [] then (
+        sep ();
+        fprintf fmt "on testcases: %a" fmt_error_list self.testcases
+    )
+let error_count (self : errors) : int = List.length self.contracts + List.length self.testcases
+
+let of_source (src : Source.t list) : in_channel list * error_list =
     Lst.fold (
-        fun (res, err_count) src ->
-            let () = log_3 "extracting input channel from %a.@." Source.fmt src in
-            match Exc.catch_print (fun () -> Source.to_channel src) with
-            | None -> log_0 "@." ; res, err_count + 1
-            | Some chan -> res @ [chan], err_count
-    ) ([], 0) src
+        fun (res, err_list) src ->
+            try (
+                let chan = Source.to_channel src in
+                res @ [chan], err_list
+            ) with
+            | (Exc.Exc e) -> res, err_list @ [e]
+    ) ([], []) src
 
 let contract (name : string) (source : Source.t) (chan : in_channel) : Contract.t =
     let lexbuf = Lexing.from_channel chan in
@@ -77,29 +103,25 @@ let load_map
     (files : 'a list)
     (file : 'a -> string)
     (f : 'a -> in_channel -> 'b)
-    : 'b list * error_count
+    : 'b list * error_list
 =
     files |> List.fold_left (
-        fun (acc, err_count) data ->
-            let file = file data in
-            let () = log_3 "loading file %s...@." file in
-            let load () = open_file file |> f data in
-            match
-                (
-                    fun () -> load |> Exc.chain_err (
-                        fun () -> sprintf "while loading %s file `%s`" desc file
+        fun (acc, err_list) data ->
+            try (
+                let stuff =
+                    (fun () -> file data |> open_file |> f data) |> Exc.chain_err (
+                        fun () -> sprintf "while loading %s file `%s`" desc (file data)
                     )
-                )
-                |> Exc.catch_print
-            with
-            | None -> log_3 "failed@." ; acc, err_count + 1
-            | Some stuff -> log_3 "success@." ; stuff :: acc, err_count
-    ) ([], 0)
-    |> fun (result, count) ->
-        assert (count + List.length result = List.length files);
-        (List.rev result), count
+                in
+                acc @ [stuff], err_list
+            ) with
+            | Exc.Exc e -> acc, err_list @ [e]
+    ) ([], [])
+    |> fun (result, errors) ->
+        assert (List.length errors + List.length result = List.length files);
+        result, errors
 
-let contracts (files : Conf.contract list) : Contract.t list * error_count =
+let contracts (files : Conf.contract list) : Contract.t list * error_list =
     load_map "contract" files (fun contract -> contract.Conf.file) (
         fun c chan ->
             let file = c.Conf.file in
@@ -108,7 +130,7 @@ let contracts (files : Conf.contract list) : Contract.t list * error_count =
             contract name src chan
     )
 
-let tests (files : string list) : Testcase.t list * error_count =
+let tests (files : string list) : Testcase.t list * error_list =
     load_map "test" files id (
         fun file chan ->
             let name = Contract.name_of_file file in
@@ -127,29 +149,10 @@ let scenario
 let context
     ~(contract_files : Conf.contract list)
     ~(test_files : string list)
-    : Testcases.t * error_count
+    : Testcases.t * errors
 =
-    let contract_count = List.length contract_files in
-    if contract_count > 0 then (
-        log_2 "loading %i contract file%s@." contract_count (Fmt.plurify contract_count)
-    );
     let contracts, c_errors = contracts contract_files in
-
-    let test_count = List.length test_files in
-    if test_count > 0 then (
-        log_2 "loading %i test file%s@." test_count (Fmt.plurify test_count)
-    );
     let tests, t_errors = tests test_files in
-    if c_errors + t_errors > 0 then (
-        if c_errors > 0 then (
-            log_0 "%i error%s occured during contract loading@." c_errors (Fmt.plurify c_errors)
-        );
-        if t_errors > 0 then (
-            log_0 "%i error%s occured during testcase loading@." t_errors (Fmt.plurify t_errors)
-        );
-        log_0 "@."
-    );
-
+    let errors = { contracts = c_errors ; testcases = t_errors } in
     let cxt = Testcases.of_raw contracts tests in
-
-    cxt, c_errors + t_errors
+    cxt, errors

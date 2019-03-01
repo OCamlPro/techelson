@@ -239,11 +239,21 @@ module TestCxt (
                 Some (Either.Lft { test = self.test ; obsolete = false })
             )
 
+        type handle_confirmed_failure =
+            Env.operation ->
+            Env.operation ->
+            ((Theory.value * Dtyp.t), Exc.Protocol.t) Either.t ->
+            unit
+
         (** Checks the results of the previous operation, if any.
 
             This function is responsible for catching failures, expected or not.
         *)
-        let check_prev (self : apply_ops) : (run_test, transfer) Either.t option =
+        let check_prev
+            (handle_confirmed_failure : handle_confirmed_failure)
+            (self : apply_ops)
+            : (run_test, transfer) Either.t option
+        =
 
             match self.prev, self.outcome with
             | Some (sub_op, Failure (value, dtyp)), Success op -> Exc.throws [
@@ -295,20 +305,17 @@ module TestCxt (
                     | None -> ()
                 );
 
-                log_2 "failure confirmed on test operation@.";
-                log_2 "  @[%a@]@." Env.Op.fmt op;
-                log_3 "while running operation %a@." Env.Op.fmt sub_op;
-                log_3 "failed with value %a : %a@." Theory.fmt value Dtyp.fmt dtyp;
+                Either.Lft (value, dtyp)
+                |> handle_confirmed_failure op sub_op;
 
                 RunTest.set_contract_env env self.test;
 
                 stage_next_test_op self
             )
             | Some (sub_op, Protocol e), Fail (None, op, env) -> (
-                log_2 "failure confirmed on test operation@.";
-                log_2 "  @[%a@]@." Env.Op.fmt op;
-                log_3 "while running operation %a@." Env.Op.fmt sub_op;
-                log_3 "%a@." Exc.Protocol.fmt e;
+                Either.Rgt e
+                |> handle_confirmed_failure op sub_op;
+
                 RunTest.set_contract_env env self.test;
                 stage_next_test_op self
             )
@@ -316,13 +323,17 @@ module TestCxt (
             | Some (_, Okay), _
             | None, _ -> None
 
-        let rec apply (self : apply_ops) : (run_test, transfer) Either.t option =
+        let rec apply
+            (handle_confirmed_failure : handle_confirmed_failure)
+            (self : apply_ops)
+            : (run_test, transfer) Either.t option
+        =
             if self.obsolete then (
                 Exc.throw "trying to call `ops_apply` on an obsolete `apply_ops` value"
             );
 
             (* Check previous result if any. *)
-            match check_prev self with
+            match check_prev handle_confirmed_failure self with
             | Some res -> Some res
             | None -> (
 
@@ -520,7 +531,7 @@ module TestCxt (
                             | Some e -> op, Protocol e
                             | None -> op, Okay
                         );
-                        apply self
+                        apply handle_confirmed_failure self
                 )
             )
     end

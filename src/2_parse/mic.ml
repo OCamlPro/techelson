@@ -191,7 +191,6 @@ let rec parse
             let args = args_to_mic args in
             match Mic.leaf_of_string token with
             | Some leaf -> (
-                (* log_1 "token: `%s` (%i)@." token (List.length args); *)
                 let typ_arity, var_arity, field_arity = Mic.annot_arity_of_leaf leaf in
                 param_arity_check 0 0;
                 annot_arity_check typ_arity var_arity field_arity;

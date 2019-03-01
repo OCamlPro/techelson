@@ -507,6 +507,10 @@ running TRANSFER[uid:3] address[0]@MustFail -&gt; address[3]@admins 0utz (&quot;
                    Admins (0utz) address[3]@admins
                    &lt;anonymous&gt; (0utz) address[1]@root
 
+failure confirmed on test operation
+  MUST_FAIL[uid:4] _ (TRANSFER[uid:3] address[0]@MustFail -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin)))
+while running operation TRANSFER[uid:3] address[0]@MustFail -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin))
+failed with value &quot;illegal access to admin account&quot; : string
 =&gt; live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
                    Admins (0utz) address[3]@admins
                    &lt;anonymous&gt; (0utz) address[1]@root
@@ -593,6 +597,10 @@ running TRANSFER[uid:3] address[0]@PreciseMustFail -&gt; address[3]@admins 0utz 
                    Admins (0utz) address[3]@admins
                    &lt;anonymous&gt; (0utz) address[1]@root
 
+failure confirmed on test operation
+  MUST_FAIL[uid:4] &quot;illegal access to admin account&quot; : string (TRANSFER[uid:3] address[0]@PreciseMustFail -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin)))
+while running operation TRANSFER[uid:3] address[0]@PreciseMustFail -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin))
+failed with value &quot;illegal access to admin account&quot; : string
 =&gt; live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
                    Admins (0utz) address[3]@admins
                    &lt;anonymous&gt; (0utz) address[1]@root

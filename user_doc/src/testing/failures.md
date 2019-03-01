@@ -123,6 +123,12 @@ The test now passes successfully:
 {{#include ../../rsc/admins/okay/mustFail.techel.output}}
 ```
 
+Notice that Techelson lets you know the failure is confirmed:
+
+```
+{{#include ../../rsc/admins/okay/mustFail.techel.output:61:64}}
+```
+
 ## (More) Precise Failure Testing
 
 Now, `MUST_FAIL` (as it is used here) succeeds if the transfer ends in a *tezos protocol* failure.

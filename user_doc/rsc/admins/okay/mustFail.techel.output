@@ -58,6 +58,10 @@ running TRANSFER[uid:3] address[0]@MustFail -> address[3]@admins 0utz ("root", (
                    Admins (0utz) address[3]@admins
                    <anonymous> (0utz) address[1]@root
 
+failure confirmed on test operation
+  MUST_FAIL[uid:4] _ (TRANSFER[uid:3] address[0]@MustFail -> address[3]@admins 0utz ("root", ("new_admin", address[2]@new_admin)))
+while running operation TRANSFER[uid:3] address[0]@MustFail -> address[3]@admins 0utz ("root", ("new_admin", address[2]@new_admin))
+failed with value "illegal access to admin account" : string
 => live contracts: <anonymous> (0utz) address[2]@new_admin
                    Admins (0utz) address[3]@admins
                    <anonymous> (0utz) address[1]@root

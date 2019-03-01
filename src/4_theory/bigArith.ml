@@ -158,11 +158,6 @@ module PTStampConv = struct
 
     let int_to_tstamp (i : int) : t_stamp =
         let span = Z.to_float i |> Ptime.Span.of_float_s in
-        (* (
-            match span with
-            | None -> log_0 "none@."
-            | Some f -> log_0 "some %a@." Ptime.Span.pp f
-        ); *)
         match span |> Opt.and_then (PTStamp.now () |> Ptime.add_span) with
         | Some res -> res
         | None -> asprintf "failed to convert integer %a to timestamp" BInt.fmt i |> Exc.throw

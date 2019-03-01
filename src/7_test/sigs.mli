@@ -103,8 +103,23 @@ module type TestCxt = sig
 
     (** Contains the operations related to `apply_ops`. *)
     module Ops : sig
+        (** This is the type of the functions handling the fact that a failure was confirmed.
+
+            Arguments:
+
+            - `MustFail` operation that was confirmed
+            - actual operation that caused the failure
+            - either the value (and its type) on which the failure occured, or the protocl error
+                that caused the failure
+        *)
+        type handle_confirmed_failure =
+            Env.operation ->
+            Env.operation ->
+            ((Theory.value * Dtyp.t), Exc.Protocol.t) Either.t ->
+            unit
+
         (** Applies the next operation. *)
-        val apply : apply_ops -> (run_test, transfer) Either.t option
+        val apply : handle_confirmed_failure -> apply_ops -> (run_test, transfer) Either.t option
 
         (** Operations awaiting treatment. *)
         val operations : apply_ops -> Env.operation list

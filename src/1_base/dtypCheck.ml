@@ -44,8 +44,6 @@ let rec check (t_1 : Dtyp.t) (t_2 : Dtyp.t) =
         |> Exc.throw
     in
 
-    (* log_0 "type-checking@.  %a@.  %a@." Dtyp.fmt t_1 Dtyp.fmt t_2; *)
-
     annot_check t_1.alias t_2.alias bail;
 
     match t_1.typ, t_2.typ with
@@ -115,8 +113,6 @@ let unify (cxt : t) (t_1 : Dtyp.t) (t_2 : Dtyp.t) : unit =
         asprintf "types `%a` and `%a` are not compatible" Dtyp.fmt t_1 Dtyp.fmt t_2
         |> Exc.throw
     in
-
-    (* log_0 "type-checking@.  %a@.  %a@." Dtyp.fmt t_1 Dtyp.fmt t_2; *)
 
     let rec loop (to_do : (Dtyp.t * Dtyp.t) list) =
         match to_do with
