@@ -30,11 +30,11 @@
 
         
     </head>
-    <body class="navy">
+    <body class="light">
         <!-- Provide site root to javascript -->
         <script type="text/javascript">
             var path_to_root = "../";
-            var default_theme = "navy";
+            var default_theme = "light";
         </script>
 
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
@@ -92,10 +92,10 @@
                                 <i class="fa fa-paint-brush"></i>
                             </button>
                             <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                                <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
                                 <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
                                 <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy (default)</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
                                 <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
                             </ul>
                             
@@ -207,7 +207,8 @@ code {
 <p>This produces the following output</p>
 <pre><code>$ techelson --contract rsc/simpleExample/contracts/simpleExample.tz -- rsc/simpleExample/okay/create1.techel
 Running test `Create1`
-Running test script...
+
+running test script...
 stack:
 |==================================================================================================|
 |                                                                                         @storage |
@@ -234,10 +235,12 @@ stack:
 | &quot;sha512:manager address&quot;                                                                         |
 | key_hash                                                                                         |
 |==================================================================================================|
-Running test script...
+
+running test script...
 stopping [before creation] press `return` to continue
 
-Running test script...
+
+running test script...
 stack:
 |==================================================================================================|
 | address[1]                                                                                       |
@@ -246,10 +249,12 @@ stack:
 | CREATE[uid:0] (@address[1], &quot;sha512:manager address&quot;, None, true, true, 3utz) &quot;SimpleExample&quot;    |
 | operation                                                                                        |
 |==================================================================================================|
-Running test script...
+
+running test script...
 stopping [after creation] press `return` to continue
 
-Running test script...
+
+running test script...
 Done running test `Create1`
 
 </code></pre>
@@ -299,7 +304,8 @@ techelson resumes the execution of the testcase.</p>
 <p>Running it yields</p>
 <pre><code>$ techelson --contract rsc/simpleExample/contracts/simpleExample.tz -- rsc/simpleExample/okay/create2.techel
 Running test `Create2`
-Running test script...
+
+running test script...
 stack:
 |==================================================================================================|
 |                                                                                            @main |
@@ -309,23 +315,30 @@ stack:
 | [ CREATE[uid:0] (@address[1]@main, &quot;sha512:manager address&quot;, None, true, true, 3utz) &quot;SimpleExample&quot; ] |
 | (list operation)                                                                                 |
 |==================================================================================================|
-Running test script...
+
+running test script...
 stopping [operation is now in a list] press `return` to continue
 
-Running test script...
 
-Applying Operations...
-Running test script...
+running test script...
+
+applying operation CREATE[uid:0] (@address[1]@main, &quot;sha512:manager address&quot;, None, true, true, 3utz) &quot;SimpleExample&quot;
+   live contracts: none
+=&gt; live contracts: SimpleExample (3utz) address[1]@main
+
+running test script...
 stack:
 |==================================================================================================|
 |                                                                                            @main |
 | address[1]@main                                                                                  |
 | address                                                                                          |
 |==================================================================================================|
-Running test script...
+
+running test script...
 stopping [testing that contract exists] press `return` to continue
 
-Running test script...
+
+running test script...
 stack:
 |==================================================================================================|
 | address[1]@main                                                                                  |
@@ -334,7 +347,8 @@ stack:
 | &quot;success&quot;                                                                                        |
 | string                                                                                           |
 |==================================================================================================|
-Running test script...
+
+running test script...
 Done running test `Create2`
 
 </code></pre>

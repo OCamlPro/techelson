@@ -1,10 +1,12 @@
 $ techelson rsc/no_contract/okay/test2.techel
 Running test `Test2`
-Running test script...
+
+running test script...
 stack:
 |==================================================================================================|
 | "starting the test"                                                                              |
 | string                                                                                           |
 |==================================================================================================|
-Running test script...
+
+running test script...
 Done running test `Test2`

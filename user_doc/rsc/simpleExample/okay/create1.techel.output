@@ -1,6 +1,7 @@
 $ techelson --contract rsc/simpleExample/contracts/simpleExample.tz -- rsc/simpleExample/okay/create1.techel
 Running test `Create1`
-Running test script...
+
+running test script...
 stack:
 |==================================================================================================|
 |                                                                                         @storage |
@@ -27,10 +28,12 @@ stack:
 | "sha512:manager address"                                                                         |
 | key_hash                                                                                         |
 |==================================================================================================|
-Running test script...
+
+running test script...
 stopping [before creation] press `return` to continue
 
-Running test script...
+
+running test script...
 stack:
 |==================================================================================================|
 | address[1]                                                                                       |
@@ -39,8 +42,10 @@ stack:
 | CREATE[uid:0] (@address[1], "sha512:manager address", None, true, true, 3utz) "SimpleExample"    |
 | operation                                                                                        |
 |==================================================================================================|
-Running test script...
+
+running test script...
 stopping [after creation] press `return` to continue
 
-Running test script...
+
+running test script...
 Done running test `Create1`

@@ -1,0 +1,91 @@
+{
+    PUSH @storage nat 0 ;
+    PUSH @amount mutez 3 ;
+    PUSH @delegatable bool True ;
+    PUSH @spendable bool True ;
+    NONE @delegate key_hash ;
+    PUSH key "manager address" ;
+    SHA512 @manager ;
+
+    CREATE_CONTRACT @main @main_op {
+        storage nat;
+        parameter bool;
+        code {
+            UNPAIR ;
+            IF {
+            } {
+                PUSH nat 1;
+                ADD
+            } ;
+            NIL operation ;
+            PAIR
+        };
+    } ;
+
+    DIP { NIL operation } ;
+    CONS ;
+
+    APPLY_OPERATIONS ;
+
+    # Takes the address on the top of the stack, retrieves a contract of parameter `bool`.
+    CONTRACT bool ;
+    IF_NONE { # There is no hope, failing.
+        PUSH @err_msg string "failed to retrieve contract" ;
+        FAILWITH
+    } {} ;
+
+    DUP ;
+    DUP ;
+
+    GET_BALANCE ;
+
+    PUSH mutez 3 ;
+    IFCMPNEQ {
+        PUSH string "balance should be 3utz" ;
+        FAILWITH
+    } {} ;
+
+    GET_STORAGE nat ;
+
+    IF_NONE {
+        PUSH string "unable to retrieve storage of contract" ;
+        FAILWITH
+    } {
+        PUSH nat 0 ;
+        IFCMPNEQ {
+            PUSH string "storage should be 0 (nat)" ;
+            FAILWITH
+        } {} ;
+    } ;
+
+    PUSH mutez 14 ;
+    PUSH bool True ;
+    PUSH (option key_hash) None ;
+    PUSH key_hash "manager" ;
+    CREATE_ACCOUNT @client ;
+
+    DIP NIL operation ;
+    CONS ;
+    APPLY_OPERATIONS ;
+
+    SET_SOURCE {
+        DUP ;
+        PUSH mutez 13 ;
+        PUSH bool True ;
+        TRANSFER_TOKENS ;
+        DIP {
+            PUSH mutez 42 ;
+            PUSH bool True ;
+            TRANSFER_TOKENS ;
+        }
+    } ;
+
+    DIP {
+        DIP NIL operation ;
+        CONS
+    } ;
+    CONS ;
+    APPLY_OPERATIONS ;
+    PRINT_STACK ;
+
+}

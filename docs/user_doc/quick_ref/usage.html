@@ -30,11 +30,11 @@
 
         
     </head>
-    <body class="navy">
+    <body class="light">
         <!-- Provide site root to javascript -->
         <script type="text/javascript">
             var path_to_root = "../";
-            var default_theme = "navy";
+            var default_theme = "light";
         </script>
 
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
@@ -92,10 +92,10 @@
                                 <i class="fa fa-paint-brush"></i>
                             </button>
                             <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                                <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
                                 <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
                                 <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy (default)</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
                                 <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
                             </ul>
                             
@@ -183,37 +183,54 @@ instance,</p>
 <pre><code>$ techelson --contract rsc/simpleExample/contracts/simpleExample.tz testgen -n 2
 done generating tests for contract SimpleExample
 Running test `SimpleExampleTest1`
-Running test script...
 
-Applying Operations...
-Running test script...
+running test script...
 
-Applying Operations...
+applying operation CREATE[uid:0] (@address[1], &quot;blake2b:11a6ffbc9fb85&quot;, None, false, false, 638557938255190utz) &quot;SimpleExample&quot;
+   live contracts: none
+=&gt; live contracts: SimpleExample (638557938255190utz) address[1]
 
-Contract Transfer...
+running test script...
 
-Applying Operations...
-Running test script...
+applying operation TRANSFER[uid:1] address[0]@SimpleExampleTest1 -&gt; address[1] 120584798270008utz True
+   live contracts: SimpleExample (638557938255190utz) address[1]
+
+running TRANSFER[uid:1] address[0]@SimpleExampleTest1 -&gt; address[1] 120584798270008utz True
+=&gt; live contracts: SimpleExample (759142736525198utz) address[1]
+
+=&gt; live contracts: SimpleExample (759142736525198utz) address[1]
+
+running test script...
 Done running test `SimpleExampleTest1`
 Running test `SimpleExampleTest2`
-Running test script...
 
-Applying Operations...
-Running test script...
+running test script...
 
-Applying Operations...
+applying operation CREATE[uid:0] (@address[3], &quot;blake2b:&quot;, (Some &quot;blake2b:&quot;), true, true, 290035844265409utz) &quot;SimpleExample&quot;
+   live contracts: none
+=&gt; live contracts: SimpleExample (290035844265409utz) address[3]
 
-Contract Transfer...
+running test script...
 
-Applying Operations...
-Running test script...
+applying operation TRANSFER[uid:1] address[2]@SimpleExampleTest2 -&gt; address[3] 520090578679187utz True
+   live contracts: SimpleExample (290035844265409utz) address[3]
 
-Applying Operations...
+running TRANSFER[uid:1] address[2]@SimpleExampleTest2 -&gt; address[3] 520090578679187utz True
+=&gt; live contracts: SimpleExample (810126422944596utz) address[3]
 
-Contract Transfer...
+=&gt; live contracts: SimpleExample (810126422944596utz) address[3]
 
-Applying Operations...
-Running test script...
+running test script...
+
+applying operation TRANSFER[uid:2] address[2]@SimpleExampleTest2 -&gt; address[3] 845034275504874utz False
+   live contracts: SimpleExample (810126422944596utz) address[3]
+
+running TRANSFER[uid:2] address[2]@SimpleExampleTest2 -&gt; address[3] 845034275504874utz False
+=&gt; live contracts: SimpleExample (1655160698449470utz) address[3]
+
+=&gt; live contracts: SimpleExample (1655160698449470utz) address[3]
+
+running test script...
 Done running test `SimpleExampleTest2`
 
 </code></pre>

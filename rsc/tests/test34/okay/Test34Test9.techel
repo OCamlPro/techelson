@@ -1,0 +1,54 @@
+{
+  # deploying contract `Test34`
+  {
+    # creating contract creation parameters
+    {
+      # creating storage for contract `Test34`
+      PUSH bool False ;
+      # money transferred
+      PUSH mutez 290746430200908 ;
+      # delegatable
+      PUSH bool True ;
+      # spendable
+      PUSH bool False ;
+      # delegate
+      NONE key_hash ;
+      # manager
+      {
+        PUSH key "fa" ;
+        SHA256
+      }
+    } ;
+    CREATE_CONTRACT "Test34"
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  } ;
+  # create transfer operation
+  {
+    DUP ;
+    # retrieve contract from address, fail if none
+    {
+      CONTRACT bool ;
+      IF_NONE {
+                PUSH string "unable to spawn contract `Test34`" ;
+                FAILWITH
+              }
+              {}
+    } ;
+    PUSH mutez 393140555253098 ;
+    PUSH bool False ;
+    TRANSFER_TOKENS
+  } ;
+  # create a list of operations and apply
+  {
+    NIL operation ;
+    SWAP ;
+    CONS ;
+    APPLY_OPERATIONS
+  }
+}

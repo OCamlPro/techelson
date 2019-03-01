@@ -1,15 +1,18 @@
 $ techelson rsc/no_contract/okay/test3.techel
 Running test `Test3`
-Running test script...
+
+running test script...
 stack:
 |==================================================================================================|
 | "starting the test"                                                                              |
 | string                                                                                           |
 |==================================================================================================|
-Running test script...
+
+running test script...
 stopping [just started the test] press `return` to continue
 
-Running test script...
+
+running test script...
 stack:
 |==================================================================================================|
 | "starting the test"                                                                              |
@@ -19,17 +22,21 @@ stack:
 | "a string with a variable name"                                                                  |
 | string                                                                                           |
 |==================================================================================================|
-Running test script...
+
+running test script...
 stopping [no information] press `return` to continue
 
-Running test script...
+
+running test script...
 stack:
 |==================================================================================================|
 | "starting the test"                                                                              |
 | string                                                                                           |
 |==================================================================================================|
-Running test script...
+
+running test script...
 stopping [The string should be gone. Also, we're done.] press `return` to continue
 
-Running test script...
+
+running test script...
 Done running test `Test3`

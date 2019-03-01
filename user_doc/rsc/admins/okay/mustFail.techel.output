@@ -1,9 +1,33 @@
 $ techelson --contract rsc/admins/contracts/admins.tz -- rsc/admins/okay/mustFail.techel
 Running test `MustFail`
-Running test script...
 
-Applying Operations...
-Running test script...
+running test script...
+
+applying operation CREATE[uid:2] (@address[3]@admins, "sha512:@contract_manager", None, false, true, 0utz) "Admins"
+   live contracts: none
+=> live contracts: Admins (0utz) address[3]@admins
+applying operation CREATE[uid:1] (@address[2]@new_admin, "sha512:@new_admin_manager", None, true, true, 0utz) 
+                       {
+                           storage unit ;
+                           parameter unit ;
+                           code ...;
+                       }
+   live contracts: Admins (0utz) address[3]@admins
+=> live contracts: <anonymous> (0utz) address[2]@new_admin
+                   Admins (0utz) address[3]@admins
+applying operation CREATE[uid:0] (@address[1]@root, "sha512:@root_manager", None, true, true, 0utz) 
+                       {
+                           storage unit ;
+                           parameter unit ;
+                           code ...;
+                       }
+   live contracts: <anonymous> (0utz) address[2]@new_admin
+                   Admins (0utz) address[3]@admins
+=> live contracts: <anonymous> (0utz) address[2]@new_admin
+                   Admins (0utz) address[3]@admins
+                   <anonymous> (0utz) address[1]@root
+
+running test script...
 stack:
 |==================================================================================================|
 |                                                                                            @root |
@@ -21,12 +45,22 @@ stack:
 | MUST_FAIL[uid:4] _ (TRANSFER[uid:3] address[0]@MustFail -> address[3]@admins 0utz ("root", ("new_admin", address[2]@new_admin))) |
 | operation                                                                                        |
 |==================================================================================================|
-Running test script...
 
-Applying Operations...
+running test script...
 
-Contract Transfer...
+applying operation MUST_FAIL[uid:4] _ (TRANSFER[uid:3] address[0]@MustFail -> address[3]@admins 0utz ("root", ("new_admin", address[2]@new_admin)))
+   live contracts: <anonymous> (0utz) address[2]@new_admin
+                   Admins (0utz) address[3]@admins
+                   <anonymous> (0utz) address[1]@root
 
-Applying Operations...
-Running test script...
+running TRANSFER[uid:3] address[0]@MustFail -> address[3]@admins 0utz ("root", ("new_admin", address[2]@new_admin))
+=> live contracts: <anonymous> (0utz) address[2]@new_admin
+                   Admins (0utz) address[3]@admins
+                   <anonymous> (0utz) address[1]@root
+
+=> live contracts: <anonymous> (0utz) address[2]@new_admin
+                   Admins (0utz) address[3]@admins
+                   <anonymous> (0utz) address[1]@root
+
+running test script...
 Done running test `MustFail`

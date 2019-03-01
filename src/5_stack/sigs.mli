@@ -110,10 +110,10 @@ module type ContractEnv = sig
         val count : t -> int
 
         (** Transfers some money to a live contract. *)
-        val transfer : src : string -> Theory.Tez.t -> live -> unit
+        val transfer : src : live option -> Theory.Tez.t -> live -> unit
 
         (** Collects some money from a live contract. *)
-        val collect : tgt : string -> Theory.Tez.t -> live -> unit
+        val collect : tgt : live -> Theory.Tez.t -> live -> unit
 
         (** Updates a live contract.
 

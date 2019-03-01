@@ -19,6 +19,9 @@ user-doc:
 test: bin-test doc-test
 
 doc: user-doc
+	cp README.md docs/index.md
+
+pre-commit: test doc user-doc
 
 clean:
 	dune clean

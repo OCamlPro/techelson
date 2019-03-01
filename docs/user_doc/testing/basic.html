@@ -30,11 +30,11 @@
 
         
     </head>
-    <body class="navy">
+    <body class="light">
         <!-- Provide site root to javascript -->
         <script type="text/javascript">
             var path_to_root = "../";
-            var default_theme = "navy";
+            var default_theme = "light";
         </script>
 
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
@@ -92,10 +92,10 @@
                                 <i class="fa fa-paint-brush"></i>
                             </button>
                             <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                                <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
                                 <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
                                 <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy (default)</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
                                 <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
                             </ul>
                             
@@ -149,7 +149,8 @@
 <p>This testcase does not use any contract. To run it, simply run</p>
 <pre><code class="language-bash">$ techelson rsc/no_contract/okay/test1.techel
 Running test `Test1`
-Running test script...
+
+running test script...
 Done running test `Test1`
 
 </code></pre>
@@ -165,13 +166,15 @@ example above to <a href="../../rsc/no_contract/okay/test2.techel" title="The Te
 <p>the output becomes</p>
 <pre><code>$ techelson rsc/no_contract/okay/test2.techel
 Running test `Test2`
-Running test script...
+
+running test script...
 stack:
 |==================================================================================================|
 | &quot;starting the test&quot;                                                                              |
 | string                                                                                           |
 |==================================================================================================|
-Running test script...
+
+running test script...
 Done running test `Test2`
 
 </code></pre>
@@ -196,16 +199,19 @@ make one step, read the state of the stack, <em>etc.</em></p>
 <p>Techelson will stop on all <code>STEP</code> instructions and ask you to press enter to keep going:</p>
 <pre><code>$ techelson rsc/no_contract/okay/test3.techel
 Running test `Test3`
-Running test script...
+
+running test script...
 stack:
 |==================================================================================================|
 | &quot;starting the test&quot;                                                                              |
 | string                                                                                           |
 |==================================================================================================|
-Running test script...
+
+running test script...
 stopping [just started the test] press `return` to continue
 
-Running test script...
+
+running test script...
 stack:
 |==================================================================================================|
 | &quot;starting the test&quot;                                                                              |
@@ -215,19 +221,23 @@ stack:
 | &quot;a string with a variable name&quot;                                                                  |
 | string                                                                                           |
 |==================================================================================================|
-Running test script...
+
+running test script...
 stopping [no information] press `return` to continue
 
-Running test script...
+
+running test script...
 stack:
 |==================================================================================================|
 | &quot;starting the test&quot;                                                                              |
 | string                                                                                           |
 |==================================================================================================|
-Running test script...
+
+running test script...
 stopping [The string should be gone. Also, we're done.] press `return` to continue
 
-Running test script...
+
+running test script...
 Done running test `Test3`
 
 </code></pre>

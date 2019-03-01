@@ -182,6 +182,7 @@ and const =
 
 | Pr of const * const
 | Lst of const list
+| Mapping of (const * const) list
 
 and contract = {
     storage : Dtyp.t ;
@@ -253,8 +254,11 @@ val fmt_extension :
     extension ->
     unit
 
-(** Contract formatter. *)
-val fmt_contract : formatter -> contract -> unit
+(** Contract formatter.
+
+    If `full` is true, the code of the contract will be printed, otherwise it will appear as `...`.
+*)
+val fmt_contract : full : bool -> formatter -> contract -> unit
 
 (** Constant formatter. *)
 val fmt_const : formatter -> const -> unit

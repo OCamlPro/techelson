@@ -127,19 +127,28 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
             try Some (Hashtbl.find self.live (Theory.Address.uid address)) with
             | Not_found -> None
 
-        let transfer ~(src : string) (tez : Theory.Tez.t) (live : live) : unit =
+        let transfer ~(src : live option) (tez : Theory.Tez.t) (live : live) : unit =
             (fun () -> live.balance <- Theory.Tez.add live.balance tez)
-            |> Exc.chain_err (
-                fun () ->
-                    asprintf "while transfering %a from %s to live contract %a"
-                        Theory.Tez.fmt tez src fmt live
+            |> Exc.chain_errs (
+                fun () -> [
+                    asprintf "while transfering %a" Theory.Tez.fmt tez ;
+                    (
+                        match src with
+                        | None -> asprintf "from top-level testcase"
+                        | Some src -> asprintf "from live contract %a" fmt src
+                    );
+                    asprintf "to live contract %a" fmt live ;
+                ]
             )
 
-        let collect ~(tgt : string) (tez : Theory.Tez.t) (live : live) : unit =
+        let collect ~(tgt : live) (tez : Theory.Tez.t) (live : live) : unit =
             if Theory.Tez.compare live.balance tez >= 0 then (
                 live.balance <- Theory.Tez.sub live.balance tez
             ) else
-                Exc.Throw.too_poor ~src:live.contract.name ~tgt ~amount:(Theory.Tez.to_native tez)
+                Exc.Throw.too_poor
+                    ~src:(asprintf "%a" fmt live)
+                    ~tgt:(asprintf "%a" fmt tgt)
+                    ~amount:(Theory.Tez.to_native tez)
 
         let set_delegate (delegate : Theory.KeyH.t option) (self : live) : unit =
             Theory.set_delegate delegate self.params

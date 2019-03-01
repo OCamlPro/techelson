@@ -388,6 +388,7 @@ and const =
 
 | Pr of const * const
 | Lst of const list
+| Mapping of (const * const) list
 
 and contract = {
     storage : Dtyp.t ;
@@ -525,10 +526,22 @@ let rec fmt_extension
     | SpawnContract dtyp -> fprintf fmtt "SPAWN_CONTRACT%a %a" annots () Dtyp.fmt dtyp
 
 (* Formats contracts. *)
-and fmt_contract (fmtt : formatter) ({ storage ; param ; entry } : contract) : unit =
+and fmt_contract
+    ~(full : bool)
+    (fmtt : formatter)
+    ({ storage ; param ; entry } : contract)
+    : unit
+=
     fprintf
-        fmtt "@[@[<v 4>{@ storage %a ;@ parameter %a ;@ code @[%a@] ;@]@,}@]"
-        Dtyp.fmt storage Dtyp.fmt param fmt entry
+        fmtt "@[@[<v 4>{@ storage %a ;@ parameter %a ;@ code "
+        Dtyp.fmt storage Dtyp.fmt param ;
+    (
+        if full then
+            fprintf fmtt "@[%a@]" fmt entry
+        else
+            fprintf fmtt "..."
+    );
+    fprintf fmtt ";@]@,}@]"
 
 (*  Formats constants.
 
@@ -543,7 +556,7 @@ and fmt_const (fmtt : formatter) (c : const) : unit =
     | Int n -> fprintf fmtt "%s" n
     | Str s -> fprintf fmtt "%S" s
     | Bytes s -> fprintf fmtt "0x%s" s
-    | Cont c -> fmt_contract fmtt c
+    | Cont c -> fmt_contract ~full:false fmtt c
     | Lft c -> fprintf fmtt "(Left %a)" fmt_const c
     | Rgt c -> fprintf fmtt "(Right %a)" fmt_const c
     | No -> fprintf fmtt "None"
@@ -552,7 +565,12 @@ and fmt_const (fmtt : formatter) (c : const) : unit =
     | Lst l -> (
         fprintf fmtt "{";
         l |> List.iter (fprintf fmtt " %a ;" fmt_const);
-        fprintf fmtt "}"
+        fprintf fmtt " }"
+    )
+    | Mapping map -> (
+        fprintf fmtt "{";
+        map |> List.iter (fun (k, v) -> fprintf fmtt " Elt %a %a ;" fmt_const k fmt_const v);
+        fprintf fmtt " }"
     )
 
 (* Formats instructions.
