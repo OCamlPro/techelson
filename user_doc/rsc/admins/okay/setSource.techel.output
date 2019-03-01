@@ -5,24 +5,6 @@ running test script...
 
 applying operation CREATE[uid:2] (@address[3]@admins, "sha512:@contract_manager", None, false, true, 0utz) "Admins"
    live contracts: none
-=> live contracts: Admins (0utz) address[3]@admins
-applying operation CREATE[uid:1] (@address[2]@new_admin, "sha512:@new_admin_manager", None, true, true, 0utz) 
-                       {
-                           storage unit ;
-                           parameter unit ;
-                           code ...;
-                       }
-   live contracts: Admins (0utz) address[3]@admins
-=> live contracts: <anonymous> (0utz) address[2]@new_admin
-                   Admins (0utz) address[3]@admins
-applying operation CREATE[uid:0] (@address[1]@root, "sha512:@root_manager", None, true, true, 0utz) 
-                       {
-                           storage unit ;
-                           parameter unit ;
-                           code ...;
-                       }
-   live contracts: <anonymous> (0utz) address[2]@new_admin
-                   Admins (0utz) address[3]@admins
 => live contracts: <anonymous> (0utz) address[2]@new_admin
                    Admins (0utz) address[3]@admins
                    <anonymous> (0utz) address[1]@root
@@ -90,9 +72,6 @@ running TRANSFER[uid:3] address[1]@root -> address[3]@admins 0utz ("root", ("new
                    Admins (0utz) address[3]@admins
                    <anonymous> (0utz) address[1]@root
 
-=> live contracts: <anonymous> (0utz) address[2]@new_admin
-                   Admins (0utz) address[3]@admins
-                   <anonymous> (0utz) address[1]@root
 
 running test script...
 Done running test `SetSource`

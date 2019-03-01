@@ -1,0 +1,690 @@
+parameter unit;
+storage unit;
+code { DUP ;
+       DIP { CDR } ;
+       CAR ;
+       UNIT ;
+       NIL operation ;
+       PAIR ;
+       LAMBDA
+         string
+         (pair (lambda
+                  (pair address string)
+                  (pair (map string address) (map string (pair address (pair mutez (contract unit))))))
+               string)
+         { RENAME ;
+           DUP ;
+           LAMBDA
+             (pair address string)
+             (pair (map string address) (map string (pair address (pair mutez (contract unit)))))
+             { RENAME ;
+               PUSH (map string (pair address (pair mutez (contract unit)))) {} ;
+               PUSH (map string address) {} ;
+               DUUUP ;
+               CAR ;
+               DUUUUP ;
+               CDR ;
+               DIP { SOME } ;
+               UPDATE ;
+               PAIR ;
+               DIP { DROP } } ;
+           PAIR ;
+           DIP { DROP } } ;
+       LAMBDA
+         mutez
+         (pair operation address)
+         { RENAME ;
+           NONE key_hash ;
+           DUUP ;
+           PUSH bool True ;
+           DUUUP ;
+           PUSH key_hash "tz1YLtLqD1fWHthSVHPD116oYvsd4PTAHUoc" ;
+           CREATE_ACCOUNT ;
+           PAIR ;
+           DIP { DROP } ;
+           DIP { DROP } } ;
+       LAMBDA
+         (pair (map string address) (map string (pair address (pair mutez (contract unit)))))
+         (pair operation address)
+         { RENAME ;
+           NONE key_hash ;
+           DUUP ;
+           PUSH mutez 0 ;
+           PUSH bool True ;
+           PUSH bool False ;
+           DUUUUUP ;
+           PUSH key_hash "tz1YLtLqD1fWHthSVHPD116oYvsd4PTAHUoc" ;
+           CREATE_CONTRACT
+             { parameter
+                 (or (pair string (pair string address))
+                     (or (pair string string)
+                         (or (pair string (pair string (pair address (contract unit))))
+                             (or string (or (pair string mutez) string))))) ;
+               storage
+                 (pair (map string address) (map string (pair address (pair mutez (contract unit))))) ;
+               code { DUP ;
+                      DIP { CDR } ;
+                      CAR ;
+                      LAMBDA
+                        (pair (map string address) (map string (pair address (pair mutez (contract unit)))))
+                        (pair (lambda
+                                 (pair string
+                                       (pair (map string address) (map string (pair address (pair mutez (contract unit))))))
+                                 (pair (lambda
+                                          (pair address
+                                                (pair string
+                                                      (pair (map string address) (map string (pair address (pair mutez (contract unit)))))))
+                                          unit)
+                                       (pair string
+                                             (pair (map string address) (map string (pair address (pair mutez (contract unit))))))))
+                              (pair (map string address) (map string (pair address (pair mutez (contract unit))))))
+                        { RENAME ;
+                          DUP ;
+                          LAMBDA
+                            (pair string
+                                  (pair (map string address) (map string (pair address (pair mutez (contract unit))))))
+                            (pair (lambda
+                                     (pair address
+                                           (pair string
+                                                 (pair (map string address) (map string (pair address (pair mutez (contract unit)))))))
+                                     unit)
+                                  (pair string
+                                        (pair (map string address) (map string (pair address (pair mutez (contract unit)))))))
+                            { RENAME ;
+                              DUP ;
+                              CDR ;
+                              DUUP ;
+                              CAR ;
+                              PAIR ;
+                              LAMBDA
+                                (pair address
+                                      (pair string
+                                            (pair (map string address) (map string (pair address (pair mutez (contract unit)))))))
+                                unit
+                                { RENAME ;
+                                  DUP ;
+                                  CDDR ;
+                                  CAR ;
+                                  DUUP ;
+                                  CDAR ;
+                                  GET ;
+                                  IF_NONE
+                                    { PUSH string "only admins can perform administrative tasks" ; FAILWITH }
+                                    { DUUP ;
+                                      CAR ;
+                                      DUUP ;
+                                      COMPARE ;
+                                      NEQ ;
+                                      IF { PUSH string "illegal access to admin account" ; FAILWITH } { UNIT } ;
+                                      DIP { DROP } } ;
+                                  DIP { DROP } } ;
+                              PAIR ;
+                              DIP { DROP } } ;
+                          PAIR ;
+                          DIP { DROP } } ;
+                      LAMBDA
+                        (pair (map string address) (map string (pair address (pair mutez (contract unit)))))
+                        (pair (lambda
+                                 (pair string
+                                       (pair (map string address) (map string (pair address (pair mutez (contract unit))))))
+                                 (pair (lambda
+                                          (pair address
+                                                (pair string
+                                                      (pair (map string address) (map string (pair address (pair mutez (contract unit)))))))
+                                          (pair mutez (contract unit)))
+                                       (pair string
+                                             (pair (map string address) (map string (pair address (pair mutez (contract unit))))))))
+                              (pair (map string address) (map string (pair address (pair mutez (contract unit))))))
+                        { RENAME ;
+                          DUP ;
+                          LAMBDA
+                            (pair string
+                                  (pair (map string address) (map string (pair address (pair mutez (contract unit))))))
+                            (pair (lambda
+                                     (pair address
+                                           (pair string
+                                                 (pair (map string address) (map string (pair address (pair mutez (contract unit)))))))
+                                     (pair mutez (contract unit)))
+                                  (pair string
+                                        (pair (map string address) (map string (pair address (pair mutez (contract unit)))))))
+                            { RENAME ;
+                              DUP ;
+                              CDR ;
+                              DUUP ;
+                              CAR ;
+                              PAIR ;
+                              LAMBDA
+                                (pair address
+                                      (pair string
+                                            (pair (map string address) (map string (pair address (pair mutez (contract unit)))))))
+                                (pair mutez (contract unit))
+                                { RENAME ;
+                                  DUP ;
+                                  CDDR ;
+                                  CDR ;
+                                  DUUP ;
+                                  CDAR ;
+                                  GET ;
+                                  IF_NONE
+                                    { PUSH string "unknown user" ; FAILWITH }
+                                    { DUP ;
+                                      CAR ;
+                                      DUUUP ;
+                                      CAR ;
+                                      COMPARE ;
+                                      NEQ ;
+                                      IF { PUSH string "illegal access to account" ; FAILWITH }
+                                         { DUP ; CDDR ; DUUP ; CDAR ; PAIR } ;
+                                      DIP { DROP } } ;
+                                  DIP { DROP } } ;
+                              PAIR ;
+                              DIP { DROP } } ;
+                          PAIR ;
+                          DIP { DROP } } ;
+                      DUUUP ;
+                      IF_LEFT
+                        { RENAME ;
+                          DUUUUUP ;
+                          DUUUUP ;
+                          DUUP ;
+                          EXEC ;
+                          DUUUP ;
+                          CAR ;
+                          DIP { DUP ; CAR ; SWAP ; CDR } ;
+                          PAIR ;
+                          EXEC ;
+                          SENDER ;
+                          DIP { DUP ; CAR ; SWAP ; CDR } ;
+                          PAIR ;
+                          EXEC ;
+                          DROP ;
+                          DUP ;
+                          CDR ;
+                          DUUP ;
+                          CAR ;
+                          DUUUUP ;
+                          CDDR ;
+                          SOME ;
+                          DUUUUUP ;
+                          CDAR ;
+                          UPDATE ;
+                          PAIR ;
+                          NIL operation ;
+                          PAIR ;
+                          DIP { DROP } ;
+                          DIP { DROP } }
+                        { IF_LEFT
+                            { RENAME ;
+                              DUUUUUP ;
+                              DUUUUP ;
+                              DUUP ;
+                              EXEC ;
+                              DUUUP ;
+                              CAR ;
+                              DIP { DUP ; CAR ; SWAP ; CDR } ;
+                              PAIR ;
+                              EXEC ;
+                              SENDER ;
+                              DIP { DUP ; CAR ; SWAP ; CDR } ;
+                              PAIR ;
+                              EXEC ;
+                              DROP ;
+                              DUP ;
+                              CDR ;
+                              DUUP ;
+                              CAR ;
+                              NONE address ;
+                              DUUUUUP ;
+                              CDR ;
+                              UPDATE ;
+                              PAIR ;
+                              NIL operation ;
+                              PAIR ;
+                              DIP { DROP } ;
+                              DIP { DROP } }
+                            { IF_LEFT
+                                { RENAME ;
+                                  DUUUUUP ;
+                                  DUUP ;
+                                  CDAR ;
+                                  DUUUUUP ;
+                                  DUUUP ;
+                                  EXEC ;
+                                  DUUUUP ;
+                                  CAR ;
+                                  DIP { DUP ; CAR ; SWAP ; CDR } ;
+                                  PAIR ;
+                                  EXEC ;
+                                  SENDER ;
+                                  DIP { DUP ; CAR ; SWAP ; CDR } ;
+                                  PAIR ;
+                                  EXEC ;
+                                  DROP ;
+                                  DUUP ;
+                                  CDR ;
+                                  DUUP ;
+                                  MEM ;
+                                  IF { PUSH string "username already taken" ; FAILWITH } { UNIT } ;
+                                  DROP ;
+                                  DUUP ;
+                                  CAR ;
+                                  DUUUP ;
+                                  CDR ;
+                                  DUUUUUP ;
+                                  CDDDR ;
+                                  PUSH mutez 0 ;
+                                  PAIR ;
+                                  DUUUUUUP ;
+                                  CDDAR ;
+                                  PAIR ;
+                                  SOME ;
+                                  DUUUUP ;
+                                  UPDATE ;
+                                  SWAP ;
+                                  PAIR ;
+                                  NIL operation ;
+                                  PAIR ;
+                                  DIP { DROP } ;
+                                  DIP { DROP } ;
+                                  DIP { DROP } }
+                                { IF_LEFT
+                                    { RENAME ;
+                                      DUUUUUP ;
+                                      SENDER ;
+                                      DUUUUP ;
+                                      DUUUP ;
+                                      EXEC ;
+                                      DUUUUP ;
+                                      DIP { DUP ; CAR ; SWAP ; CDR } ;
+                                      PAIR ;
+                                      EXEC ;
+                                      DUUP ;
+                                      DIP { DUP ; CAR ; SWAP ; CDR } ;
+                                      PAIR ;
+                                      EXEC ;
+                                      DUUUP ;
+                                      CAR ;
+                                      DUUUUP ;
+                                      CDR ;
+                                      DUUUP ;
+                                      CDR ;
+                                      AMOUNT ;
+                                      DUUUUUP ;
+                                      CAR ;
+                                      ADD ;
+                                      PAIR ;
+                                      DUUUUUP ;
+                                      PAIR ;
+                                      SOME ;
+                                      DUUUUUUUP ;
+                                      UPDATE ;
+                                      SWAP ;
+                                      PAIR ;
+                                      NIL operation ;
+                                      PAIR ;
+                                      DIP { DROP } ;
+                                      DIP { DROP } ;
+                                      DIP { DROP } ;
+                                      DIP { DROP } }
+                                    { IF_LEFT
+                                        { RENAME ;
+                                          DUUUUUP ;
+                                          DUUP ;
+                                          CAR ;
+                                          DUUUP ;
+                                          CDR ;
+                                          SENDER ;
+                                          DUUUUUUP ;
+                                          DUUUUUP ;
+                                          EXEC ;
+                                          DUUUUP ;
+                                          DIP { DUP ; CAR ; SWAP ; CDR } ;
+                                          PAIR ;
+                                          EXEC ;
+                                          DUUP ;
+                                          DIP { DUP ; CAR ; SWAP ; CDR } ;
+                                          PAIR ;
+                                          EXEC ;
+                                          DUP ;
+                                          CAR ;
+                                          DUUP ;
+                                          CDR ;
+                                          DUUP ;
+                                          DUUUUUUP ;
+                                          COMPARE ;
+                                          GT ;
+                                          IF { PUSH string "insufficient balance" ; FAILWITH }
+                                             { DUUUUUUUP ;
+                                               CAR ;
+                                               DUUUUUUUUP ;
+                                               CDR ;
+                                               DUUUP ;
+                                               DUUUUUP ;
+                                               PAIR ;
+                                               DUUUUUUUP ;
+                                               PAIR ;
+                                               SOME ;
+                                               DUUUUUUUUUP ;
+                                               UPDATE ;
+                                               SWAP ;
+                                               PAIR ;
+                                               NIL operation ;
+                                               DUUUP ;
+                                               DUUUUUUUUP ;
+                                               UNIT ;
+                                               TRANSFER_TOKENS ;
+                                               CONS ;
+                                               PAIR } ;
+                                          DIP { DROP } ;
+                                          DIP { DROP } ;
+                                          DIP { DROP } ;
+                                          DIP { DROP } ;
+                                          DIP { DROP } ;
+                                          DIP { DROP } ;
+                                          DIP { DROP } ;
+                                          DIP { DROP } }
+                                        { RENAME ;
+                                          DUUUUUP ;
+                                          DUUUP ;
+                                          DUUP ;
+                                          EXEC ;
+                                          DUUUP ;
+                                          DIP { DUP ; CAR ; SWAP ; CDR } ;
+                                          PAIR ;
+                                          EXEC ;
+                                          SENDER ;
+                                          DIP { DUP ; CAR ; SWAP ; CDR } ;
+                                          PAIR ;
+                                          EXEC ;
+                                          DUUP ;
+                                          CAR ;
+                                          DUUUP ;
+                                          CDR ;
+                                          NONE (pair address (pair mutez (contract unit))) ;
+                                          DUUUUUUP ;
+                                          UPDATE ;
+                                          SWAP ;
+                                          PAIR ;
+                                          NIL operation ;
+                                          DUUUP ;
+                                          CDR ;
+                                          DUUUUP ;
+                                          CAR ;
+                                          UNIT ;
+                                          TRANSFER_TOKENS ;
+                                          CONS ;
+                                          PAIR ;
+                                          DIP { DROP } ;
+                                          DIP { DROP } ;
+                                          DIP { DROP } } } } } } ;
+                      DIP { DROP } ;
+                      DIP { DROP } ;
+                      DIP { DROP ; DROP } } } ;
+           PAIR ;
+           DIP { DROP } ;
+           DIP { DROP } } ;
+       DUUP ;
+       PUSH mutez 0 ;
+       EXEC ;
+       DUP ;
+       CAR ;
+       DUUP ;
+       CDR ;
+       DUUUUUUP ;
+       PUSH string "root" ;
+       EXEC ;
+       DUUP ;
+       DIP { DUP ; CAR ; SWAP ; CDR } ;
+       PAIR ;
+       EXEC ;
+       DUUUUUP ;
+       DUUP ;
+       EXEC ;
+       DUP ;
+       CAR ;
+       DUUP ;
+       CDR ;
+       NIL operation ;
+       DUUUP ;
+       CONS ;
+       DUUUUUUUP ;
+       CONS ;
+       APPLY_OPERATIONS ;
+       UNIT ;
+       DROP ;
+       DUP ;
+       GET_STORAGE
+         (pair (map string address) (map string (pair address (pair mutez (contract unit))))) ;
+       IF_NONE
+         { PUSH string "can't retrieve contract's storage" ; FAILWITH }
+         { DUP ; DIP { DROP } } ;
+       RENAME ;
+       DUP ;
+       CAR ;
+       PUSH string "root" ;
+       GET ;
+       IF_NONE
+         { PUSH string "no root in storage" ; FAILWITH }
+         { DUUUUUUUP ;
+           DUUP ;
+           COMPARE ;
+           NEQ ;
+           IF { PUSH string "wrong address for root" ; FAILWITH } { UNIT } ;
+           DIP { DROP } } ;
+       DROP ;
+       DUUUUUUUUUUP ;
+       PUSH mutez 15000000 ;
+       EXEC ;
+       DUP ;
+       CAR ;
+       DUUP ;
+       CDR ;
+       NIL operation ;
+       DUUUP ;
+       CONS ;
+       APPLY_OPERATIONS ;
+       UNIT ;
+       DROP ;
+       DUP ;
+       CONTRACT unit ;
+       IF_NONE
+         { PUSH string "could not retrieve main contract" ; FAILWITH }
+         { DUP ; DIP { DROP } } ;
+       RENAME ;
+       DUUUUUUP ;
+       CONTRACT
+         (or (pair string (pair string address))
+             (or (pair string string)
+                 (or (pair string (pair string (pair address (contract unit))))
+                     (or string (or (pair string mutez) string))))) ;
+       IF_NONE
+         { PUSH string "could not retrieve main contract" ; FAILWITH }
+         { DUP ; DIP { DROP } } ;
+       RENAME ;
+       DUP ;
+       PUSH mutez 0 ;
+       DUUUUP ;
+       DUUUUUUP ;
+       PAIR ;
+       PUSH string "lucy" ;
+       PAIR ;
+       PUSH string "root" ;
+       PAIR ;
+       LEFT (or string (or (pair string mutez) string)) ;
+       RIGHT (pair string string) ;
+       RIGHT (pair string (pair string address)) ;
+       TRANSFER_TOKENS ;
+       DUP ;
+       { NONE string ; MUST_FAIL string } ;
+       DUUUUUUUUUUUUUP ;
+       SET_SOURCE { # ;
+       UNIT ;
+       DROP ;
+       DUUUP ;
+       PUSH mutez 0 ;
+       DUUUUUUP ;
+       DUUUUUUUUP ;
+       PAIR ;
+       PUSH string "lucy" ;
+       PAIR ;
+       PUSH string "root" ;
+       PAIR ;
+       LEFT (or string (or (pair string mutez) string)) ;
+       RIGHT (pair string string) ;
+       RIGHT (pair string (pair string address)) ;
+       TRANSFER_TOKENS ;
+       UNIT ;
+       DROP ;
+       } ;
+       UNIT ;
+       DROP ;
+       NIL operation ;
+       DUUP ;
+       CONS ;
+       DUUUP ;
+       CONS ;
+       APPLY_OPERATIONS ;
+       UNIT ;
+       DROP ;
+       DUUUUUUUUUUP ;
+       GET_STORAGE
+         (pair (map string address) (map string (pair address (pair mutez (contract unit))))) ;
+       IF_NONE
+         { PUSH string "can't retrieve contract's storage" ; FAILWITH }
+         { DUP ; DIP { DROP } } ;
+       RENAME ;
+       DUP ;
+       CDR ;
+       PUSH string "lucy" ;
+       GET ;
+       IF_NONE
+         { PUSH string "no client in storage" ; FAILWITH }
+         { DUP ;
+           CAR ;
+           DUUP ;
+           CDAR ;
+           DUUUP ;
+           CDDR ;
+           DUUUUUUUUUUUP ;
+           DUUUUP ;
+           COMPARE ;
+           NEQ ;
+           IF { PUSH string "wrong address for root" ; FAILWITH } { UNIT } ;
+           DIP { DROP } ;
+           DIP { DROP } ;
+           DIP { DROP } ;
+           DIP { DROP } } ;
+       DROP ;
+       DUUUUUUUP ;
+       SET_SOURCE { # ;
+       UNIT ;
+       DROP ;
+       DUUUUUP ;
+       PUSH mutez 10000000 ;
+       PUSH string "lucy" ;
+       LEFT (or (pair string mutez) string) ;
+       RIGHT (pair string (pair string (pair address (contract unit)))) ;
+       RIGHT (pair string string) ;
+       RIGHT (pair string (pair string address)) ;
+       TRANSFER_TOKENS ;
+       UNIT ;
+       DROP ;
+       } ;
+       UNIT ;
+       DROP ;
+       NIL operation ;
+       DUUP ;
+       CONS ;
+       APPLY_OPERATIONS ;
+       UNIT ;
+       DROP ;
+       DUUUUUUUUP ;
+       GET_BALANCE ;
+       PUSH mutez 5000000 ;
+       DUUP ;
+       COMPARE ;
+       NEQ ;
+       IF { PUSH string "lucy should have 5tz now" ; FAILWITH } { UNIT } ;
+       DROP ;
+       DUUUUUUUUUP ;
+       SET_SOURCE { # ;
+       UNIT ;
+       DROP ;
+       DUUUUUUUP ;
+       PUSH mutez 0 ;
+       PUSH (pair string mutez) (Pair "lucy" 10000000) ;
+       LEFT string ;
+       RIGHT string ;
+       RIGHT (pair string (pair string (pair address (contract unit)))) ;
+       RIGHT (pair string string) ;
+       RIGHT (pair string (pair string address)) ;
+       TRANSFER_TOKENS ;
+       DUUUUUUUUP ;
+       PUSH mutez 5000000 ;
+       PUSH (pair string mutez) (Pair "lucy" 10000000) ;
+       LEFT string ;
+       RIGHT string ;
+       RIGHT (pair string (pair string (pair address (contract unit)))) ;
+       RIGHT (pair string string) ;
+       RIGHT (pair string (pair string address)) ;
+       TRANSFER_TOKENS ;
+       UNIT ;
+       DROP ;
+       } ;
+       UNIT ;
+       DROP ;
+       DUP ;
+       { NONE string ; MUST_FAIL string } ;
+       NIL operation ;
+       DUUUUP ;
+       CONS ;
+       APPLY_OPERATIONS ;
+       UNIT ;
+       DROP ;
+       UNIT ;
+       DROP ;
+       UNIT ;
+       DROP ;
+       NIL operation ;
+       DUUP ;
+       CONS ;
+       APPLY_OPERATIONS ;
+       UNIT ;
+       DROP ;
+       DUUUUUUUUUUUUP ;
+       GET_BALANCE ;
+       PUSH mutez 15000000 ;
+       DUUP ;
+       COMPARE ;
+       NEQ ;
+       IF { PUSH string "lucy should have 5tz now" ; FAILWITH } { UNIT } ;
+       DROP ;
+       DUUUUUUUUUUUUUUUUUUUUUUUUUUUP ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP } ;
+       DIP { DROP ; DROP } };

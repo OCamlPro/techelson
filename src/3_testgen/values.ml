@@ -75,7 +75,6 @@ let hash () : Mic.t =
         | 1 -> Mic.Blake2B
         | 2 -> Mic.Sha256
         | 3 -> Mic.Sha512
-        (* | n -> log_0 "n: %i@." n ; Exc.unreachable () *)
         | _ -> Exc.unreachable ()
     )
     |> Mic.mk_leaf
@@ -140,7 +139,6 @@ let from
     : Mic.t list
 =
     let rec go_down (stack : stack) (current : (Dtyp.t, Mic.t list) Either.t) : Mic.t list =
-        (* log_4 "go down %a@." Dtyp.fmt dtyp; *)
         match current with
         | Either.Rgt mic -> go_up stack mic
         | Either.Lft dtyp -> (
@@ -177,10 +175,8 @@ let from
                 let mic_pref, to_do, (mic_suff, next) =
                     [], [], (
                         if Rng.bool () then (
-                            (* log_4 "> left@."; *)
                             (Mic.Left rgt.inner |> Mic.mk) :: mic_suff, lft.inner
                         ) else (
-                            (* log_4 "> right@."; *)
                             (Mic.Right lft.inner |> Mic.mk) :: mic_suff, rgt.inner
                         )
                     )
@@ -289,21 +285,16 @@ let from
         )
 
     and go_up (stack : stack) (current : Mic.t list) : Mic.t list =
-        (* log_4 "current : %a@." Mic.fmt (Mic.mk_seq current); *)
 
         match stack with
         | [] -> current
 
         | { to_do = next :: to_do ; mic_pref ; mic_suff } :: stack_tail ->
-            (* log_4 "  pref 1: %a@." Mic.fmt (Mic.mk_seq mic_pref); *)
-            (* log_4 "  suff 1: %a@." Mic.fmt (Mic.mk_seq mic_suff); *)
             let mic_pref = List.rev_append current mic_pref in
             let stack = { to_do ; mic_pref ; mic_suff } :: stack_tail in
             go_down stack next
 
         | { to_do = [] ; mic_pref ; mic_suff } :: stack ->
-            (* log_4 "  pref 2: %a@." Mic.fmt (Mic.mk_seq mic_pref); *)
-            (* log_4 "  suff 2: %a@." Mic.fmt (Mic.mk_seq mic_suff); *)
             current @ mic_suff |> List.rev_append mic_pref |> go_up stack
 
     in

@@ -6,7 +6,7 @@ A test execution engine for Michelson smart contracts.
 
 # Documentation
 
-The user documentation is hosted here: [liquidity-lang.org/techelson/doc]. You can also access the bleeding edge version on [the main repo's git page]. Finally, there is a blog post by Techelson's main developer on how to use Techelson with [Liquidity]: [adrienchampion.github.io/blog].
+The user documentation is hosted here [the main repository's github pages]. Finally, there is a blog post by Techelson's main developer on how to use Techelson with [Liquidity]: [adrienchampion.github.io/blog].
 
 # Features
 
@@ -65,7 +65,6 @@ For example
 [opam installed]: https://opam.ocaml.org/doc/Install.html
 [dune]: https://github.com/ocaml/dune
 [mdbook]: https://github.com/rust-lang-nursery/mdBook
-[liquidity-lang.org/techelson/doc]: http://www.liquidity-lang.org/techelson/doc
 [Liquidity]: http://www.liquidity-lang.org/
-[adrienchampion.github.io/blog]: https://adrienchampion.github.io/blog/tezos/techelson/with_liquidity/index.html
-[the main repo's git page]: https://ocamlpro.github.io/techelson/user_doc
+[adrienchampion.github.io/blog]: https://adrienchampion.github.io/blog
+[the main repository's github pages]: https://adrienchampion.github.io/blog/tezos/techelson/with_liquidity/index.html

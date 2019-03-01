@@ -111,8 +111,6 @@ function run_tests {
             contract_options="$contract_options$sep--contract $contract_file"
             sep=" "
         done
-    else
-        bail "found no \"contracts\" directory in test directory \"$test_dir\""
     fi
 
     echo "running tests for \"$test_dir\""
