@@ -476,7 +476,7 @@ module Theory (
             fprintf fmtt " (%a)" (fmt_operation op_uid) operation
         | Create (params, contract) ->
             fprintf fmtt "@[<hv 4>CREATE[uid:%i] %a %a@]"
-                uid fmt_contract_params params Mic.fmt_contract contract
+                uid fmt_contract_params params (Mic.fmt_contract ~full:false) contract
         | CreateNamed (params, contract) ->
             fprintf fmtt "@[<hv 4>CREATE[uid:%i] %a \"%s\"@]"
                 uid fmt_contract_params params contract.name

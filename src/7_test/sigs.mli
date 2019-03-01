@@ -115,12 +115,15 @@ module type TestCxt = sig
         (** The next operation to apply. *)
         val next_op : apply_ops -> Env.operation option
 
-        (** Concise `run_test` formatter.
+        (** Concise `apply_ops` formatter.
 
             This formatter only outputs live contracts and pending operations. For a more verbose
             output, use the accessors.
         *)
         val fmt : formatter -> apply_ops -> unit
+
+        (** Formats the live contract in the environment. *)
+        val fmt_contracts : formatter -> apply_ops -> unit
     end
 
     (** Contains the operations related to `transfer`. *)
@@ -143,11 +146,17 @@ module type TestCxt = sig
         (** The contract environment. *)
         val contract_env : transfer -> Env.t
 
-        (** Concise `run_test` formatter.
+        (** Concise `transfer` formatter.
         
             This formatter only outputs live contracts and pending operations. For a more verbose
             output, use the accessors.
         *)
         val fmt : formatter -> transfer -> unit
+
+        (** Formats the operation the transfer is for. *)
+        val fmt_op : formatter -> transfer -> unit
+
+        (** Formats the live contract in the environment. *)
+        val fmt_contracts : formatter -> transfer -> unit
     end
 end

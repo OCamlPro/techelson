@@ -84,45 +84,55 @@ let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
             let cxt = Cxt.init (Tests.get_contracts cxt) test in
 
             let rec test_loop (cxt : Cxt.run_test) : unit =
-                log_1 "Running test script...@.";
-                log_3 "%a@." Cxt.Test.fmt cxt;
+                log_1 "@.running test script...@.";
+                log_2 "context: %a@." Cxt.Test.fmt cxt;
                 cond_step conf;
                 let events, next_state = Cxt.Test.run cxt in
                 let is_done = handle_events conf (Cxt.Test.stack cxt) events in
                 match next_state with
                 | Some _ when is_done -> Exc.throws [
                     "inconsistent internal state" ;
-                    "test code is done but there are still operations to process" ;
+                    "testcase is done but there are still operations to process" ;
                 ]
                 | Some ops -> ops_loop ops
                 | None when is_done -> log_1 "Done running test `%s`@." test.name
                 | None -> test_loop cxt
 
             and ops_loop (cxt : Cxt.apply_ops) : unit =
-                log_1 "@.Applying Operations...@.";
-                log_3 "%a@." Cxt.Ops.fmt cxt;
-                (
-                    match Cxt.Ops.next_op cxt with
-                    | Some op -> log_2 "> %a@." Cxt.Env.Op.fmt op
-                    | None -> log_2 "> <none>@."
-                );
-                cond_step conf;
+                log_1 "@.";
                 let rec loop () =
-                    match Cxt.Ops.apply cxt with
-                    | Some (Either.Lft test) -> test_loop test
-                    | Some (Either.Rgt transfer) -> transfer_loop transfer
-                    | None -> loop ()
+                    (* log_0 "%a@." Cxt.Ops.fmt cxt; *)
+                    (
+                        match Cxt.Ops.next_op cxt with
+                        | Some op -> (
+                            log_1 "applying operation %a@." Cxt.Env.Op.fmt op;
+                            log_1 "   %a@." Cxt.Ops.fmt_contracts cxt;
+                        )
+                        | None -> log_2 "no operations left@."
+                    );
+                    cond_step conf;
+                    let res = Cxt.Ops.apply cxt in
+                    match res with
+                    | Some (Either.Lft test) ->
+                        log_1 "=> %a@." Cxt.Ops.fmt_contracts cxt;
+                        test_loop test
+                    | Some (Either.Rgt transfer) ->
+                        transfer_loop transfer
+                    | None ->
+                        log_1 "=> %a@." Cxt.Ops.fmt_contracts cxt;
+                        loop ()
                 in
                 loop ()
 
             and transfer_loop (cxt : Cxt.transfer) : unit =
+                log_1 "@.running %a@." Cxt.Transfer.fmt_op cxt;
                 if conf.step then (
                     let rec loop () : unit =
-                        log_0 "@.Contract Transfer Step...@.";
-                        log_3 "%a@." Cxt.Transfer.fmt cxt;
-                        Cxt.Transfer.interpreter cxt
+                        log_2 "@.Contract Transfer Step...";
+                        log_3 "context: %a@." Cxt.Transfer.fmt cxt;
+                        (* Cxt.Transfer.interpreter cxt
                         |> Cxt.Run.stack
-                        |> log_3 "@.@[<v>%a@]@.@." Cxt.Run.Stack.fmt;
+                        |> log_3 "@.@[<v>%a@]@.@." Cxt.Run.Stack.fmt; *)
                         Cxt.Transfer.interpreter cxt
                         |> Cxt.Run.next_ins
                         |> (
@@ -150,15 +160,19 @@ let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
                                     (not even empty)" ;
                                 ]
                             )
-                        | Some (Either.Rgt ops) -> ops_loop ops
+                        | Some (Either.Rgt ops) ->
+                            log_1 "=> %a@." Cxt.Transfer.fmt_contracts cxt;
+                            ops_loop ops
                     in
                     loop ()
                 ) else (
-                    log_1 "@.Contract Transfer...@.";
-                    log_3 "%a@." Cxt.Transfer.fmt cxt;
+                    (* log_1 "@.Contract Transfer...@."; *)
+                    (* log_3 "%a@." Cxt.Transfer.fmt cxt; *)
                     let rec loop () =
                         match Cxt.Transfer.run cxt with
-                        | Either.Rgt ops -> ops_loop ops
+                        | Either.Rgt ops ->
+                            log_1 "=> %a@." Cxt.Transfer.fmt_contracts cxt;
+                            ops_loop ops
                         | Either.Lft event ->
                             let is_done = handle_event conf (Cxt.Transfer.stack cxt) event in
                             if is_done then (
@@ -179,13 +193,14 @@ let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
                 err_count
             ) with
             | e ->
-                log_0 "Test `%s` failed:@.    @[%a@]@." test.name Exc.fmt e;
+                log_0 "@.Test `%s` failed:@.    @[%a@]@." test.name Exc.fmt e;
                 err_count + 1
     ) 0
     |> (
         function
         | 0 -> ()
         | n ->
+            log_0 "@.";
             let test_count = Tests.get_tests cxt |> List.length in
             sprintf "%i of the %i testcase%s failed" n test_count (Fmt.plurify test_count)
             |> Exc.throw

@@ -28,8 +28,11 @@ module Protocol = struct
         | Tezos blah -> fprintf fmt "%s" blah
         | MutezOvrflw blah -> fprintf fmt "mutez operation overflow: %s" blah
         | TooPoor (src, tgt, mutez) ->
-            fprintf fmt "insufficient balance to process transaction from %s to %s of %s mutez"
-                src tgt (Int64.to_string mutez)
+            fprintf fmt
+                "@[<hov>insufficient balance to process transaction of %s mutez"
+                (Int64.to_string mutez) ;
+            fprintf fmt "@ from %s" src ;
+            fprintf fmt "@ to %s@]" tgt
 end
 
 type exc =

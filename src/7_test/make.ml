@@ -189,9 +189,8 @@ module TestCxt (
                 fmt_operations self.test_ops;
             fprintf fmt "@]"
 
-        let next_op (self : apply_ops) : Env.operation option =
-            let op = Lst.hd self.ops in
-            if op <> None then op else Lst.hd self.test_ops
+        let fmt_contracts (fmt : formatter) (self : apply_ops) : unit =
+            fmt_contracts fmt (contract_env self)
 
         let pop_next_op (self : apply_ops) : Env.operation option =
             match self.ops with
@@ -206,6 +205,26 @@ module TestCxt (
                 self.test_ops <- test_ops;
                 Some op
             | [] -> None
+
+        (* Returns the next operation.
+
+            The only side effect this function can have is if
+            - `self.ops` is empty, and
+            - `self.test_ops` is `test_op :: tail`.
+
+            Then `self.ops <- [test_op]` and `self.test_ops <- tail`. This is semantics preserving:
+            the next test operation is staged, but no operation is lost (popped). This is why these
+            details are not discussed in the `mli`'s doc for this function.
+        *)
+        let next_op (self : apply_ops) : Env.operation option =
+            let op = Lst.hd self.ops in
+            if op <> None then op else (
+                match pop_next_test_op self with
+                | None -> None
+                | Some op ->
+                    self.ops <- [op];
+                    Some op
+            )
 
         let stage_next_test_op (self : apply_ops) : (run_test, transfer) Either.t option =
             self.ops <- [];
@@ -446,12 +465,12 @@ module TestCxt (
                                     |> Exc.throw
                                 | Some live -> live
                             in
-                            let src : string =
+                            let src =
                                 match Run.Env.Live.get sender contract_env with
                                 | Some src ->
-                                    Run.Env.Live.collect ~tgt:tgt.contract.name amount src;
-                                    src.contract.name
-                                | None -> "testcase"
+                                    Run.Env.Live.collect ~tgt:tgt amount src;
+                                    Some src
+                                | None -> None
                             in
 
                             Run.Env.Live.transfer ~src amount tgt;
@@ -586,5 +605,11 @@ module TestCxt (
                 fmt_operations self.ops
                 fmt_operations self.test_ops;
             fprintf fmt "@]"
+
+        let fmt_op (fmt : formatter) (self : transfer) : unit =
+            fprintf fmt "%a" Env.Op.fmt self.op                        
+
+        let fmt_contracts (fmt : formatter) (self : transfer) : unit =
+            fmt_contracts fmt (contract_env self)
     end
 end
