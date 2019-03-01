@@ -80,17 +80,17 @@ not the address of `root`. Hence, the transfer fails as it should and so does th
 The (relevant part of the) output is
 
 ```
-{{#include ../../rsc/admins/error/addAdmin.techel.output:79:86}}
+{{#include ../../rsc/admins/error/addAdmin.techel.output:104:108}}
 ```
 
 You can see in the transfer the sender and the target of the transfer:
 
 ```
-TRANSFER[uid:3] address[0]@Create2 -> address[3]@admins
+TRANSFER[uid:3] address[0]@AddAdmin -> address[3]@admins
 ```
 
-`Create2` is the name of our testcase, and `address[0]@Create2` is its address. Name `"root"` does
-not map to this address in the contract and the transfer fails.
+`AddAdmin` is the name of our testcase, and `address[0]@AddAdmin` is its address. Name `"root"`
+does not map to this address in the contract and the transfer fails.
 
 ## Handling Failures
 

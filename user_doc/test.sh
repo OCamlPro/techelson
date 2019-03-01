@@ -60,6 +60,12 @@ for test_dir in `ls "${root_dir}rsc"` ; do
             diff <(tail -n +2 "$output_file") <(echo "$command_output")
             exit_code="$?"
             if [ "$exit_code" != "0" ] ; then
+                echo "|===| Run output on $output_file is different from expectation"
+                echo "| this impacts the following files"
+                IFS=$'\n'
+                while read -r line ; do
+                    echo "|> $line"
+                done <<< "`grep -R src -e "$output_file"`"
                 bail "run output on $output_file is different from expectation"
             fi
         done
@@ -83,6 +89,12 @@ for test_dir in `ls "${root_dir}rsc"` ; do
             diff <(tail -n +2 "$output_file") <(echo "$command_output")
             exit_code="$?"
             if [ "$exit_code" != "0" ] ; then
+                echo "|===| Run output on $output_file is different from expectation"
+                echo "| this impacts the following files"
+                IFS=$'\n'
+                while read -r line ; do
+                    echo "|> $line"
+                done <<< "`grep -R src -e "$output_file"`"
                 bail "run output on $output_file is different from expectation"
             fi
         done

@@ -1,9 +1,18 @@
 $ techelson rsc/no_contract/okay/anonymous.techel
 Running test `Anonymous`
-Running test script...
 
-Applying Operations...
-Running test script...
+running test script...
+
+applying operation CREATE[uid:0] (@address[1]@main, "sha512:manager address", None, true, true, 3utz) 
+                       {
+                           storage nat ;
+                           parameter bool ;
+                           code ...;
+                       }
+   live contracts: none
+=> live contracts: <anonymous> (3utz) address[1]@main
+
+running test script...
 stack:
 |==================================================================================================|
 | address[1]@main                                                                                  |
@@ -12,17 +21,21 @@ stack:
 | 3utz                                                                                             |
 | mutez                                                                                            |
 |==================================================================================================|
-Running test script...
+
+running test script...
 stopping [retrieved the balance of the contract] press `return` to continue
 
-Running test script...
+
+running test script...
 stack:
 |==================================================================================================|
 | 0                                                                                                |
 | nat                                                                                              |
 |==================================================================================================|
-Running test script...
+
+running test script...
 stopping [retrieved the storage of the contract] press `return` to continue
 
-Running test script...
+
+running test script...
 Done running test `Anonymous`
