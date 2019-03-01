@@ -21,7 +21,6 @@ applying operation TRANSFER[uid:2] address[0]@Transfer -> address[1]@main 13utz 
 running TRANSFER[uid:2] address[0]@Transfer -> address[1]@main 13utz True
 => live contracts: SimpleExample (23utz) address[1]@main
 
-=> live contracts: SimpleExample (23utz) address[1]@main
 
 running test script...
 stack:

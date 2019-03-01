@@ -123,20 +123,25 @@ let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
             and ops_loop (cxt : Cxt.apply_ops) : unit =
                 log_1 "@.";
                 let rec loop () =
-                    (* log_0 "%a@." Cxt.Ops.fmt cxt; *)
-                    (
+                    log_3 "%a@." Cxt.Ops.fmt cxt;
+                    let print_state =
                         match Cxt.Ops.next_op cxt with
                         | Some op -> (
                             log_1 "applying operation %a@." Cxt.Env.Op.fmt op;
                             log_1 "   %a@." Cxt.Ops.fmt_contracts cxt;
+                            true
                         )
-                        | None -> log_2 "no operations left@."
-                    );
+                        | None ->
+                            log_2 "no operations left@.";
+                            false
+                    in
                     cond_step conf;
                     let res = Cxt.Ops.apply handle_confirmed_failure cxt in
                     match res with
                     | Some (Either.Lft test) ->
-                        log_1 "=> %a@." Cxt.Ops.fmt_contracts cxt;
+                        if print_state then (
+                            log_1 "=> %a@." Cxt.Ops.fmt_contracts cxt
+                        );
                         test_loop test
                     | Some (Either.Rgt transfer) ->
                         transfer_loop transfer

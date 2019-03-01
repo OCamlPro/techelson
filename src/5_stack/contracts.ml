@@ -33,14 +33,30 @@ module Contracts (T : Theo.Sigs.Theory) : Sigs.ContractEnv with module Theory = 
         typ_cxt = DtypCheck.empty () ;
     }
 
-    let clone (self : t) : t = {
-        defs = Hashtbl.copy self.defs ;
-        key_map = Hashtbl.copy self.key_map ;
-        live = Hashtbl.copy self.live ;
-        next_op_uid = self.next_op_uid ;
-        expired_uids = IntSet.clone self.expired_uids ;
-        typ_cxt = DtypCheck.clone self.typ_cxt
+    let clone_live (self : live) : live = {
+        address = self.address ;
+        contract = self.contract ;
+        balance = self.balance ;
+        storage = self.storage ;
+        params = self.params ;
     }
+
+    (* BE CAREFUL when changing this function. `live` for instance stores the state of live
+        contracts as a mutable struct, meaning we need to clone them to really clone the context.
+    *)
+    let clone (self : t) : t =
+        let live = Hashtbl.create 47 in
+        self.live |> Hashtbl.iter (
+            fun key value -> clone_live value |> Hashtbl.add live key
+        );
+        {
+            defs = self.defs ;
+            key_map = Hashtbl.copy self.key_map ;
+            live;
+            next_op_uid = self.next_op_uid ;
+            expired_uids = IntSet.clone self.expired_uids ;
+            typ_cxt = DtypCheck.clone self.typ_cxt
+        }
 
     let add (contract : Contract.t) (self : t) : unit =
         if Hashtbl.mem self.defs contract.name then (

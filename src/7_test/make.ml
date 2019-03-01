@@ -218,13 +218,15 @@ module TestCxt (
         *)
         let next_op (self : apply_ops) : Env.operation option =
             let op = Lst.hd self.ops in
+            if op <> None then op else Lst.hd self.test_ops
+            (* let op = Lst.hd self.ops in
             if op <> None then op else (
                 match pop_next_test_op self with
                 | None -> None
                 | Some op ->
                     self.ops <- [op];
                     Some op
-            )
+            ) *)
 
         let stage_next_test_op (self : apply_ops) : (run_test, transfer) Either.t option =
             self.ops <- [];
@@ -254,7 +256,6 @@ module TestCxt (
             (self : apply_ops)
             : (run_test, transfer) Either.t option
         =
-
             match self.prev, self.outcome with
             | Some (sub_op, Failure (value, dtyp)), Success op -> Exc.throws [
                 asprintf "operation %a was expected to succeed" Env.Op.fmt op ;
@@ -309,12 +310,10 @@ module TestCxt (
                 |> handle_confirmed_failure op sub_op;
 
                 RunTest.set_contract_env env self.test;
-
                 stage_next_test_op self
             )
             | Some (sub_op, Protocol e), Fail (None, op, env) -> (
-                Either.Rgt e
-                |> handle_confirmed_failure op sub_op;
+                Either.Rgt e |> handle_confirmed_failure op sub_op;
 
                 RunTest.set_contract_env env self.test;
                 stage_next_test_op self
@@ -336,7 +335,6 @@ module TestCxt (
             match check_prev handle_confirmed_failure self with
             | Some res -> Some res
             | None -> (
-
                 match pop_next_op self with
                 | None -> (
                     assert (self.ops = []);
@@ -354,7 +352,9 @@ module TestCxt (
                             ] |> Exc.throws
                     );
 
-                    stage_next_test_op self
+                    match stage_next_test_op self with
+                    | None -> apply handle_confirmed_failure self
+                    | Some res -> Some res
                 )
 
                 | Some next -> (
@@ -467,7 +467,7 @@ module TestCxt (
                             Theory.Transfer {
                                 source ; sender ; target ; contract ; amount ; param
                             }
-                        ) -> (
+                        ) -> (fun () ->
                             let tgt =
                                 match Run.Env.Live.get target contract_env with
                                 | None ->
@@ -512,6 +512,12 @@ module TestCxt (
                                 test = self.test ;
                                 obsolete = false ;
                             }
+                        )
+                        |> catch_protocol_exn
+                        |> (
+                            function
+                            | Either.Lft res -> res
+                            | Either.Rgt e -> Either.Rgt (op, Some e)
                         )
                     in
 
