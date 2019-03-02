@@ -8,7 +8,7 @@ let load_contracts (conf : Conf.t) : Contract.t list =
         conf.contracts |> List.map (
             fun { Conf.file ; Conf.init } ->
                 let _ = init in
-                log_3 "Opening contract file `%s`@." file;
+                log_4 ~indent:false "Opening contract file `%s`@." file;
                 Exc.chain_err (
                     fun () -> sprintf "while loading contract file `%s`" file
                 ) (
@@ -52,7 +52,7 @@ let handle_event (conf : Conf.t) (stack : Cxt.Run.Stack.t) (event : Cxt.event) :
         false
     )
     | Cxt.Run.Print fmt -> (
-        log_1 "@.> %a@." (fun f () -> fmt f) ();
+        log_0 "@.> %a@." (fun f () -> fmt f) ();
         false
     )
     | Cxt.Run.Warn fmt -> (
@@ -88,15 +88,15 @@ let rec handle_events (conf : Conf.t) (stack : Cxt.Run.Stack.t) (events : Cxt.ev
 let handle_confirmed_failure : Cxt.Ops.handle_confirmed_failure = fun op sub_op -> (
     function
     | Either.Lft (value, dtyp) ->
-        log_0 "failure confirmed on test operation@.";
-        log_0 "  @[%a@]@." Cxt.Env.Op.fmt op;
-        log_0 "while running operation %a@." Cxt.Env.Op.fmt sub_op;
-        log_0 "failed with value %a : %a@." Cxt.Theory.fmt value Dtyp.fmt dtyp
+        log_1 "failure confirmed on test operation@.";
+        log_1 "  @[%a@]@." Cxt.Env.Op.fmt op;
+        log_1 "while running operation %a@." Cxt.Env.Op.fmt sub_op;
+        log_1 "failed with value %a : %a@." Cxt.Theory.fmt value Dtyp.fmt dtyp
     | Either.Rgt e ->
-        log_0 "failure confirmed on test operation@.";
-        log_0 "  @[%a@]@." Cxt.Env.Op.fmt op;
-        log_0 "while running operation %a@." Cxt.Env.Op.fmt sub_op;
-        log_0 "%a@." Exc.Protocol.fmt e
+        log_1 "failure confirmed on test operation@.";
+        log_1 "  @[%a@]@." Cxt.Env.Op.fmt op;
+        log_1 "while running operation %a@." Cxt.Env.Op.fmt sub_op;
+        log_1 "%a@." Exc.Protocol.fmt e
 )
 
 let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
@@ -123,7 +123,7 @@ let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
             and ops_loop (cxt : Cxt.apply_ops) : unit =
                 log_1 "@.";
                 let rec loop () =
-                    log_3 "%a@." Cxt.Ops.fmt cxt;
+                    log_2 "context: %a@." Cxt.Ops.fmt cxt;
                     let print_state =
                         match Cxt.Ops.next_op cxt with
                         | Some op -> (
@@ -155,7 +155,7 @@ let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
                 log_1 "@.running %a@." Cxt.Transfer.fmt_op cxt;
                 if conf.step then (
                     let rec loop () : unit =
-                        log_2 "@.Contract Transfer Step...";
+                        log_2 "Contract Transfer Step...";
                         log_3 "context: %a@." Cxt.Transfer.fmt cxt;
                         (* Cxt.Transfer.interpreter cxt
                         |> Cxt.Run.stack
@@ -165,12 +165,12 @@ let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
                         |> (
                             fun (pre_ops, ins) -> (
                                 pre_ops |> List.iter (
-                                    log_0 "@[<v 4>next > %s@]@."
+                                    log_1 "@[<v 4>next > %s@]@."
                                 );
                                 match ins with
-                                | None when pre_ops = [] -> log_0 "@[<v 4>next > done"
+                                | None when pre_ops = [] -> log_1 "@[<v 4>next > done"
                                 | None -> ()
-                                | Some mic -> log_0 "@[<v 4>next > %a@]@." Mic.fmt mic
+                                | Some mic -> log_1 "@[<v 4>next > %a@]@." Mic.fmt mic
                         )
                         );
                         
@@ -220,14 +220,14 @@ let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
                 err_count
             ) with
             | e ->
-                log_0 "@.Test `%s` failed:@.    @[%a@]@." test.name Exc.fmt e;
+                log_1 "@.Test `%s` failed:@.    @[%a@]@." test.name Exc.fmt e;
                 err_count + 1
     ) 0
     |> (
         function
         | 0 -> ()
         | n ->
-            log_0 "@.";
+            log_1 "@.";
             let test_count = Tests.get_tests cxt |> List.length in
             sprintf "%i of the %i testcase%s failed" n test_count (Fmt.plurify test_count)
             |> Exc.throw
@@ -332,7 +332,7 @@ let run () : unit =
     log_2 "done loading context@.%a@.@." (Tests.fmt ~full:false) context;
 
     if Test.Load.has_errors errors then (
-        log_0 "@[<v 4>Error(s) during contract/testcase loading:@ %a@]@."
+        log_1 "@[<v 4>Error(s) during contract/testcase loading:@ %a@]@."
             Test.Load.fmt_errors errors;
         let count = Test.Load.error_count errors in
         sprintf "encountered %i error%s while loading contracts/testcases"

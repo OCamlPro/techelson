@@ -219,8 +219,11 @@ val catch_internal_exn : (unit -> 'a) -> ('a, Exc.Internal.t) Either.t
 
 (** Logs something at some log level.
 
-    Actually output if the configuration's log level is `>=` the level. *)
-val log : int -> ('a, formatter, unit) format -> 'a
+    If the first argument is true, then the output will be indented based on the log level.
+
+    Actually output if the configuration's log level is `>=` the level.
+*)
+val log : bool -> int -> ('a, formatter, unit) format -> 'a
 
 (** Logs something at log level 0 (always active). *)
 val log_0 : ('a, Format.formatter, unit) format -> 'a
@@ -229,13 +232,13 @@ val log_0 : ('a, Format.formatter, unit) format -> 'a
 val log_1 : ('a, Format.formatter, unit) format -> 'a
 
 (** Logs something at log level 2. *)
-val log_2 : ('a, Format.formatter, unit) format -> 'a
+val log_2 : ?indent : bool -> ('a, Format.formatter, unit) format -> 'a
 
 (** Logs something at log level 3. *)
-val log_3 : ('a, Format.formatter, unit) format -> 'a
+val log_3 : ?indent : bool -> ('a, Format.formatter, unit) format -> 'a
 
 (** Logs something at log level 4. *)
-val log_4 : ('a, Format.formatter, unit) format -> 'a
+val log_4 : ?indent : bool -> ('a, Format.formatter, unit) format -> 'a
 
 (** Random number generator, all bounds are exclusive.
 
