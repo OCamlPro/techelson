@@ -66,5 +66,5 @@ For example
 [dune]: https://github.com/ocaml/dune
 [mdbook]: https://github.com/rust-lang-nursery/mdBook
 [Liquidity]: http://www.liquidity-lang.org/
-[adrienchampion.github.io/blog]: https://adrienchampion.github.io/blog
-[the main repository's github pages]: https://adrienchampion.github.io/blog/tezos/techelson/with_liquidity/index.html
+[adrienchampion.github.io/blog]: https://adrienchampion.github.io/blog/tezos/techelson/with_liquidity/index.html
+[the main repository's github pages]: https://ocamlpro.github.io/techelson/user_doc/
