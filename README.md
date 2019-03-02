@@ -37,7 +37,7 @@ and run
 Techelson relies on the [dune] build system and a few other libraries:
 
 ```bash
-> opam install dune menhir zarith ptime
+> opam install dune menhir zarith ptime stdint
 ```
 
 (This list of dependencies might be out-of-date. Check `.travis.sh` for the latest version.) Finally, build Techelson with `make`. The binary will be `./bin/techelson`.
