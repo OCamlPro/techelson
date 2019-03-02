@@ -37,7 +37,7 @@ and run
 Techelson relies on the [dune] build system and a few other libraries:
 
 ```bash
-> opam install dune menhir zarith ptime
+> opam install dune menhir zarith ptime stdint
 ```
 
 (This list of dependencies might be out-of-date. Check `.travis.sh` for the latest version.) Finally, build Techelson with `make`. The binary will be `./bin/techelson`.
@@ -66,5 +66,5 @@ For example
 [dune]: https://github.com/ocaml/dune
 [mdbook]: https://github.com/rust-lang-nursery/mdBook
 [Liquidity]: http://www.liquidity-lang.org/
-[adrienchampion.github.io/blog]: https://adrienchampion.github.io/blog
-[the main repository's github pages]: https://adrienchampion.github.io/blog/tezos/techelson/with_liquidity/index.html
+[adrienchampion.github.io/blog]: https://adrienchampion.github.io/blog/tezos/techelson/with_liquidity/index.html
+[the main repository's github pages]: https://ocamlpro.github.io/techelson/user_doc/

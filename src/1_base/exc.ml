@@ -20,13 +20,26 @@ module Protocol = struct
     | Failure of string
     | TooPoor of string * string * Int64.t
     | MutezOvrflw of string
+    | MutezUdrflw of string
+    | DivZero of string
     | Tezos of string
 
     let fmt (fmt : formatter) (self : t) : unit =
         match self with
         | Failure blah -> fprintf fmt "Failure on value %s" blah
         | Tezos blah -> fprintf fmt "%s" blah
-        | MutezOvrflw blah -> fprintf fmt "mutez operation overflow: %s" blah
+        | MutezOvrflw blah -> (
+            fprintf fmt "mutez operation overflow";
+            if blah <> "" then fprintf fmt ": %s" blah
+        )
+        | MutezUdrflw blah -> (
+            fprintf fmt "mutez operation underflow";
+            if blah <> "" then fprintf fmt ": %s" blah
+        )
+        | DivZero blah -> (
+            fprintf fmt "division by zero";
+            if blah <> "" then fprintf fmt ": %s" blah
+        )
         | TooPoor (src, tgt, mutez) ->
             fprintf fmt
                 "@[<hov>insufficient balance to process transaction of %s mutez"
@@ -62,6 +75,12 @@ module Throw = struct
 
     let mutez_overflow (blah : string) : 'a =
         Exc (Protocol (Protocol.MutezOvrflw blah)) |> raise
+
+    let mutez_underflow (blah : string) : 'a =
+        Exc (Protocol (Protocol.MutezUdrflw blah)) |> raise
+
+    let div_zero (blah : string) : 'a =
+        Exc (Protocol (Protocol.DivZero blah)) |> raise
 end
 
 let rec fmt (fmtt : formatter) (e : exn) : unit =

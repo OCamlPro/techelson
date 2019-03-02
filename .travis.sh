@@ -28,7 +28,7 @@ opam switch create techelson 4.07.1
 eval $(opam config env)
 
 opam update
-opam install dune menhir zarith ptime
+opam install dune menhir zarith ptime stdint
 
 opam --version
 

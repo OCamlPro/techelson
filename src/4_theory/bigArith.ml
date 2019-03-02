@@ -28,6 +28,8 @@ end
 module BNat = struct
     include BigInt
 
+    let fmt fmt n = fprintf fmt "%ap" Z.pp_print n
+
     let of_string (s : string) : t =
         let nat = Z.of_string s in
         if Z.geq nat Z.zero then nat

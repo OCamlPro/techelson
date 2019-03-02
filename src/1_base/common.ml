@@ -223,19 +223,33 @@ let rec indent (fmt : formatter) (count : int) : unit =
         count - 1 |> indent fmt
     ) else ()
 
-let log (lvl : int) (args : ('a, formatter, unit) format) : 'a =
+let log (must_indent : bool) (lvl : int) (args : ('a, formatter, unit) format) : 'a =
     if lvl <= (!conf_ref).verb then (
-        (lvl - 1) * 4 |> indent out;
+        if lvl > 0 && must_indent then (
+            (lvl - 1) * 4 |> indent out
+        );
         fprintf out args;
     ) else (
         ifprintf out args
     )
 
-let log_0 (args : ('a, Format.formatter, unit) format) : 'a = log 0 args
-let log_1 (args : ('a, Format.formatter, unit) format) : 'a = log 1 args
-let log_2 (args : ('a, Format.formatter, unit) format) : 'a = log 2 args
-let log_3 (args : ('a, Format.formatter, unit) format) : 'a = log 3 args
-let log_4 (args : ('a, Format.formatter, unit) format) : 'a = log 4 args
+let log_0 (args : ('a, Format.formatter, unit) format) : 'a = log false 0 args
+let log_1 (args : ('a, Format.formatter, unit) format) : 'a = log false 1 args
+let log_2
+    ?indent:(indent=true)
+    (args : ('a, Format.formatter, unit) format)
+    : 'a
+= log indent 2 args
+let log_3
+    ?indent:(indent=true)
+    (args : ('a, Format.formatter, unit) format)
+    : 'a
+= log indent 3 args
+let log_4
+    ?indent:(indent=true)
+    (args : ('a, Format.formatter, unit) format)
+    : 'a
+= log indent 4 args
 
 let catch_exn (f : unit -> 'a) : ('a, exn) Either.t =
     try f () |> Either.lft with
