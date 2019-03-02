@@ -21,69 +21,92 @@ module Theory (
         include P
 
         module Tez = struct
-            type t = Int64.t
+            open Stdint
+            type t = Uint64.t
             type nat = Nat.t
 
             let to_string (t : t) : string =
-                Int64.to_string t
+                Uint64.to_string t
 
             let fmt (fmt : formatter) (t : t) : unit =
-                Int64.to_string t |> fprintf fmt "%sutz"
+                Uint64.to_string t |> fprintf fmt "%sutz"
 
             let to_nat (t : t) : nat =
-                (fun () -> Int64.to_string t |> Nat.of_string)
+                (fun () -> Uint64.to_string t |> Nat.of_string)
                 |> Exc.erase_err (
                     fun () -> asprintf "cannot convert %a to nat" fmt t
                 )
             let of_nat (n : nat) : t =
-                (fun () -> Nat.to_string n |> Int64.of_string)
+                (fun () -> Nat.to_string n |> Uint64.of_string)
                 |> Exc.chain_err (
                     fun () -> asprintf "cannot convert %a to mutez" Nat.fmt n
                 )
 
             let of_string (s : string) : t =
-                (fun () -> Int64.of_string s)
+                (fun () -> Uint64.of_string s)
                 |> Exc.erase_err (
-                    fun () -> sprintf "cannot convert string `%s` to tezos" s
+                    fun () -> sprintf "cannot convert string `%s` to mutez" s
                 )
-            let of_native (n : Int64.t) : t = n
-            let to_native (t : t) : Int64.t = t
+            let of_native (n : Int64.t) : t = Uint64.of_int64 n
+            let to_native (t : t) : Int64.t = Uint64.to_int64 t
 
             let add (t_1 : t) (t_2 : t) : t =
-                let overflow_if_gt_zero = Int64.sub Int64.max_int t_1 |> Int64.compare t_2 in
-                if overflow_if_gt_zero <= 0 then
-                    Int64.add t_1 t_2
-                else (
-                    asprintf "while adding %a and %a" fmt t_1 fmt t_2
-                    |> Exc.Throw.mutez_overflow
+                (fun () ->
+                    let overflow_if_gt_zero =
+                        Uint64.sub Uint64.max_int t_1 |> Uint64.compare t_2
+                    in
+                    if overflow_if_gt_zero <= 0
+                    then Uint64.add t_1 t_2
+                    else Exc.Throw.mutez_overflow ""
+                )
+                |> Exc.chain_err (
+                    fun () -> asprintf "while evaluating `%a + %a`" fmt t_1 fmt t_2
                 )
 
             let sub (t_1 : t) (t_2 : t) : t =
-                if t_1 < t_2 then (
-                    sprintf
-                        "underflow on thezos subtraction `%s - %s`"
-                        (Int64.to_string t_1) (Int64.to_string t_2)
-                    |> Exc.throw
-                ) else Int64.sub t_1 t_2
+                (fun () ->
+                    if t_1 < t_2
+                    then Exc.Throw.mutez_underflow ""
+                    else Uint64.sub t_1 t_2
+                )
+                |> Exc.chain_err (
+                    fun () -> asprintf "while evaluating `%a - %a`" fmt t_1 fmt t_2
+                )
+
             let mul_nat (t : t) (n : nat) : t =
-                (fun () -> of_nat n |> Int64.mul t)
-                |> Exc.erase_err (
+                (fun () ->
+                    let n_64 = Nat.to_string n |> of_string in
+                    let div = Uint64.div Uint64.max_int n_64 in
+                    if t > div then Exc.Throw.mutez_overflow "";
+                    of_nat n |> Uint64.mul t
+                )
+                |> Exc.chain_err (
                     fun () -> asprintf "while evaluating `%a * %a`" fmt t Nat.fmt n
                 )
+
             let div_nat (t : t) (n : nat) : t =
-                (fun () -> of_nat n |> Int64.mul t)
-                |> Exc.erase_err (
+                (fun () ->
+                    if n = Nat.zero
+                    then Exc.Throw.div_zero ""
+                    else of_nat n |> Uint64.div t
+                )
+                |> Exc.chain_err (
                     fun () -> asprintf "while evaluating `%a / %a`" fmt t Nat.fmt n
                 )
             let div (t_1 : t) (t_2 : t) : t =
-                if t_2 = Int64.zero then (
-                    asprintf "cannot divide by zero in `%a / %a`" fmt t_1 fmt t_2
-                    |> Exc.throw
-                );
-                Int64.div t_1 t_2
+                (fun () ->
+                    if t_2 = Uint64.zero
+                    then Exc.Throw.div_zero ""
+                    else Uint64.div t_1 t_2
+                )
+                |> Exc.chain_err (
+                    fun () -> asprintf "while evaluating `%a / %a`" fmt t_1 fmt t_2
+                )
+
             let compare (t_1 : t) (t_2 : t) : int =
                 compare t_1 t_2
-            let zero : t = Int64.zero
+
+            let zero : t = Uint64.zero
         end
 
         type t =

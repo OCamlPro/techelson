@@ -38,6 +38,13 @@ module Protocol : sig
 
         Can happen either during a transfer or during operations on mutez.
     *)
+    | MutezUdrflw of string
+    (** Mutez underflow.
+
+        Can happen either during a transfer or during operations on mutez.
+    *)
+    | DivZero of string
+    (** Division by zero. *)
     | Tezos of string
     (** Something went wrong in the protocol.
 
@@ -79,6 +86,12 @@ module Throw : sig
 
     (** Raises a mutez overflow error. *)
     val mutez_overflow : string -> 'a
+
+    (** Raises a mutez underflow error. *)
+    val mutez_underflow : string -> 'a
+
+    (** Raises a division by zero error. *)
+    val div_zero : string -> 'a
 end
 
 (** Raises an exception from a single trace frame. *)

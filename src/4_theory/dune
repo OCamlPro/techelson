@@ -6,7 +6,8 @@
     (libraries
         base
         parse
-        zarith
         ptime
+        stdint
+        zarith
     )
 )
