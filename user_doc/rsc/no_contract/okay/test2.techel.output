@@ -2,6 +2,7 @@ $ techelson rsc/no_contract/okay/test2.techel
 Running test `Test2`
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 | "starting the test"                                                                              |
@@ -9,4 +10,6 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
 Done running test `Test2`

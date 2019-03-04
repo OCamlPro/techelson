@@ -2,6 +2,7 @@ $ techelson --contract rsc/simpleExample/contracts/simpleExample.tz -- rsc/simpl
 Running test `Create1`
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 |                                                                                         @storage |
@@ -30,10 +31,12 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [before creation] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 | address[1]                                                                                       |
@@ -44,8 +47,11 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [after creation] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
 Done running test `Create1`

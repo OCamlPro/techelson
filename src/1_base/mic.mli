@@ -129,6 +129,7 @@ type extension =
 | Step of string option
 | SetSource of t
 | SpawnContract of Dtyp.t
+| SetTimestamp
 
 (** Instructions. *)
 and 'sub ins =

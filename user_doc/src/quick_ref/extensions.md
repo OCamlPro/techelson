@@ -128,8 +128,18 @@ The following instructions are **only** legal in testcases:
     be the testcase. This allows to run `code` while pretending the testcase is a different live
     contract.
 
+- `SET_TIMESTAMP`
+
+    `timestamp :: 'S` `->` `'S`
+
+    Relevant section of this book: [Timestamp Control].
+
+    Sets the timestamp of the next block to some value. The default timestamp is
+    `1970-01-01T00:00:00Z`.
+
 [First Steps]: ../testing/basic.md (First Steps section)
 [Creating and Calling Contracts]: ../testing/contracts.md (Creating and Calling Contracts section)
 [Live Contract Inspection]: ../testing/inspection.md (Live Contract Inspection section)
 [Testing for Failures]: ../testing/failures.md (Testing for Failures section)
 [Usurpation of Identity]: ../testing/set_source.md (Usurpation of Identity section)
+[Timestamp Control]: ../testing/time.md (Timestame Control section)

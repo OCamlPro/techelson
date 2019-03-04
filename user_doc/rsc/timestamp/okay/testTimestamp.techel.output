@@ -1,0 +1,77 @@
+$ techelson --contract rsc/timestamp/contracts/timestamp.tz -- rsc/timestamp/okay/testTimestamp.techel
+Running test `TestTimestamp`
+
+running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
+applying operation CREATE[uid:1] (@address[2]@account, "b58check:manager", None, true, true, 0utz) 
+                       {
+                           storage unit ;
+                           parameter unit ;
+                           code ...;
+                       }
+   timestamp: 1970-01-01 00:00:00 +00:00
+   live contracts: none
+=> live contracts: <anonymous> (0utz) address[2]@account
+                   Timestamp (0utz) address[1]@contract
+
+running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
+applying operation TRANSFER[uid:2] address[0]@TestTimestamp -> address[1]@contract 10utz (Left Unit)
+   timestamp: 2019-01-01 11:00:00 +00:00
+   live contracts: <anonymous> (0utz) address[2]@account
+                   Timestamp (0utz) address[1]@contract
+
+running TRANSFER[uid:2] address[0]@TestTimestamp -> address[1]@contract 10utz (Left Unit)
+   timestamp: 2019-01-01 11:00:00 +00:00
+=> live contracts: <anonymous> (0utz) address[2]@account
+                   Timestamp (10utz) address[1]@contract
+
+running test script...
+   timestamp: 2019-01-01 11:00:00 +00:00
+
+applying operation MUST_FAIL[uid:4] "cannot send money, it has not been one week yet" : 
+string (TRANSFER[uid:3] address[0]@TestTimestamp -> address[1]@contract 0utz (Right address[2]@account))
+   timestamp: 2019-01-08 09:00:00 +00:00
+   live contracts: <anonymous> (0utz) address[2]@account
+                   Timestamp (10utz) address[1]@contract
+
+running TRANSFER[uid:3] address[0]@TestTimestamp -> address[1]@contract 0utz (Right address[2]@account)
+   timestamp: 2019-01-08 09:00:00 +00:00
+=> live contracts: <anonymous> (0utz) address[2]@account
+                   Timestamp (10utz) address[1]@contract
+failure confirmed on test operation
+  MUST_FAIL[uid:4] "cannot send money, it has not been one week yet" : 
+  string (TRANSFER[uid:3] address[0]@TestTimestamp -> address[1]@contract 0utz (Right address[2]@account))
+while running operation TRANSFER[uid:3] address[0]@TestTimestamp -> address[1]@contract 0utz (Right address[2]@account)
+failed with value "cannot send money, it has not been one week yet" : 
+string
+
+running test script...
+   timestamp: 2019-01-08 09:00:00 +00:00
+
+applying operation TRANSFER[uid:5] address[0]@TestTimestamp -> address[1]@contract 0utz (Right address[2]@account)
+   timestamp: 2019-01-08 11:00:00 +00:00
+   live contracts: <anonymous> (0utz) address[2]@account
+                   Timestamp (10utz) address[1]@contract
+
+running TRANSFER[uid:5] address[0]@TestTimestamp -> address[1]@contract 0utz (Right address[2]@account)
+   timestamp: 2019-01-08 11:00:00 +00:00
+=> live contracts: <anonymous> (0utz) address[2]@account
+                   Timestamp (10utz) address[1]@contract
+
+applying operation TRANSFER[uid:6] address[1]@contract -> address[2]@account 10utz Unit
+   timestamp: 2019-01-08 11:00:00 +00:00
+   live contracts: <anonymous> (0utz) address[2]@account
+                   Timestamp (10utz) address[1]@contract
+
+running TRANSFER[uid:6] address[1]@contract -> address[2]@account 10utz Unit
+   timestamp: 2019-01-08 11:00:00 +00:00
+=> live contracts: <anonymous> (10utz) address[2]@account
+                   Timestamp (0utz) address[1]@contract
+
+running test script...
+   timestamp: 2019-01-08 11:00:00 +00:00
+
+Done running test `TestTimestamp`

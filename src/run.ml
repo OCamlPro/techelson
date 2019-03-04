@@ -107,6 +107,8 @@ let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
 
             let rec test_loop (cxt : Cxt.run_test) : unit =
                 log_1 "@.running test script...@.";
+                Cxt.Test.timestamp cxt
+                |> log_1 "   timestamp: %a@." Cxt.Theory.TStamp.fmt;
                 log_2 "context: %a@." Cxt.Test.fmt cxt;
                 cond_step conf;
                 let events, next_state = Cxt.Test.run cxt in
@@ -117,21 +119,24 @@ let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
                     "testcase is done but there are still operations to process" ;
                 ]
                 | Some ops -> ops_loop ops
-                | None when is_done -> log_1 "Done running test `%s`@." test.name
+                | None when is_done -> log_1 "@.Done running test `%s`@." test.name
                 | None -> test_loop cxt
 
             and ops_loop (cxt : Cxt.apply_ops) : unit =
-                log_1 "@.";
                 let rec loop () =
-                    log_2 "context: %a@." Cxt.Ops.fmt cxt;
                     let print_state =
                         match Cxt.Ops.next_op cxt with
                         | Some op -> (
+                            log_1 "@.";
                             log_1 "applying operation %a@." Cxt.Env.Op.fmt op;
+                            log_2 "context: %a@." Cxt.Ops.fmt cxt;
+                            Cxt.Ops.timestamp cxt
+                            |> log_1 "   timestamp: %a@." Cxt.Theory.TStamp.fmt;
                             log_1 "   %a@." Cxt.Ops.fmt_contracts cxt;
                             true
                         )
                         | None ->
+                            log_2 "@.";
                             log_2 "no operations left@.";
                             false
                     in
@@ -153,6 +158,8 @@ let run_tests (conf : Conf.t) (cxt : Test.Testcases.t) : unit =
 
             and transfer_loop (cxt : Cxt.transfer) : unit =
                 log_1 "@.running %a@." Cxt.Transfer.fmt_op cxt;
+                Cxt.Transfer.timestamp cxt
+                |> log_1 "   timestamp: %a@." Cxt.Theory.TStamp.fmt;
                 if conf.step then (
                     let rec loop () : unit =
                         log_2 "Contract Transfer Step...";

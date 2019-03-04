@@ -75,7 +75,7 @@
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <ol class="chapter"><li><a href="../index.html"><strong aria-hidden="true">1.</strong> Techelson</a></li><li><a href="../michelson/index.html"><strong aria-hidden="true">2.</strong> Michelson</a></li><li><ol class="section"><li><a href="../michelson/simple_example.html"><strong aria-hidden="true">2.1.</strong> A Simple Example</a></li></ol></li><li><a href="../testing/index.html"><strong aria-hidden="true">3.</strong> Running Tests</a></li><li><ol class="section"><li><a href="../testing/basic.html"><strong aria-hidden="true">3.1.</strong> First Steps</a></li><li><a href="../testing/contracts.html"><strong aria-hidden="true">3.2.</strong> Creating and Calling Contracts</a></li><li><a href="../testing/inspection.html"><strong aria-hidden="true">3.3.</strong> Live Contract Inspection</a></li><li><a href="../testing/anonymous.html"><strong aria-hidden="true">3.4.</strong> Anonymous Contracts</a></li><li><a href="../testing/transfers.html"><strong aria-hidden="true">3.5.</strong> Transfers</a></li><li><a href="../testing/failures.html"><strong aria-hidden="true">3.6.</strong> Testing for Failures</a></li><li><a href="../testing/set_source.html"><strong aria-hidden="true">3.7.</strong> Usurpation of Identity</a></li></ol></li><li><a href="../testgen/index.html"><strong aria-hidden="true">4.</strong> Test Generation</a></li><li><ol class="section"><li><a href="../testgen/example.html"><strong aria-hidden="true">4.1.</strong> Example</a></li></ol></li><li><a href="../quick_ref/index.html"><strong aria-hidden="true">5.</strong> Quick Reference</a></li><li><ol class="section"><li><a href="../quick_ref/extensions.html"><strong aria-hidden="true">5.1.</strong> Extensions</a></li><li><a href="../quick_ref/usage.html" class="active"><strong aria-hidden="true">5.2.</strong> Command-Line Usage</a></li></ol></li></ol>
+            <ol class="chapter"><li><a href="../index.html"><strong aria-hidden="true">1.</strong> Techelson</a></li><li><a href="../michelson/index.html"><strong aria-hidden="true">2.</strong> Michelson</a></li><li><ol class="section"><li><a href="../michelson/simple_example.html"><strong aria-hidden="true">2.1.</strong> A Simple Example</a></li></ol></li><li><a href="../testing/index.html"><strong aria-hidden="true">3.</strong> Running Tests</a></li><li><ol class="section"><li><a href="../testing/basic.html"><strong aria-hidden="true">3.1.</strong> First Steps</a></li><li><a href="../testing/contracts.html"><strong aria-hidden="true">3.2.</strong> Creating and Calling Contracts</a></li><li><a href="../testing/inspection.html"><strong aria-hidden="true">3.3.</strong> Live Contract Inspection</a></li><li><a href="../testing/anonymous.html"><strong aria-hidden="true">3.4.</strong> Anonymous Contracts</a></li><li><a href="../testing/transfers.html"><strong aria-hidden="true">3.5.</strong> Transfers</a></li><li><a href="../testing/failures.html"><strong aria-hidden="true">3.6.</strong> Testing for Failures</a></li><li><a href="../testing/set_source.html"><strong aria-hidden="true">3.7.</strong> Usurpation of Identity</a></li><li><a href="../testing/time.html"><strong aria-hidden="true">3.8.</strong> Timestamp Control</a></li></ol></li><li><a href="../testgen/index.html"><strong aria-hidden="true">4.</strong> Test Generation</a></li><li><ol class="section"><li><a href="../testgen/example.html"><strong aria-hidden="true">4.1.</strong> Example</a></li></ol></li><li><a href="../quick_ref/index.html"><strong aria-hidden="true">5.</strong> Quick Reference</a></li><li><ol class="section"><li><a href="../quick_ref/extensions.html"><strong aria-hidden="true">5.1.</strong> Extensions</a></li><li><a href="../quick_ref/usage.html" class="active"><strong aria-hidden="true">5.2.</strong> Command-Line Usage</a></li></ol></li></ol>
         </nav>
 
         <div id="page-wrapper" class="page-wrapper">
@@ -185,49 +185,63 @@ done generating tests for contract SimpleExample
 Running test `SimpleExampleTest1`
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation CREATE[uid:0] (@address[1], &quot;blake2b:11a6ffbc9fb85&quot;, None, false, false, 638557938255190utz) &quot;SimpleExample&quot;
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: none
 =&gt; live contracts: SimpleExample (638557938255190utz) address[1]
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation TRANSFER[uid:1] address[0]@SimpleExampleTest1 -&gt; address[1] 120584798270008utz True
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: SimpleExample (638557938255190utz) address[1]
 
 running TRANSFER[uid:1] address[0]@SimpleExampleTest1 -&gt; address[1] 120584798270008utz True
+   timestamp: 1970-01-01 00:00:00 +00:00
 =&gt; live contracts: SimpleExample (759142736525198utz) address[1]
 
-
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
 Done running test `SimpleExampleTest1`
 Running test `SimpleExampleTest2`
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation CREATE[uid:0] (@address[3], &quot;blake2b:&quot;, (Some &quot;blake2b:&quot;), true, true, 290035844265409utz) &quot;SimpleExample&quot;
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: none
 =&gt; live contracts: SimpleExample (290035844265409utz) address[3]
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation TRANSFER[uid:1] address[2]@SimpleExampleTest2 -&gt; address[3] 520090578679187utz True
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: SimpleExample (290035844265409utz) address[3]
 
 running TRANSFER[uid:1] address[2]@SimpleExampleTest2 -&gt; address[3] 520090578679187utz True
+   timestamp: 1970-01-01 00:00:00 +00:00
 =&gt; live contracts: SimpleExample (810126422944596utz) address[3]
 
-
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation TRANSFER[uid:2] address[2]@SimpleExampleTest2 -&gt; address[3] 845034275504874utz False
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: SimpleExample (810126422944596utz) address[3]
 
 running TRANSFER[uid:2] address[2]@SimpleExampleTest2 -&gt; address[3] 845034275504874utz False
+   timestamp: 1970-01-01 00:00:00 +00:00
 =&gt; live contracts: SimpleExample (1655160698449470utz) address[3]
 
-
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
 Done running test `SimpleExampleTest2`
 
 </code></pre>

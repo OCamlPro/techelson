@@ -11,6 +11,7 @@
     - [Transfers](testing/transfers.md)
     - [Testing for Failures](testing/failures.md)
     - [Usurpation of Identity](testing/set_source.md)
+    - [Timestamp Control](testing/time.md)
 - [Test Generation](testgen/index.md)
     - [Example](testgen/example.md)
 - [Quick Reference](quick_ref/index.md)

@@ -88,7 +88,7 @@
     I_CREATE_CONTRACT
 
     I_GET_STORAGE I_GET_BALANCE I_APPLY_OPERATIONS I_PRINT_STACK I_MUST_FAIL I_STEP I_SET_SOURCE
-    I_SPAWN_CONTRACT
+    I_SPAWN_CONTRACT I_SET_TIMESTAMP
 %token <Base.Mic.hash_fun> I_HASH
 
 (* Tokens for macros. *)
@@ -388,6 +388,7 @@ instruction_leaf :
     | I_STEP
     ; blah = C_STR { Mic.Extension (Mic.Step (Some blah)) }
     | I_STEP { Mic.Extension (Mic.Step None) }
+    | I_SET_TIMESTAMP { Mic.Extension Mic.SetTimestamp }
 
     | hash = I_HASH { Mic.Leaf (Mic.Hash hash) }
 

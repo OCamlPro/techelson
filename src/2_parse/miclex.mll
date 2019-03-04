@@ -166,6 +166,7 @@
         "MUST_FAIL", I_MUST_FAIL ;
         "STEP", I_STEP ;
         "SET_SOURCE", I_SET_SOURCE ;
+        "SET_TIMESTAMP", I_SET_TIMESTAMP ;
 
         (* Constants. *)
         "Unit", C_UNIT ;

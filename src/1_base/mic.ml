@@ -341,6 +341,7 @@ type extension =
 | Step of string option
 | SetSource of t
 | SpawnContract of Dtyp.t
+| SetTimestamp
 
 and 'sub ins =
 | Leaf of leaf
@@ -524,6 +525,7 @@ let rec fmt_extension
     | Step opt -> unwrap_or "<none>" opt |> fprintf fmtt "STEP %s"
     | SetSource code -> fprintf fmtt "SET_SOURCE%a %a" annots () fmt code
     | SpawnContract dtyp -> fprintf fmtt "SPAWN_CONTRACT%a %a" annots () Dtyp.fmt dtyp
+    | SetTimestamp -> fprintf fmtt "SET_TIMESTAMP%a" annots ()
 
 (* Formats contracts. *)
 and fmt_contract

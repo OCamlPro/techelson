@@ -75,7 +75,7 @@
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <ol class="chapter"><li><a href="index.html"><strong aria-hidden="true">1.</strong> Techelson</a></li><li><a href="michelson/index.html"><strong aria-hidden="true">2.</strong> Michelson</a></li><li><ol class="section"><li><a href="michelson/simple_example.html"><strong aria-hidden="true">2.1.</strong> A Simple Example</a></li></ol></li><li><a href="testing/index.html"><strong aria-hidden="true">3.</strong> Running Tests</a></li><li><ol class="section"><li><a href="testing/basic.html"><strong aria-hidden="true">3.1.</strong> First Steps</a></li><li><a href="testing/contracts.html"><strong aria-hidden="true">3.2.</strong> Creating and Calling Contracts</a></li><li><a href="testing/inspection.html"><strong aria-hidden="true">3.3.</strong> Live Contract Inspection</a></li><li><a href="testing/anonymous.html"><strong aria-hidden="true">3.4.</strong> Anonymous Contracts</a></li><li><a href="testing/transfers.html"><strong aria-hidden="true">3.5.</strong> Transfers</a></li><li><a href="testing/failures.html"><strong aria-hidden="true">3.6.</strong> Testing for Failures</a></li><li><a href="testing/set_source.html"><strong aria-hidden="true">3.7.</strong> Usurpation of Identity</a></li></ol></li><li><a href="testgen/index.html"><strong aria-hidden="true">4.</strong> Test Generation</a></li><li><ol class="section"><li><a href="testgen/example.html"><strong aria-hidden="true">4.1.</strong> Example</a></li></ol></li><li><a href="quick_ref/index.html"><strong aria-hidden="true">5.</strong> Quick Reference</a></li><li><ol class="section"><li><a href="quick_ref/extensions.html"><strong aria-hidden="true">5.1.</strong> Extensions</a></li><li><a href="quick_ref/usage.html"><strong aria-hidden="true">5.2.</strong> Command-Line Usage</a></li></ol></li></ol>
+            <ol class="chapter"><li><a href="index.html"><strong aria-hidden="true">1.</strong> Techelson</a></li><li><a href="michelson/index.html"><strong aria-hidden="true">2.</strong> Michelson</a></li><li><ol class="section"><li><a href="michelson/simple_example.html"><strong aria-hidden="true">2.1.</strong> A Simple Example</a></li></ol></li><li><a href="testing/index.html"><strong aria-hidden="true">3.</strong> Running Tests</a></li><li><ol class="section"><li><a href="testing/basic.html"><strong aria-hidden="true">3.1.</strong> First Steps</a></li><li><a href="testing/contracts.html"><strong aria-hidden="true">3.2.</strong> Creating and Calling Contracts</a></li><li><a href="testing/inspection.html"><strong aria-hidden="true">3.3.</strong> Live Contract Inspection</a></li><li><a href="testing/anonymous.html"><strong aria-hidden="true">3.4.</strong> Anonymous Contracts</a></li><li><a href="testing/transfers.html"><strong aria-hidden="true">3.5.</strong> Transfers</a></li><li><a href="testing/failures.html"><strong aria-hidden="true">3.6.</strong> Testing for Failures</a></li><li><a href="testing/set_source.html"><strong aria-hidden="true">3.7.</strong> Usurpation of Identity</a></li><li><a href="testing/time.html"><strong aria-hidden="true">3.8.</strong> Timestamp Control</a></li></ol></li><li><a href="testgen/index.html"><strong aria-hidden="true">4.</strong> Test Generation</a></li><li><ol class="section"><li><a href="testgen/example.html"><strong aria-hidden="true">4.1.</strong> Example</a></li></ol></li><li><a href="quick_ref/index.html"><strong aria-hidden="true">5.</strong> Quick Reference</a></li><li><ol class="section"><li><a href="quick_ref/extensions.html"><strong aria-hidden="true">5.1.</strong> Extensions</a></li><li><a href="quick_ref/usage.html"><strong aria-hidden="true">5.2.</strong> Command-Line Usage</a></li></ol></li></ol>
         </nav>
 
         <div id="page-wrapper" class="page-wrapper">
@@ -291,6 +291,8 @@ contract/account, and to create operations in their name.</p>
 Running test `Test1`
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
 Done running test `Test1`
 
 </code></pre>
@@ -308,6 +310,7 @@ example above to <a href="../../rsc/no_contract/okay/test2.techel" title="The Te
 Running test `Test2`
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 | &quot;starting the test&quot;                                                                              |
@@ -315,6 +318,8 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
 Done running test `Test2`
 
 </code></pre>
@@ -341,6 +346,7 @@ make one step, read the state of the stack, <em>etc.</em></p>
 Running test `Test3`
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 | &quot;starting the test&quot;                                                                              |
@@ -348,10 +354,12 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [just started the test] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 | &quot;starting the test&quot;                                                                              |
@@ -363,10 +371,12 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [no information] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 | &quot;starting the test&quot;                                                                              |
@@ -374,10 +384,13 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [The string should be gone. Also, we're done.] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
 Done running test `Test3`
 
 </code></pre>
@@ -460,6 +473,7 @@ code {
 Running test `Create1`
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 |                                                                                         @storage |
@@ -488,10 +502,12 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [before creation] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 | address[1]                                                                                       |
@@ -502,10 +518,13 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [after creation] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
 Done running test `Create1`
 
 </code></pre>
@@ -557,6 +576,7 @@ techelson resumes the execution of the testcase.</p>
 Running test `Create2`
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 |                                                                                            @main |
@@ -568,16 +588,20 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [operation is now in a list] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation CREATE[uid:0] (@address[1]@main, &quot;sha512:manager address&quot;, None, true, true, 3utz) &quot;SimpleExample&quot;
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: none
 =&gt; live contracts: SimpleExample (3utz) address[1]@main
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 |                                                                                            @main |
@@ -586,10 +610,12 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [testing that contract exists] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 | address[1]@main                                                                                  |
@@ -600,6 +626,8 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
 Done running test `Create2`
 
 </code></pre>
@@ -677,12 +705,15 @@ of the contract deployed are correct.</p>
 Running test `Inspection`
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation CREATE[uid:0] (@address[1]@main, &quot;sha512:manager address&quot;, None, true, true, 3utz) &quot;SimpleExample&quot;
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: none
 =&gt; live contracts: SimpleExample (3utz) address[1]@main
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 | address[1]@main                                                                                  |
@@ -693,10 +724,12 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [retrieved the balance of the contract] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 | 0p                                                                                               |
@@ -704,10 +737,13 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [retrieved the storage of the contract] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
 Done running test `Inspection`
 
 </code></pre>
@@ -790,6 +826,7 @@ verbosity) as for <a href="../../rsc/simpleExample/okay/inspection.techel" title
 Running test `Anonymous`
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation CREATE[uid:0] (@address[1]@main, &quot;sha512:manager address&quot;, None, true, true, 3utz) 
                        {
@@ -797,10 +834,12 @@ applying operation CREATE[uid:0] (@address[1]@main, &quot;sha512:manager address
                            parameter bool ;
                            code ...;
                        }
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: none
 =&gt; live contracts: &lt;anonymous&gt; (3utz) address[1]@main
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 | address[1]@main                                                                                  |
@@ -811,10 +850,12 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [retrieved the balance of the contract] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 | 0p                                                                                               |
@@ -822,10 +863,13 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [retrieved the storage of the contract] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
 Done running test `Anonymous`
 
 </code></pre>
@@ -902,27 +946,34 @@ parameter equal to <code>False</code>, and the second transfers <code>13</code> 
 Running test `Transfer`
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation CREATE[uid:0] (@address[1]@main, &quot;sha512:manager address&quot;, None, true, true, 3utz) &quot;SimpleExample&quot;
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: none
 =&gt; live contracts: SimpleExample (3utz) address[1]@main
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation TRANSFER[uid:1] address[0]@Transfer -&gt; address[1]@main 7utz False
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: SimpleExample (3utz) address[1]@main
 
 running TRANSFER[uid:1] address[0]@Transfer -&gt; address[1]@main 7utz False
+   timestamp: 1970-01-01 00:00:00 +00:00
 =&gt; live contracts: SimpleExample (10utz) address[1]@main
 
 applying operation TRANSFER[uid:2] address[0]@Transfer -&gt; address[1]@main 13utz True
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: SimpleExample (10utz) address[1]@main
 
 running TRANSFER[uid:2] address[0]@Transfer -&gt; address[1]@main 13utz True
+   timestamp: 1970-01-01 00:00:00 +00:00
 =&gt; live contracts: SimpleExample (23utz) address[1]@main
 
-
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 | address[1]@main                                                                                  |
@@ -933,10 +984,12 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [retrieved the balance of the contract] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 | 1p                                                                                               |
@@ -944,10 +997,13 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [retrieved the storage of the contract] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
 Done running test `Transfer`
 
 </code></pre>
@@ -1084,6 +1140,7 @@ account. Testcase <a href="../../rsc/admins/okay/create.techel" title="The Creat
 Running test `Create`
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 | [ CREATE[uid:1] (@address[2]@new_admin, &quot;sha512:@new_admin_manager&quot;, None, true, true, 0utz) 
@@ -1125,14 +1182,17 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation CREATE[uid:2] (@address[3]@admins, &quot;sha512:@contract_manager&quot;, None, false, true, 0utz) &quot;Admins&quot;
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: none
 =&gt; live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
                    Admins (0utz) address[3]@admins
                    &lt;anonymous&gt; (0utz) address[1]@root
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 |                                                                                            @root |
@@ -1149,10 +1209,13 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [after applying creation operations.] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
 Done running test `Create`
 
 </code></pre>
@@ -1244,14 +1307,17 @@ few lines after the transfer:</p>
 Running test `MustFail`
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation CREATE[uid:2] (@address[3]@admins, &quot;sha512:@contract_manager&quot;, None, false, true, 0utz) &quot;Admins&quot;
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: none
 =&gt; live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
                    Admins (0utz) address[3]@admins
                    &lt;anonymous&gt; (0utz) address[1]@root
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 |                                                                                            @root |
@@ -1271,23 +1337,27 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation MUST_FAIL[uid:4] _ (TRANSFER[uid:3] address[0]@MustFail -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin)))
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
                    Admins (0utz) address[3]@admins
                    &lt;anonymous&gt; (0utz) address[1]@root
 
 running TRANSFER[uid:3] address[0]@MustFail -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin))
+   timestamp: 1970-01-01 00:00:00 +00:00
 =&gt; live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
                    Admins (0utz) address[3]@admins
                    &lt;anonymous&gt; (0utz) address[1]@root
-
 failure confirmed on test operation
   MUST_FAIL[uid:4] _ (TRANSFER[uid:3] address[0]@MustFail -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin)))
 while running operation TRANSFER[uid:3] address[0]@MustFail -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin))
 failed with value &quot;illegal access to admin account&quot; : string
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
 Done running test `MustFail`
 
 </code></pre>
@@ -1318,14 +1388,17 @@ Everything works fine here, and the output is</p>
 Running test `PreciseMustFail`
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation CREATE[uid:2] (@address[3]@admins, &quot;sha512:@contract_manager&quot;, None, false, true, 0utz) &quot;Admins&quot;
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: none
 =&gt; live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
                    Admins (0utz) address[3]@admins
                    &lt;anonymous&gt; (0utz) address[1]@root
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 |                                                                                            @root |
@@ -1345,24 +1418,28 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation MUST_FAIL[uid:4] &quot;illegal access to admin account&quot; : 
 string (TRANSFER[uid:3] address[0]@PreciseMustFail -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin)))
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
                    Admins (0utz) address[3]@admins
                    &lt;anonymous&gt; (0utz) address[1]@root
 
 running TRANSFER[uid:3] address[0]@PreciseMustFail -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin))
+   timestamp: 1970-01-01 00:00:00 +00:00
 =&gt; live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
                    Admins (0utz) address[3]@admins
                    &lt;anonymous&gt; (0utz) address[1]@root
-
 failure confirmed on test operation
   MUST_FAIL[uid:4] &quot;illegal access to admin account&quot; : string (TRANSFER[uid:3] address[0]@PreciseMustFail -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin)))
 while running operation TRANSFER[uid:3] address[0]@PreciseMustFail -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin))
 failed with value &quot;illegal access to admin account&quot; : string
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
 Done running test `PreciseMustFail`
 
 </code></pre>
@@ -1442,14 +1519,17 @@ pretend that <code>root</code> is the one adding a new administrator.</p>
 Running test `SetSource`
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation CREATE[uid:2] (@address[3]@admins, &quot;sha512:@contract_manager&quot;, None, false, true, 0utz) &quot;Admins&quot;
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: none
 =&gt; live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
                    Admins (0utz) address[3]@admins
                    &lt;anonymous&gt; (0utz) address[1]@root
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 |                                                                                            @root |
@@ -1479,10 +1559,12 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [no information] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 |                                                                                            @root |
@@ -1501,24 +1583,309 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation TRANSFER[uid:3] address[1]@root -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin))
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
                    Admins (0utz) address[3]@admins
                    &lt;anonymous&gt; (0utz) address[1]@root
 
 running TRANSFER[uid:3] address[1]@root -&gt; address[3]@admins 0utz (&quot;root&quot;, (&quot;new_admin&quot;, address[2]@new_admin))
+   timestamp: 1970-01-01 00:00:00 +00:00
 =&gt; live contracts: &lt;anonymous&gt; (0utz) address[2]@new_admin
                    Admins (0utz) address[3]@admins
                    &lt;anonymous&gt; (0utz) address[1]@root
 
-
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
 Done running test `SetSource`
 
 </code></pre>
 <p>Notice how, in the last <code>PRINT_STACK</code>, the sender of the transfer is now <code>root</code>:</p>
 <pre><code>TRANSFER[uid:3] address[1]@root -&gt; address[3]@admins ...
+</code></pre>
+<a class="header" href="#timestamp-control" id="timestamp-control"><h1>Timestamp Control</h1></a>
+<p>Some contracts need to reason about time, based on the timestamp of the block the computation takes
+place in. By default, the timestamp of all blocks in Techelson is <code>1970-01-01T00:00:00Z</code>. Testcases
+can set this timestamp to anything, the only constraint is that the new timestamp is older than the
+previous one. The relevant instruction is</p>
+<table><thead><tr><th align="left"> instruction </th><th align="center"> parameter </th><th align="center"> stack </th></tr></thead><tbody>
+<tr><td align="left"> <code>SET_TIMESTAMP</code> </td><td align="center"> none </td><td align="center"> <code>:: timestamp : 'S</code> </td></tr>
+<tr><td align="left">                 </td><td align="center">      </td><td align="center"> <code>-&gt; 'S</code>             </td></tr>
+</tbody></table>
+<p>As an example, consider the following contract <a href="../../rsc/timestamp/contracts/timestamp.tz" title="Timestamp contract">Timestamp</a> which takes <code>(or unit (contract unit))</code>:
+it</p>
+<ul>
+<li>receives money once <code>(Left Unit)</code>, and</li>
+<li>unlocks it if one week has passed since it receives money.</li>
+</ul>
+<p>To unlock the money, someone must call the contract and give it a unit contract to collect the
+money <code>(Right &lt;contract&gt;)</code>. Unlocking the money is only legal after one week (<code>604800</code> seconds) has
+passed since the money was received.</p>
+<p>The code follows. Its storage is <code>(option timestamp)</code> which stores the last time it receives money.
+The contract fails if asked to</p>
+<ul>
+<li>receive money but it's already storing money (its storage is not <code>None</code>),</li>
+<li>unlock the money but it hasn't received anything (its storage is <code>None</code>), and</li>
+<li>unlock the money but one week hasn't passed since it was received.</li>
+</ul>
+<pre><code class="language-mic ignore">storage (option timestamp) ;
+parameter (or unit (contract unit)) ;
+code {
+    UNPAIR @storage @param ;
+    IF_LEFT {
+        DROP ;
+        IF_NONE {
+            NOW ;
+            SOME ;
+            NIL operation ;
+            PAIR
+        } {
+            PUSH string &quot;cannot receive money twice&quot; ;
+            FAILWITH
+        }
+    } {
+        SWAP ;
+        IF_NONE {
+            PUSH string &quot;cannot send money, no money received&quot; ;
+            FAILWITH
+        } {
+            NOW ;
+            SUB ;
+            PUSH int 604800 ; # One week in seconds.
+            IFCMPGT {
+                PUSH string &quot;cannot send money, it has not been one week yet&quot; ;
+                FAILWITH
+            } {
+                BALANCE ;
+                UNIT ;
+                TRANSFER_TOKENS ;
+                DIP {
+                    NONE timestamp ;
+                    NIL operation
+                } ;
+                CONS ;
+                PAIR
+            }
+        }
+    } ;
+} ;
+</code></pre>
+<p>Let's go through <a href="../../rsc/timestamp/okay/testTimestamp.techel" title="TestTimestamp testcase">TestTimestamp</a>, the testcase for Timestamp. The first step should be unsurprising
+by now: deploy the contract and an account (so that we can unlock the money later).</p>
+<pre><code class="language-mic ignore">{
+    { # Deploy contract.
+        NONE timestamp ;
+        PUSH mutez 0 ;
+        PUSH bool False ;
+        PUSH bool True ;
+        NONE key_hash ;
+        PUSH key &quot;manager&quot; ;
+        HASH_KEY ;
+        CREATE_CONTRACT @contract &quot;Timestamp&quot; ;
+        DIP NIL operation ;
+        CONS ;
+    } ;
+
+    { # Deploy account to retrieve the money later on.
+        PUSH mutez 0 ;
+        PUSH bool True ;
+        NONE key_hash ;
+        PUSH key &quot;manager&quot; ;
+        HASH_KEY ;
+        CREATE_ACCOUNT @account ;
+        DIP SWAP
+    } ;
+
+    CONS ;
+    APPLY_OPERATIONS ;
+    SWAP ;
+
+    { # Retrieve contract.
+        CONTRACT (or unit (contract unit)) ;
+        IF_NONE {
+            PUSH string &quot;failed to retrieve contract&quot; ;
+            FAILWITH
+        } {}
+    } ;
+
+    DIP { # Retrieve account.
+        CONTRACT unit ;
+        IF_NONE {
+            PUSH string &quot;failed to retrieve account&quot; ;
+            FAILWITH
+        } {}
+    } ;
+</code></pre>
+<p>Next, let's set the timestamp to January 1 2019, 11am, and send some money to the contract.</p>
+<pre><code class="language-mic ignore">    { # Set timestamp.
+        PUSH timestamp &quot;2019-01-01T11:00:00Z&quot; ;
+        SET_TIMESTAMP
+    } ;
+
+    { # Send money to the account.
+        DUP ;
+        PUSH mutez 10 ;
+        UNIT ;
+        LEFT (contract unit) ;
+        TRANSFER_TOKENS ;
+        DIP NIL operation ;
+        CONS ;
+        APPLY_OPERATIONS
+    } ;
+</code></pre>
+<p>We now check the storage is what it should be:</p>
+<pre><code class="language-mic ignore">    { # Check the storage is correct.
+        DUP ;
+        GET_STORAGE (option timestamp) ;
+        IF_NONE {
+            PUSH string &quot;failed to retrieve storage&quot; ;
+            FAILWITH
+        } {
+            IF_NONE {
+                PUSH string &quot;storage should not be `None`&quot; ;
+                FAILWITH
+            } {
+                PUSH timestamp &quot;2019-01-01T11:00:00Z&quot; ;
+                IFCMPNEQ {
+                    PUSH string &quot;storage should be `2019-01-01T11:00:00Z`&quot; ;
+                    FAILWITH
+                } {}
+            }
+        }
+    } ;
+</code></pre>
+<p>Let's make sure unlocking the money before one week has passed fails. First, the testcase sets the
+timestamp to January 8 2019, <strong>9am</strong>, which is not one week later than the date at which we sent
+money to the contract. So this should fail.</p>
+<pre><code class="language-mic ignore">    { # Set timestamp to almost one week later.
+        PUSH timestamp &quot;2019-01-08T09:00:00Z&quot; ;
+        SET_TIMESTAMP
+    } ;
+
+    { # Try to retrieve the money.
+        DUP ;
+        PUSH mutez 0 ;
+        DUUUUP ;
+        RIGHT unit ;
+        TRANSFER_TOKENS ;
+        PUSH (option string) (Some &quot;cannot send money, it has not been one week yet&quot;) ;
+        MUST_FAIL string ;
+        DIP NIL operation ;
+        CONS ;
+        APPLY_OPERATIONS
+    } ;
+</code></pre>
+<p>Last, let's set the date to January 8 2019, 11am, at which point unlocking the money should work.</p>
+<pre><code class="language-mic ignore">    { # Set timestamp to exactly one week later.
+        PUSH timestamp &quot;2019-01-08T11:00:00Z&quot; ;
+        SET_TIMESTAMP
+    } ;
+
+    { # Try to retrieve the money.
+        DUP ;
+        PUSH mutez 0 ;
+        DUUUUP ;
+        RIGHT unit ;
+        TRANSFER_TOKENS ;
+        DIP NIL operation ;
+        CONS ;
+        APPLY_OPERATIONS
+    } ;
+
+    { # Check the account received it.
+        DROP ;
+        GET_BALANCE ;
+        PUSH mutez 10 ;
+        IFCMPNEQ {
+            PUSH string &quot;account's balance should be 10utz&quot; ;
+            FAILWITH
+        } {}
+    }
+}
+</code></pre>
+<p>All set. Running techelson yields the <a href="../../rsc/timestamp/okay/testTimestamp.techel.output" title="Techelson's output">following output</a>. It is split in two parts here, first up
+to the request to unlock the money on January 8 2019 at 9am, which should fail:</p>
+<pre><code>$ techelson --contract rsc/timestamp/contracts/timestamp.tz -- rsc/timestamp/okay/testTimestamp.techel
+Running test `TestTimestamp`
+
+running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
+applying operation CREATE[uid:1] (@address[2]@account, &quot;b58check:manager&quot;, None, true, true, 0utz) 
+                       {
+                           storage unit ;
+                           parameter unit ;
+                           code ...;
+                       }
+   timestamp: 1970-01-01 00:00:00 +00:00
+   live contracts: none
+=&gt; live contracts: &lt;anonymous&gt; (0utz) address[2]@account
+                   Timestamp (0utz) address[1]@contract
+
+running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
+applying operation TRANSFER[uid:2] address[0]@TestTimestamp -&gt; address[1]@contract 10utz (Left Unit)
+   timestamp: 2019-01-01 11:00:00 +00:00
+   live contracts: &lt;anonymous&gt; (0utz) address[2]@account
+                   Timestamp (0utz) address[1]@contract
+
+running TRANSFER[uid:2] address[0]@TestTimestamp -&gt; address[1]@contract 10utz (Left Unit)
+   timestamp: 2019-01-01 11:00:00 +00:00
+=&gt; live contracts: &lt;anonymous&gt; (0utz) address[2]@account
+                   Timestamp (10utz) address[1]@contract
+
+running test script...
+   timestamp: 2019-01-01 11:00:00 +00:00
+
+applying operation MUST_FAIL[uid:4] &quot;cannot send money, it has not been one week yet&quot; : 
+string (TRANSFER[uid:3] address[0]@TestTimestamp -&gt; address[1]@contract 0utz (Right address[2]@account))
+   timestamp: 2019-01-08 09:00:00 +00:00
+   live contracts: &lt;anonymous&gt; (0utz) address[2]@account
+                   Timestamp (10utz) address[1]@contract
+
+running TRANSFER[uid:3] address[0]@TestTimestamp -&gt; address[1]@contract 0utz (Right address[2]@account)
+   timestamp: 2019-01-08 09:00:00 +00:00
+=&gt; live contracts: &lt;anonymous&gt; (0utz) address[2]@account
+                   Timestamp (10utz) address[1]@contract
+failure confirmed on test operation
+  MUST_FAIL[uid:4] &quot;cannot send money, it has not been one week yet&quot; : 
+  string (TRANSFER[uid:3] address[0]@TestTimestamp -&gt; address[1]@contract 0utz (Right address[2]@account))
+while running operation TRANSFER[uid:3] address[0]@TestTimestamp -&gt; address[1]@contract 0utz (Right address[2]@account)
+failed with value &quot;cannot send money, it has not been one week yet&quot; : 
+string
+</code></pre>
+<p>So far so good. Finally, the rest of the output should go smoothly and succeed:</p>
+<pre><code>running test script...
+   timestamp: 2019-01-08 09:00:00 +00:00
+
+applying operation TRANSFER[uid:5] address[0]@TestTimestamp -&gt; address[1]@contract 0utz (Right address[2]@account)
+   timestamp: 2019-01-08 11:00:00 +00:00
+   live contracts: &lt;anonymous&gt; (0utz) address[2]@account
+                   Timestamp (10utz) address[1]@contract
+
+running TRANSFER[uid:5] address[0]@TestTimestamp -&gt; address[1]@contract 0utz (Right address[2]@account)
+   timestamp: 2019-01-08 11:00:00 +00:00
+=&gt; live contracts: &lt;anonymous&gt; (0utz) address[2]@account
+                   Timestamp (10utz) address[1]@contract
+
+applying operation TRANSFER[uid:6] address[1]@contract -&gt; address[2]@account 10utz Unit
+   timestamp: 2019-01-08 11:00:00 +00:00
+   live contracts: &lt;anonymous&gt; (0utz) address[2]@account
+                   Timestamp (10utz) address[1]@contract
+
+running TRANSFER[uid:6] address[1]@contract -&gt; address[2]@account 10utz Unit
+   timestamp: 2019-01-08 11:00:00 +00:00
+=&gt; live contracts: &lt;anonymous&gt; (10utz) address[2]@account
+                   Timestamp (0utz) address[1]@contract
+
+running test script...
+   timestamp: 2019-01-08 11:00:00 +00:00
+
+Done running test `TestTimestamp`
 </code></pre>
 <a class="header" href="#test-generation" id="test-generation"><h1>Test Generation</h1></a>
 <p>Techelson has a test generation feature. It is relatively naive: the testcases it generates do not
@@ -1555,21 +1922,27 @@ done generating test for contract SimpleExample
 Running test `SimpleExampleTest1`
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation CREATE[uid:0] (@address[1], &quot;blake2b:11a6ffbc9fb85&quot;, None, false, false, 638557938255190utz) &quot;SimpleExample&quot;
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: none
 =&gt; live contracts: SimpleExample (638557938255190utz) address[1]
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation TRANSFER[uid:1] address[0]@SimpleExampleTest1 -&gt; address[1] 120584798270008utz True
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: SimpleExample (638557938255190utz) address[1]
 
 running TRANSFER[uid:1] address[0]@SimpleExampleTest1 -&gt; address[1] 120584798270008utz True
+   timestamp: 1970-01-01 00:00:00 +00:00
 =&gt; live contracts: SimpleExample (759142736525198utz) address[1]
 
-
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
 Done running test `SimpleExampleTest1`
 
 </code></pre>
@@ -1760,6 +2133,13 @@ that fail because of insufficient balance, because this precise operation alread
 be the testcase. This allows to run <code>code</code> while pretending the testcase is a different live
 contract.</p>
 </li>
+<li>
+<p><code>SET_TIMESTAMP</code></p>
+<p><code>timestamp :: 'S</code> <code>-&gt;</code> <code>'S</code></p>
+<p>Relevant section of this book: <a href="quick_ref/../testing/time.html" title="Timestame Control section">Timestamp Control</a>.</p>
+<p>Sets the timestamp of the next block to some value. The default timestamp is
+<code>1970-01-01T00:00:00Z</code>.</p>
+</li>
 </ul>
 <a class="header" href="#command-line-options" id="command-line-options"><h1>Command-Line Options</h1></a>
 <blockquote>
@@ -1806,49 +2186,63 @@ done generating tests for contract SimpleExample
 Running test `SimpleExampleTest1`
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation CREATE[uid:0] (@address[1], &quot;blake2b:11a6ffbc9fb85&quot;, None, false, false, 638557938255190utz) &quot;SimpleExample&quot;
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: none
 =&gt; live contracts: SimpleExample (638557938255190utz) address[1]
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation TRANSFER[uid:1] address[0]@SimpleExampleTest1 -&gt; address[1] 120584798270008utz True
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: SimpleExample (638557938255190utz) address[1]
 
 running TRANSFER[uid:1] address[0]@SimpleExampleTest1 -&gt; address[1] 120584798270008utz True
+   timestamp: 1970-01-01 00:00:00 +00:00
 =&gt; live contracts: SimpleExample (759142736525198utz) address[1]
 
-
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
 Done running test `SimpleExampleTest1`
 Running test `SimpleExampleTest2`
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation CREATE[uid:0] (@address[3], &quot;blake2b:&quot;, (Some &quot;blake2b:&quot;), true, true, 290035844265409utz) &quot;SimpleExample&quot;
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: none
 =&gt; live contracts: SimpleExample (290035844265409utz) address[3]
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation TRANSFER[uid:1] address[2]@SimpleExampleTest2 -&gt; address[3] 520090578679187utz True
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: SimpleExample (290035844265409utz) address[3]
 
 running TRANSFER[uid:1] address[2]@SimpleExampleTest2 -&gt; address[3] 520090578679187utz True
+   timestamp: 1970-01-01 00:00:00 +00:00
 =&gt; live contracts: SimpleExample (810126422944596utz) address[3]
 
-
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation TRANSFER[uid:2] address[2]@SimpleExampleTest2 -&gt; address[3] 845034275504874utz False
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: SimpleExample (810126422944596utz) address[3]
 
 running TRANSFER[uid:2] address[2]@SimpleExampleTest2 -&gt; address[3] 845034275504874utz False
+   timestamp: 1970-01-01 00:00:00 +00:00
 =&gt; live contracts: SimpleExample (1655160698449470utz) address[3]
 
-
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
 Done running test `SimpleExampleTest2`
 
 </code></pre>

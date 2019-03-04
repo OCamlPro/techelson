@@ -142,7 +142,10 @@ module Interpreter (
         mutable balance : Theory.Tez.t ;
         amount : Theory.Tez.t ;
         mutable env : Env.t ;
+        mutable now : Theory.TStamp.t ;
     }
+
+    let timestamp (self : t) : Theory.TStamp.t = self.now
 
     let unify (self : t) (dtyp_1 : Dtyp.t) (dtyp_2 : Dtyp.t) : unit =
         Env.unify self.env dtyp_1 dtyp_2
@@ -1141,7 +1144,7 @@ module Interpreter (
                     (* ## Timestamps. *)
 
                     | Mic.Leaf Now ->
-                        let now = Theory.TStamp.now () |> Theory.Of.timestamp in
+                        let now = Theory.Of.timestamp self.now in
                         let dtyp = Dtyp.Timestamp |> Dtyp.mk_leaf ~alias in
                         Stack.push ~binding dtyp now self.stack;
                         None
@@ -1415,10 +1418,11 @@ module Interpreter (
                                 | Src.Test { address ; _ } -> address, address
                                 | Src.Contract { source ; address ; _ } -> source, address
                             in
+                            let now = self.now in
                             let info : Theory.transfer_info =
                                 {
                                     source ; sender ; target = address ;
-                                    contract ; amount ; param ;
+                                    contract ; amount ; param ; timestamp = now
                                 }
                             in
                             Theory.Of.Operation.transfer uid info
@@ -1588,6 +1592,31 @@ module Interpreter (
                         None
                     )
 
+                    | Mic.Extension (Mic.SetTimestamp) -> (
+                        let timestamp = Stack.Pop.timestamp self.stack |> fst in
+                        (
+                            match self.src with
+                            | Test _ -> (
+                                let now = self.now in
+                                if Theory.TStamp.compare now timestamp > 1 then (
+                                    asprintf
+                                        "illegal `SET_TIMESTAMP`, \
+                                        new time %a is earlier than old time %a"
+                                        Theory.TStamp.fmt timestamp Theory.TStamp.fmt now
+                                    |> Exc.throw
+                                )
+                            )
+                            | Contract _ ->
+                                Exc.throw
+                                    "illegal `SET_TIMESTAMP` instruction \
+                                    found in contract transfer"
+                        ) ;
+
+                        self.now <- timestamp;
+
+                        None
+                    )
+
                     (* Packing / Unpacking. *)
                     | Mic.Leaf Pack -> (
                         let value, dtyp = Stack.pop self.stack in
@@ -1661,6 +1690,7 @@ module Interpreter (
         (src : Src.t)
         ~(balance : Theory.Tez.t)
         ~(amount : Theory.Tez.t)
+        ~(now : Theory.TStamp.t)
         (env : Env.t)
         (values : (Theory.value * Dtyp.t * Annot.Var.t option) list)
         (inss : Mic.t list)
@@ -1676,6 +1706,7 @@ module Interpreter (
                 amount ;
                 src ;
                 env ;
+                now ;
             }
         in
         values |> List.iter (
@@ -1712,6 +1743,8 @@ module TestInterpreter (
         src : Src.t ;
     }
 
+    let timestamp (self : t) : Theory.TStamp.t = Run.timestamp self.interp
+
     let testcase (self : t) : Testcase.t = self.tc
 
     let contract_env (self : t) : Env.t = self.interp |> Run.contract_env
@@ -1729,7 +1762,13 @@ module TestInterpreter (
             |> Int64.div Int64.max_int
             |> Theory.Tez.of_native
         in
-        let interp = I.init src ~balance:many_tez ~amount:many_tez contracts [] [ tc.code ] in
+        let interp =
+            I.init src
+            ~balance:many_tez
+            ~amount:many_tez
+            ~now:Theory.TStamp.epoch
+            contracts [] [ tc.code ]
+        in
         { interp ; tc ; src }
 
     let step (self : t) : test_event option =

@@ -1,0 +1,41 @@
+storage (option timestamp) ;
+parameter (or unit (contract unit)) ;
+code {
+    UNPAIR @storage @param ;
+    IF_LEFT {
+        DROP ;
+        IF_NONE {
+            NOW ;
+            SOME ;
+            NIL operation ;
+            PAIR
+        } {
+            PUSH string "cannot receive money twice" ;
+            FAILWITH
+        }
+    } {
+        SWAP ;
+        IF_NONE {
+            PUSH string "cannot send money, no money received" ;
+            FAILWITH
+        } {
+            NOW ;
+            SUB ;
+            PUSH int 604800 ; # One week in seconds.
+            IFCMPGT {
+                PUSH string "cannot send money, it has not been one week yet" ;
+                FAILWITH
+            } {
+                BALANCE ;
+                UNIT ;
+                TRANSFER_TOKENS ;
+                DIP {
+                    NONE timestamp ;
+                    NIL operation
+                } ;
+                CONS ;
+                PAIR
+            }
+        }
+    } ;
+} ;

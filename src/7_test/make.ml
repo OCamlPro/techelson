@@ -130,6 +130,9 @@ module TestCxt (
         { test ; obsolete = false }
 
     module Test = struct
+        let timestamp (self : run_test) : Theory.TStamp.t =
+            RunTest.timestamp self.test
+
         let run (self : run_test) : Run.event list * apply_ops option =
             if self.obsolete then (
                 Exc.throw "trying to call `run` on an obsolete `run_test` value"
@@ -175,6 +178,9 @@ module TestCxt (
     end
 
     module Ops = struct
+        let timestamp (self : apply_ops) : Theory.TStamp.t =
+            RunTest.timestamp self.test
+
         let contract_env (self : apply_ops) : Env.t =
             RunTest.contract_env self.test
 
@@ -465,7 +471,7 @@ module TestCxt (
 
                         | Either.Lft (
                             Theory.Transfer {
-                                source ; sender ; target ; contract ; amount ; param
+                                source ; sender ; target ; contract ; amount ; param ; timestamp
                             }
                         ) -> (fun () ->
                             let tgt =
@@ -498,7 +504,8 @@ module TestCxt (
                             let dtyp = Dtyp.Pair (param_dtyp, storage_dtyp) |> Dtyp.mk in
                             let value = Theory.Of.pair param tgt.storage in
                             let transfer =
-                                Run.init src ~balance:tgt.balance ~amount contract_env [
+                                Run.init src
+                                    ~balance:tgt.balance ~amount ~now:timestamp contract_env [
                                     (value, dtyp, Some (Annot.Var.of_string "input"))
                                 ] [ tgt.contract.entry ]
                             in
@@ -543,6 +550,9 @@ module TestCxt (
     end
 
     module Transfer = struct
+        let timestamp (self : transfer) : Theory.TStamp.t =
+            RunTest.timestamp self.test
+
         let step (self : transfer) : (Run.event, apply_ops) Either.t option =
             let res =
                 (fun () -> Run.step self.transfer)

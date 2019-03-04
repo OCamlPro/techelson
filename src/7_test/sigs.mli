@@ -99,6 +99,9 @@ module type TestCxt = sig
             accessors.
         *)
         val fmt : formatter -> run_test -> unit
+
+        (** Timestamp of the current block. *)
+        val timestamp : run_test -> Theory.TStamp.t
     end
 
     (** Contains the operations related to `apply_ops`. *)
@@ -139,6 +142,9 @@ module type TestCxt = sig
 
         (** Formats the live contract in the environment. *)
         val fmt_contracts : formatter -> apply_ops -> unit
+
+        (** Timestamp of the current block. *)
+        val timestamp : apply_ops -> Theory.TStamp.t
     end
 
     (** Contains the operations related to `transfer`. *)
@@ -173,5 +179,8 @@ module type TestCxt = sig
 
         (** Formats the live contract in the environment. *)
         val fmt_contracts : formatter -> transfer -> unit
+
+        (** Timestamp of the current block. *)
+        val timestamp : transfer -> Theory.TStamp.t
     end
 end

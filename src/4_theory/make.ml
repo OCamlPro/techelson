@@ -454,6 +454,7 @@ module Theory (
         contract : Mic.contract ;
         amount : Tez.t ;
         param : value ;
+        timestamp : TStamp.t ;
     }
 
     and operation =

@@ -80,7 +80,7 @@ not the address of `root`. Hence, the transfer fails as it should and so does th
 The (relevant part of the) output is
 
 ```
-{{#include ../../rsc/admins/error/addAdmin.techel.output:86:90}}
+{{#include ../../rsc/admins/error/addAdmin.techel.output:93:97:}}
 ```
 
 You can see in the transfer the sender and the target of the transfer:
@@ -126,7 +126,7 @@ The test now passes successfully:
 Notice that Techelson lets you know the failure is confirmed:
 
 ```
-{{#include ../../rsc/admins/okay/mustFail.techel.output:43:46:}}
+{{#include ../../rsc/admins/okay/mustFail.techel.output:48:51:}}
 ```
 
 ## (More) Precise Failure Testing

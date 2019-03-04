@@ -1,0 +1,124 @@
+{
+    { # Deploy contract.
+        NONE timestamp ;
+        PUSH mutez 0 ;
+        PUSH bool False ;
+        PUSH bool True ;
+        NONE key_hash ;
+        PUSH key "manager" ;
+        HASH_KEY ;
+        CREATE_CONTRACT @contract "Timestamp" ;
+        DIP NIL operation ;
+        CONS ;
+    } ;
+
+    { # Deploy account to retrieve the money later on.
+        PUSH mutez 0 ;
+        PUSH bool True ;
+        NONE key_hash ;
+        PUSH key "manager" ;
+        HASH_KEY ;
+        CREATE_ACCOUNT @account ;
+        DIP SWAP
+    } ;
+
+    CONS ;
+    APPLY_OPERATIONS ;
+    SWAP ;
+
+    { # Retrieve contract.
+        CONTRACT (or unit (contract unit)) ;
+        IF_NONE {
+            PUSH string "failed to retrieve contract" ;
+            FAILWITH
+        } {}
+    } ;
+
+    DIP { # Retrieve account.
+        CONTRACT unit ;
+        IF_NONE {
+            PUSH string "failed to retrieve account" ;
+            FAILWITH
+        } {}
+    } ;
+
+    { # Set timestamp.
+        PUSH timestamp "2019-01-01T11:00:00Z" ;
+        SET_TIMESTAMP
+    } ;
+
+    { # Send money to the account.
+        DUP ;
+        PUSH mutez 10 ;
+        UNIT ;
+        LEFT (contract unit) ;
+        TRANSFER_TOKENS ;
+        DIP NIL operation ;
+        CONS ;
+        APPLY_OPERATIONS
+    } ;
+
+    { # Check the storage is correct.
+        DUP ;
+        GET_STORAGE (option timestamp) ;
+        IF_NONE {
+            PUSH string "failed to retrieve storage" ;
+            FAILWITH
+        } {
+            IF_NONE {
+                PUSH string "storage should not be `None`" ;
+                FAILWITH
+            } {
+                PUSH timestamp "2019-01-01T11:00:00Z" ;
+                IFCMPNEQ {
+                    PUSH string "storage should be `2019-01-01T11:00:00Z`" ;
+                    FAILWITH
+                } {}
+            }
+        }
+    } ;
+
+    { # Set timestamp to almost one week later.
+        PUSH timestamp "2019-01-08T09:00:00Z" ;
+        SET_TIMESTAMP
+    } ;
+
+    { # Try to retrieve the money.
+        DUP ;
+        PUSH mutez 0 ;
+        DUUUUP ;
+        RIGHT unit ;
+        TRANSFER_TOKENS ;
+        PUSH (option string) (Some "cannot send money, it has not been one week yet") ;
+        MUST_FAIL string ;
+        DIP NIL operation ;
+        CONS ;
+        APPLY_OPERATIONS
+    } ;
+
+    { # Set timestamp to exactly one week later.
+        PUSH timestamp "2019-01-08T11:00:00Z" ;
+        SET_TIMESTAMP
+    } ;
+
+    { # Try to retrieve the money.
+        DUP ;
+        PUSH mutez 0 ;
+        DUUUUP ;
+        RIGHT unit ;
+        TRANSFER_TOKENS ;
+        DIP NIL operation ;
+        CONS ;
+        APPLY_OPERATIONS
+    } ;
+
+    { # Check the account received it.
+        DROP ;
+        GET_BALANCE ;
+        PUSH mutez 10 ;
+        IFCMPNEQ {
+            PUSH string "account's balance should be 10utz" ;
+            FAILWITH
+        } {}
+    }
+}

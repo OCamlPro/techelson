@@ -2,6 +2,7 @@ $ techelson rsc/no_contract/okay/test3.techel
 Running test `Test3`
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 | "starting the test"                                                                              |
@@ -9,10 +10,12 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [just started the test] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 | "starting the test"                                                                              |
@@ -24,10 +27,12 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [no information] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 | "starting the test"                                                                              |
@@ -35,8 +40,11 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [The string should be gone. Also, we're done.] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
 Done running test `Test3`

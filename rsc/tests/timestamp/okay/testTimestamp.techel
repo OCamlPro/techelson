@@ -1,0 +1,72 @@
+{
+    NOW @storage ;
+    PUSH mutez 0 ;
+    PUSH bool False ;
+    PUSH bool True ;
+    NONE key_hash ;
+    PUSH key "manager" ;
+    HASH_KEY ;
+    CREATE_CONTRACT "Timestamp" ;
+    DIP NIL operation ;
+    CONS ;
+    APPLY_OPERATIONS ;
+
+    CONTRACT (or unit (contract unit)) ;
+    IF_NONE {
+        PUSH string "failed to retrieve contract" ;
+        FAILWITH
+    } {};
+
+    DUP ;
+    PUSH mutez 10 ;
+    UNIT ;
+    LEFT (contract unit) ;
+    TRANSFER_TOKENS ;
+    DIP NIL operation ;
+    CONS ;
+    APPLY_OPERATIONS ;
+
+    DUP ;
+    GET_STORAGE timestamp ;
+    IF_NONE {
+        PUSH string "failed to retrieve storage" ;
+        FAILWITH
+    } {
+        PUSH timestamp "1970-01-01T00:00:00Z" ;
+        IFCMPNEQ {
+            PUSH string "storage should be `1970-01-01T00:00:00Z`" ;
+            FAILWITH
+        } {}
+    } ;
+
+    PUSH int 1234578910 ;
+    NOW ;
+    ADD ;
+    SET_TIMESTAMP ;
+
+    DUP ;
+
+    PUSH mutez 10 ;
+    UNIT ;
+    LEFT (contract unit) ;
+    TRANSFER_TOKENS ;
+    DIP NIL operation ;
+    CONS ;
+    APPLY_OPERATIONS ;
+
+    DUP ;
+
+    GET_STORAGE timestamp ;
+    IF_NONE {
+        PUSH string "failed to retrieve storage" ;
+        FAILWITH
+    } {
+        PUSH timestamp "2009-02-14T02:35:10Z" ;
+        IFCMPNEQ {
+            PUSH string "storage should be `2009-02-14T02:35:10Z`" ;
+            FAILWITH
+        } {
+            DROP
+        }
+    } ;
+}
