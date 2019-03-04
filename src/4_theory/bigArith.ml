@@ -114,7 +114,7 @@ end
 module BTStamp = struct
     type t = BInt.t
 
-    let now () : t = BInt.zero
+    let epoch : t = BInt.zero
 
     let to_string (t : t) : string = BInt.to_string t
     let of_native (s : string) : t = BInt.of_string s
@@ -125,7 +125,7 @@ end
 module PTStamp = struct
     type t = Ptime.t
 
-    let now () : t = Ptime.epoch
+    let epoch : t = Ptime.epoch
 
     let to_string (t : t) : string = asprintf "%a" Ptime.pp t
     let of_native (s : string) : t =
@@ -160,20 +160,20 @@ module PTStampConv = struct
 
     let int_to_tstamp (i : int) : t_stamp =
         let span = Z.to_float i |> Ptime.Span.of_float_s in
-        match span |> Opt.and_then (PTStamp.now () |> Ptime.add_span) with
+        match span |> Opt.and_then (PTStamp.epoch |> Ptime.add_span) with
         | Some res -> res
         | None -> asprintf "failed to convert integer %a to timestamp" BInt.fmt i |> Exc.throw
 
     let add (t : t_stamp) (i : int) : t_stamp =
         let span = BInt.to_native i |> Ptime.Span.of_int_s in
-        match Ptime.add_span (PTStamp.now ()) span with
+        match Ptime.add_span PTStamp.epoch span with
         | Some res -> res
         | None ->
             asprintf "failed to add %a seconds to timestamp %a" BInt.fmt i PTStamp.fmt t
             |> Exc.throw
     let sub_int (t : t_stamp) (i : int) : t_stamp =
         let span = BInt.to_native i |> Ptime.Span.of_int_s in
-        match Ptime.sub_span (PTStamp.now ()) span with
+        match Ptime.sub_span PTStamp.epoch span with
         | Some res -> res
         | None ->
             asprintf "failed to sub %a seconds to timestamp %a" BInt.fmt i PTStamp.fmt t

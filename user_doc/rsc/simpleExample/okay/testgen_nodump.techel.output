@@ -3,19 +3,25 @@ done generating test for contract SimpleExample
 Running test `SimpleExampleTest1`
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation CREATE[uid:0] (@address[1], "blake2b:11a6ffbc9fb85", None, false, false, 638557938255190utz) "SimpleExample"
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: none
 => live contracts: SimpleExample (638557938255190utz) address[1]
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation TRANSFER[uid:1] address[0]@SimpleExampleTest1 -> address[1] 120584798270008utz True
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: SimpleExample (638557938255190utz) address[1]
 
 running TRANSFER[uid:1] address[0]@SimpleExampleTest1 -> address[1] 120584798270008utz True
+   timestamp: 1970-01-01 00:00:00 +00:00
 => live contracts: SimpleExample (759142736525198utz) address[1]
 
-
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
 Done running test `SimpleExampleTest1`

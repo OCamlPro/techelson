@@ -2,27 +2,34 @@ $ techelson --contract rsc/simpleExample/contracts/simpleExample.tz -- rsc/simpl
 Running test `Transfer`
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation CREATE[uid:0] (@address[1]@main, "sha512:manager address", None, true, true, 3utz) "SimpleExample"
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: none
 => live contracts: SimpleExample (3utz) address[1]@main
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation TRANSFER[uid:1] address[0]@Transfer -> address[1]@main 7utz False
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: SimpleExample (3utz) address[1]@main
 
 running TRANSFER[uid:1] address[0]@Transfer -> address[1]@main 7utz False
+   timestamp: 1970-01-01 00:00:00 +00:00
 => live contracts: SimpleExample (10utz) address[1]@main
 
 applying operation TRANSFER[uid:2] address[0]@Transfer -> address[1]@main 13utz True
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: SimpleExample (10utz) address[1]@main
 
 running TRANSFER[uid:2] address[0]@Transfer -> address[1]@main 13utz True
+   timestamp: 1970-01-01 00:00:00 +00:00
 => live contracts: SimpleExample (23utz) address[1]@main
 
-
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 | address[1]@main                                                                                  |
@@ -33,10 +40,12 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [retrieved the balance of the contract] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 | 1p                                                                                               |
@@ -44,8 +53,11 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [retrieved the storage of the contract] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
 Done running test `Transfer`

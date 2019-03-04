@@ -2,6 +2,7 @@ $ techelson --contract rsc/admins/contracts/admins.tz -- rsc/admins/okay/create.
 Running test `Create`
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 | [ CREATE[uid:1] (@address[2]@new_admin, "sha512:@new_admin_manager", None, true, true, 0utz) 
@@ -43,14 +44,17 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation CREATE[uid:2] (@address[3]@admins, "sha512:@contract_manager", None, false, true, 0utz) "Admins"
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: none
 => live contracts: <anonymous> (0utz) address[2]@new_admin
                    Admins (0utz) address[3]@admins
                    <anonymous> (0utz) address[1]@root
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 |                                                                                            @root |
@@ -67,8 +71,11 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [after applying creation operations.] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
 Done running test `Create`

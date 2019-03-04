@@ -1,0 +1,12 @@
+storage timestamp ;
+parameter (or unit (contract unit)) ;
+code {
+    UNPAIR @storage @param ;
+    IF_LEFT {
+        NOW ;
+        NIL operation ;
+        PAIR
+    } {
+
+    } ;
+} ;

@@ -115,6 +115,7 @@ module type Interpreter = sig
         Src.t ->
         balance : Theory.Tez.t ->
         amount : Theory.Tez.t ->
+        now : Theory.TStamp.t ->
         Env.t ->
         (Theory.value * Dtyp.t * Annot.Var.t option) list ->
         Mic.t list ->
@@ -141,6 +142,9 @@ module type Interpreter = sig
         legal in testcases.)
     *)
     val run : t -> event
+
+    (** Timestamp of the transfer represented by an interpreter. *)
+    val timestamp : t -> Theory.TStamp.t
 
     (** Terminates a run.
 
@@ -203,6 +207,9 @@ module type TestInterpreter = sig
 
     (** Type of test interpreters. *)
     type t
+
+    (** Current timestamp of the test represented by a test interpreter. *)
+    val timestamp : t -> Theory.TStamp.t
 
     (** Contract environment of an interpreter. *)
     val contract_env : t -> Env.t

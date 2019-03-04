@@ -88,7 +88,7 @@ end
 module TStamp : Sigs.TStamp with type t = int = struct
     type t = int
 
-    let now () : t = 42. +. (100. *. Sys.time ()) |> Float.floor |> Float.to_int
+    let epoch : t = 42. +. (100. *. Sys.time ()) |> Float.floor |> Float.to_int
 
     let to_string (t : t) : string =
         sprintf "%i" t

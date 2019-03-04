@@ -2,12 +2,15 @@ $ techelson --contract rsc/simpleExample/contracts/simpleExample.tz -- rsc/simpl
 Running test `Inspection`
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 
 applying operation CREATE[uid:0] (@address[1]@main, "sha512:manager address", None, true, true, 3utz) "SimpleExample"
+   timestamp: 1970-01-01 00:00:00 +00:00
    live contracts: none
 => live contracts: SimpleExample (3utz) address[1]@main
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 | address[1]@main                                                                                  |
@@ -18,10 +21,12 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [retrieved the balance of the contract] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stack:
 |==================================================================================================|
 | 0p                                                                                               |
@@ -29,8 +34,11 @@ stack:
 |==================================================================================================|
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
 stopping [retrieved the storage of the contract] press `return` to continue
 
 
 running test script...
+   timestamp: 1970-01-01 00:00:00 +00:00
+
 Done running test `Inspection`

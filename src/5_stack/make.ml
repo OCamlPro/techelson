@@ -214,6 +214,18 @@ module Stack (S : Sigs.StackBase)
                 fun () -> "while popping bytes from the stack"
             )
 
+        let timestamp (self : t) : Theory.TStamp.t * Dtyp.t =
+            let run () =
+                match pop self with
+                | Theory.C (Theory.Cmp.Ts ts), dtyp -> ts, dtyp
+                | v, dtyp ->
+                    asprintf "found a value of type %a : %a" Dtyp.fmt dtyp Theory.fmt v
+                    |> Exc.throw
+            in
+            run |> Exc.chain_err (
+                fun () -> "while popping a timestamp from the stack"
+            )
+
         let key_hash (self : t) : Theory.KeyH.t * Dtyp.t =
             let run () =
                 match pop self with

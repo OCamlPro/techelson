@@ -202,7 +202,7 @@ module type TStamp = sig
     val of_native : string -> t
 
     (** Current timestamp. *)
-    val now : unit -> t
+    val epoch : t
 
     (** Timestamp comparison. *)
     val compare : t -> t -> int
@@ -778,6 +778,8 @@ module type Theory = sig
         (** Amount of money sent. *)
         param : value ;
         (** Parameter of the transfer. *)
+        timestamp : TStamp.t ;
+        (** Timestamp of the block in which the transfer takes place. *)
     }
 
     (** An operation in the (extended) michelson sense. *)
