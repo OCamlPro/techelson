@@ -2,7 +2,10 @@
 
 **[Techelson]** is a **T**est **E**xecution **E**nvironment (TEE) for [Michelson smart contracts].
 Michelson is the stack-based language used by the [tezos blockchain][tezos]. Techelson is open
-source and [hosted on github], where you can find the build instructions.
+source and [hosted on github], where you can find the build instructions. If you just want to
+retrieve a binary, head over to [releases].
+
+If you have problems or suggestions, help us make Techelson better by [opening an issue].
 
 Techelson emulates just enough of the tezos blockchain protocol to be able to create smart
 contracts and make transfers between contracts. Currently, techelson only aims at testing
@@ -34,6 +37,8 @@ The chapters of this book are
 All examples in this book are available in the [`rsc` directory of the github repository].
 
 [Techelson]: https://ocamlpro.github.io/techelson (Techelson's homepage)
+[releases]: https://github.com/OCamlPro/techelson/releases (Techelson's release page)
+[opening an issue]: https://github.com/OCamlPro/techelson/issues (Techelson's issue tracker)
 [Michelson smart contracts]: https://tezos.gitlab.io/master/whitedoc/michelson.html (Michelson documentation page)
 [tezos]: https://tezos.com (Tezos official page)
 [Liquidity]: http://www.liquidity-lang.org (Liquidity official page)

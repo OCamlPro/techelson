@@ -548,10 +548,12 @@ let print_testgen_help (fmt : formatter) : unit =
 
 (** Prints the top (no mode) help message. *)
 let print_top_help (fmt : formatter) : unit =
-    fprintf fmt "@[<v 4>USAGE:@ \
-        %s [OPTIONS] -- [FILES]*@ \
-        %a\
-    @]@." Sys.argv.(0) print_testgen_usage ();
+    fprintf fmt "@[<v>techelson v%a@ @ \
+        @[<v 4>USAGE:@ \
+            %s [OPTIONS] -- [FILES]*@ \
+            %a\
+        @]\
+    @]@." Version.fmt Version.current Sys.argv.(0) print_testgen_usage ();
     fprintf fmt "@.@[<v 4>OPTIONS:";
     fmt_options fmt Cla.options;
     fprintf fmt "@]@.";

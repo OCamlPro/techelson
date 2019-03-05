@@ -167,16 +167,20 @@ michelson, like in the example below</p>
 <li>
 <p><code>STEP</code> and <code>STEP &lt;string&gt;</code>:</p>
 <p><code>'S</code> <code>-&gt;</code> <code>'S</code></p>
-<p>Relevant section of this book: <a href="../testing/basic.html" title="First Steps section">First Steps</a>.</p>
+<p>Since <code>0.7.0</code>, relevant section of this book: <a href="../testing/basic.html" title="First Steps section">First Steps</a>.</p>
 <p>suspends the evaluator and prints a string, if any.</p>
 </li>
 <li>
 <p><code>PRINT_STACK</code>:</p>
 <p><code>'S</code> <code>-&gt;</code> <code>'S</code></p>
-<p>Relevant section of this book: <a href="../testing/basic.html" title="First Steps section">First Steps</a>.</p>
+<p>Since <code>0.7.0</code>, relevant section of this book: <a href="../testing/basic.html" title="First Steps section">First Steps</a>.</p>
 <p>prints the current state of the stack</p>
 </li>
 </ul>
+<blockquote>
+<p>Note that Techelson treats <code>#&gt;</code> as whitespaces. You can have <code>#&gt; STEP &quot;important step&quot; ;</code> in your
+contracts which keeps them pure Michelson, but Techelson will stop when it reaches the <code>STEP</code>.</p>
+</blockquote>
 <a class="header" href="#testcase-only-extensions" id="testcase-only-extensions"><h2>Testcase-only Extensions</h2></a>
 <p>The following instructions are <strong>only</strong> legal in testcases:</p>
 <ul>
@@ -184,7 +188,7 @@ michelson, like in the example below</p>
 <p><code>CREATE_CONTRACT &lt;string&gt;</code>:</p>
 <p><code>:: key_hash : option key_hash : bool : bool : mutez : 'g : 'S</code>
 <code>-&gt;</code> <code>operation : address : 'S</code></p>
-<p>Relevant section of this book: <a href="../testing/contracts.html" title="Creating and Calling Contracts section">Creating and Calling Contracts</a>.</p>
+<p>Since <code>0.7.0</code>, relevant section of this book: <a href="../testing/contracts.html" title="Creating and Calling Contracts section">Creating and Calling Contracts</a>.</p>
 <p>Creates an instance of the contract named after the string parameter. The type of the storage
 of the contract must be <code>'g</code>.</p>
 </li>
@@ -192,7 +196,7 @@ of the contract must be <code>'g</code>.</p>
 <p><code>SPAWN_CONTRACT 'g</code>:</p>
 <p><code>:: string : key_hash : option key_hash : bool : bool : mutez : 'g : 'S</code>
 <code>-&gt;</code> <code>operation : address : 'S</code></p>
-<p>Relevant section of this book: <a href="../testing/contracts.html" title="Creating and Calling Contracts section">Creating and Calling Contracts</a>.</p>
+<p>Since <code>0.7.0</code>, relevant section of this book: <a href="../testing/contracts.html" title="Creating and Calling Contracts section">Creating and Calling Contracts</a>.</p>
 <p>Exactly the same as the <code>CREATE_CONTRACT</code> extension above but the name of the contract is
 passed as a stack parameter, and the type of the storage is an explicit parameter of the
 instruction.</p>
@@ -200,7 +204,7 @@ instruction.</p>
 <li>
 <p><code>APPLY_OPERATIONS</code>:</p>
 <p><code>(list operation) : 'S</code> <code>-&gt;</code> <code>'S</code></p>
-<p>Relevant section of this book: <a href="../testing/contracts.html" title="Creating and Calling Contracts section">Creating and Calling Contracts</a>.</p>
+<p>Since <code>0.7.0</code>, relevant section of this book: <a href="../testing/contracts.html" title="Creating and Calling Contracts section">Creating and Calling Contracts</a>.</p>
 <ul>
 <li>consumes a list of operations</li>
 <li>suspends the execution of the testcase</li>
@@ -213,7 +217,7 @@ applied too)</li>
 <p><code>GET_STORAGE 'storage</code>:</p>
 <p><code>contract _ : 'S</code> <code>-&gt;</code> <code>(option 'storage) : 'S</code></p>
 <p><code>address : 'S</code> <code>-&gt;</code> <code>(option 'storage) : 'S</code></p>
-<p>Relevant section of this book: <a href="../testing/inspection.html" title="Live Contract Inspection section">Live Contract Inspection</a>.</p>
+<p>Since <code>0.7.0</code>, relevant section of this book: <a href="../testing/inspection.html" title="Live Contract Inspection section">Live Contract Inspection</a>.</p>
 <ul>
 <li>consumes a contract</li>
 <li>pushes <code>Some</code> of the current value of the storage of the contract if its storage has type
@@ -224,13 +228,13 @@ applied too)</li>
 <p><code>GET_BALANCE</code>:</p>
 <p><code>contract _ : 'S</code> <code>-&gt;</code> <code>mutez : 'S</code></p>
 <p><code>address : 'S</code> <code>-&gt;</code> <code>mutez : 'S</code></p>
-<p>Relevant section of this book: <a href="../testing/inspection.html" title="Live Contract Inspection section">Live Contract Inspection</a>.</p>
+<p>Since <code>0.7.0</code>, relevant section of this book: <a href="../testing/inspection.html" title="Live Contract Inspection section">Live Contract Inspection</a>.</p>
 <p>Same as <code>GET_STORAGE</code>, but pushes the balance of the contract instead of its storage</p>
 </li>
 <li>
 <p><code>MUST_FAIL 'a</code>:</p>
 <p><code>(option 'a) : operation : 'S</code> <code>-&gt;</code> <code>'S</code></p>
-<p>Relevant section of this book: <a href="../testing/failures.html" title="Testing for Failures section">Testing for Failures</a>.</p>
+<p>Since <code>0.7.0</code>, relevant section of this book: <a href="../testing/failures.html" title="Testing for Failures section">Testing for Failures</a>.</p>
 <p>Specifies that an operation (or the operation it creates recursively) must fail, and optionaly
 that it <code>FAIL</code>ed<code>WITH</code> a certain value. More precisely, the whole testcase will <strong>fail</strong> if the
 <code>operation</code> or the operations it creates recursively, <em>when applied</em>, either</p>
@@ -249,7 +253,7 @@ that fail because of insufficient balance, because this precise operation alread
 <li>
 <p><code>SET_SOURCE code</code>, with <code>code :: [ 'A -&gt; 'B ]</code></p>
 <p><code>address :: 'A</code> <code>-&gt;</code> <code>'B</code></p>
-<p>Relevant section of this book: <a href="../testing/set_source.html" title="Usurpation of Identity section">Usurpation of Identity</a>.</p>
+<p>Since <code>0.7.0</code>, relevant section of this book: <a href="../testing/set_source.html" title="Usurpation of Identity section">Usurpation of Identity</a>.</p>
 <p>Sets the source of the testcase. Without this extension, the source of all transfers can only
 be the testcase. This allows to run <code>code</code> while pretending the testcase is a different live
 contract.</p>
@@ -257,7 +261,7 @@ contract.</p>
 <li>
 <p><code>SET_TIMESTAMP</code></p>
 <p><code>timestamp :: 'S</code> <code>-&gt;</code> <code>'S</code></p>
-<p>Relevant section of this book: <a href="../testing/time.html" title="Timestame Control section">Timestamp Control</a>.</p>
+<p>Since <code>0.7.0</code>, relevant section of this book: <a href="../testing/time.html" title="Timestame Control section">Timestamp Control</a>.</p>
 <p>Sets the timestamp of the next block to some value. The default timestamp is
 <code>1970-01-01T00:00:00Z</code>.</p>
 </li>

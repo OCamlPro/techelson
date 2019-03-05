@@ -443,3 +443,18 @@ module Rng = struct
             Proba.Test.add_transfer >= rand
     end
 end
+
+module Version = struct
+    type t = int * int * int
+
+    let current : t = 0, 7, 0
+
+    let fmt (fmt : formatter) (v_1, v_2, v_3 : t) : unit =
+        fprintf fmt "%i.%i.%i" v_1 v_2 v_3
+
+    let cmp (v_1, v_2, v_3 : t) (t_1, t_2, t_3 : t) : int =
+        match compare v_1 t_1, compare v_2 t_2, compare v_3 t_3 with
+        | 0, 0, res -> res
+        | 0, res, _ -> res
+        | res, _, _ -> res
+end
