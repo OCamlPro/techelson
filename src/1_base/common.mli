@@ -304,3 +304,17 @@ module Rng : sig
         val transfer : unit -> bool
     end
 end
+
+module Version : sig
+    (** Version, from major to minor. *)
+    type t = int * int * int
+
+    (** Current version, from major to minor. *)
+    val current : t
+
+    (** Version formatter. *)
+    val fmt : formatter -> t -> unit
+
+    (** Version comparison. *)
+    val cmp : t -> t -> int
+end

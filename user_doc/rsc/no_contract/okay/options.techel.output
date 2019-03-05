@@ -1,4 +1,6 @@
 $ techelson --help
+techelson v0.7.0
+
 USAGE:
     ../bin/techelson [OPTIONS] -- [FILES]*
     ../bin/techelson [OPTIONS] testgen [TESTGEN_OPTIONS] [-- DIR]?

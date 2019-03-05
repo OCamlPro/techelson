@@ -28,7 +28,7 @@ The following instructions are legal in **testcases and contracts**:
 
     `'S` `->` `'S`
 
-    Relevant section of this book: [First Steps].
+    Since `0.7.0`, relevant section of this book: [First Steps].
 
     suspends the evaluator and prints a string, if any.
 
@@ -36,9 +36,12 @@ The following instructions are legal in **testcases and contracts**:
 
     `'S` `->` `'S`
 
-    Relevant section of this book: [First Steps].
+    Since `0.7.0`, relevant section of this book: [First Steps].
 
     prints the current state of the stack
+
+> Note that Techelson treats `#>` as whitespaces. You can have `#> STEP "important step" ;` in your
+> contracts which keeps them pure Michelson, but Techelson will stop when it reaches the `STEP`.
 
 ## Testcase-only Extensions
 
@@ -49,7 +52,7 @@ The following instructions are **only** legal in testcases:
     `:: key_hash : option key_hash : bool : bool : mutez : 'g : 'S`
     `->` `operation : address : 'S`
 
-    Relevant section of this book: [Creating and Calling Contracts].
+    Since `0.7.0`, relevant section of this book: [Creating and Calling Contracts].
 
     Creates an instance of the contract named after the string parameter. The type of the storage
     of the contract must be `'g`.
@@ -59,7 +62,7 @@ The following instructions are **only** legal in testcases:
     `:: string : key_hash : option key_hash : bool : bool : mutez : 'g : 'S`
     `->` `operation : address : 'S`
 
-    Relevant section of this book: [Creating and Calling Contracts].
+    Since `0.7.0`, relevant section of this book: [Creating and Calling Contracts].
 
     Exactly the same as the `CREATE_CONTRACT` extension above but the name of the contract is
     passed as a stack parameter, and the type of the storage is an explicit parameter of the
@@ -69,7 +72,7 @@ The following instructions are **only** legal in testcases:
 
     `(list operation) : 'S` `->` `'S`
 
-    Relevant section of this book: [Creating and Calling Contracts].
+    Since `0.7.0`, relevant section of this book: [Creating and Calling Contracts].
 
     - consumes a list of operations
     - suspends the execution of the testcase
@@ -83,7 +86,7 @@ The following instructions are **only** legal in testcases:
 
     `address : 'S` `->` `(option 'storage) : 'S`
 
-    Relevant section of this book: [Live Contract Inspection].
+    Since `0.7.0`, relevant section of this book: [Live Contract Inspection].
 
     - consumes a contract
     - pushes `Some` of the current value of the storage of the contract if its storage has type
@@ -95,7 +98,7 @@ The following instructions are **only** legal in testcases:
 
     `address : 'S` `->` `mutez : 'S`
 
-    Relevant section of this book: [Live Contract Inspection].
+    Since `0.7.0`, relevant section of this book: [Live Contract Inspection].
 
     Same as `GET_STORAGE`, but pushes the balance of the contract instead of its storage
 
@@ -103,7 +106,7 @@ The following instructions are **only** legal in testcases:
 
     `(option 'a) : operation : 'S` `->` `'S`
 
-    Relevant section of this book: [Testing for Failures].
+    Since `0.7.0`, relevant section of this book: [Testing for Failures].
 
     Specifies that an operation (or the operation it creates recursively) must fail, and optionaly
     that it `FAIL`ed`WITH` a certain value. More precisely, the whole testcase will **fail** if the
@@ -122,7 +125,7 @@ The following instructions are **only** legal in testcases:
 
     `address :: 'A` `->` `'B`
 
-    Relevant section of this book: [Usurpation of Identity].
+    Since `0.7.0`, relevant section of this book: [Usurpation of Identity].
 
     Sets the source of the testcase. Without this extension, the source of all transfers can only
     be the testcase. This allows to run `code` while pretending the testcase is a different live
@@ -132,7 +135,7 @@ The following instructions are **only** legal in testcases:
 
     `timestamp :: 'S` `->` `'S`
 
-    Relevant section of this book: [Timestamp Control].
+    Since `0.7.0`, relevant section of this book: [Timestamp Control].
 
     Sets the timestamp of the next block to some value. The default timestamp is
     `1970-01-01T00:00:00Z`.

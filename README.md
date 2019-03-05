@@ -1,6 +1,6 @@
-# Techelson
+# Techelson [![Build Status](https://travis-ci.org/AdrienChampion/techelson.svg?branch=master)](https://travis-ci.org/AdrienChampion/techelson)
 
-TEst miCHELSON: `techelson`
+TEst miCHELSON: `techelson`.
 
 A test execution engine for Michelson smart contracts.
 
