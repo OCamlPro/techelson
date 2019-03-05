@@ -49,7 +49,7 @@ You can also run `make test` to make sure there is no problem with the Techelson
 Assuming the binary Techelson is in you path, you can run it with
 
 ```bash
-> techelson [ --contract <contract_file> <optional_init_file> ]* -- [ <testcase> ]*
+> techelson [ --contract <contract_file> ]* -- [ <testcase> ]*
 ```
 
 Argument `<contract_file>` is a michelson contract (`storage`, `parameter` and `code` fields). `<optional_init_file>` is an optional initializer for the contract. It should contain two fields : `parameter` and `code`. The former is the type of data the initializer takes as input, and the latter is a (sequence of) michelson instruction(s) which, from a stack with a value of type `parameter`, produces a stack with a value of the `storage` type appearing in the `<contract_file>` associated with the initializer.
